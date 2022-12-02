@@ -1,9 +1,13 @@
 #pragma once
 
-namespace yakbas::constants {
+#include <string>
 
-    class ApplicationConstants {
-
-    };
-
+namespace yakbas {
+    namespace constants {
+        extern const std::string INVOICE_CLERK_CHANNEL;
+        extern const std::string MOBILITY_PROVIDER_CHANNEL;
+        extern const std::string PLATFORM_CHANNEL;
+        extern const std::string CLIENT_CHANNEL;
+        extern const std::string TRANSPORT_CHANNEL;
+    }
 } // constants
