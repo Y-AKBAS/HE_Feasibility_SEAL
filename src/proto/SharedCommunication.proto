@@ -1,0 +1,106 @@
+
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+package communication;
+
+message SearchRequest {
+  string from = 1;
+  string to = 2;
+  google.protobuf.Timestamp startTime = 3;
+  google.protobuf.Timestamp endTime = 4;
+}
+
+message SearchResponse {
+  repeated Ride rides = 1;
+}
+
+message Ride {
+  string rideId = 1;
+  string providerId = 2;
+  Transporter transporter = 3;
+  string from = 4;
+  string to = 5;
+  google.protobuf.Timestamp startTime = 6;
+  google.protobuf.Timestamp endTime = 7;
+  UnitPriceType unitPriceType = 8;
+  int32 unitPrice = 9;
+  int32 coefficient = 10;
+}
+
+message Transporter {
+  string providerId = 1;
+  TransporterType transporterType = 2;
+  int32 unitPrice = 3;
+  UnitPriceType unitPriceType = 4;
+  int32 capacity = 5;
+}
+
+message InvoicingRequest {
+  ProtoUser user = 1;
+  int32 price = 2;
+}
+
+message InvoicingResponse {
+  StatusCode status = 1;
+}
+
+message ProtoUser {
+  string firstName = 1;
+  string lastName = 2;
+  string email = 3;
+  Address address = 4;
+}
+
+message Address {
+  string street = 1;
+  string houseNumber = 2;
+  string postalCode = 3;
+  string city = 4;
+  string country = 5;
+}
+
+enum UnitPriceType {
+  FARE_ZONE = 0;
+  KM = 1;
+  MIN = 2;
+  DAY = 3;
+  WEEK = 4;
+  MONTH = 5;
+  YEAR = 6;
+}
+
+enum TransporterType {
+  SHARED_AUTO = 0;
+  REGIONAL_BAHN = 1;
+  AUTO = 2;
+  S_BAHN = 3;
+  TAXI = 4;
+  BUS = 5;
+  E_ROLLER = 6;
+  SCOOTER = 7;
+  BICYCLE = 8;
+  TRAM = 9;
+}
+
+enum StatusCode {
+  FAILED = 0;
+  SUCCESSFUL = 1;
+}
+
+enum BookingType{
+    RENTAL = 0;
+    RIDE = 1;
+}
+
+enum InvoicingClerkType {
+    UNKNOWN = 0;
+    DEBIT = 1;
+    PAYPAL = 2;
+    VISA = 3;
+    MASTER = 4;
+    GIROPAY = 5;
+    KLARNA = 6;
+}

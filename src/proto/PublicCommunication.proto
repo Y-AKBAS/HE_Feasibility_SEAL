@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "SharedCommunication.proto";
+package communication.pub;
+
+service PublicCommunicationService {
+  rpc createInvoice(InvoicingRequest) returns (InvoicingResponse);
+}
+
+message BookingRequest {
+  string ride_id = 1;
+  optional int32 seatNumber = 2;
+  BookingType bookingType = 3;
+  InvoicingClerkType invoicingClerkType = 4;
+  UnitPriceType unitPriceType = 5;
+  int32 unitPrice = 6;
+  int32 coefficient = 7;
+  int32 discountRate = 8;
+  optional int32 seatPrice = 9;
+}
