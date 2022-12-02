@@ -3,8 +3,10 @@
 namespace yakbas {
 
     class Application {
-        static void Run();
 
+    public:
+        static void Run();
+    private:
     };
 
 } // yakbas

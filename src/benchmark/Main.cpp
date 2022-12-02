@@ -1,6 +1,6 @@
-#include <iostream>
+#include "Application.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    yakbas::Application::Run();
     return 0;
 }

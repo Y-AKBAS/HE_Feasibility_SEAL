@@ -40,7 +40,7 @@
                 -I=${proto_file_dir} --cpp_out=${ARG_OUTPUT_DIR}
                 ${ARG_PROTO_FILE_ABSOLUTE})
 
-       set(${RESULT_FILES} "${proto_src}" "${grpc_src}" PARENT_SCOPE)
+        set(${RESULT_FILES} "${proto_src}" "${grpc_src}" PARENT_SCOPE)
 
         #add_library("${LIB_NAME}" STATIC "${proto_src}" "${grpc_src}")
         #target_include_directories("${LIB_NAME}" PUBLIC ${ARG_OUTPUT_DIR})
