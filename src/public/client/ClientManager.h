@@ -4,9 +4,9 @@
 
 namespace yakbas::pub {
 
-    class ClientClientManager : protected BaseClientManager {
+    class ClientManager : protected BaseClientManager {
     public:
-        ClientClientManager();
+        ClientManager();
     };
 
 } // yakbas

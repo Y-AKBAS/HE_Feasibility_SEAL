@@ -1,9 +1,9 @@
 
-#include "ClientClientManager.h"
+#include "ClientManager.h"
 #include "ApplicationConstants.h"
 
 namespace yakbas::pub {
-    ClientClientManager::ClientClientManager()
+    ClientManager::ClientManager()
             : BaseClientManager() {
     }
 } // pub
