@@ -1,16 +1,14 @@
 
 #include "InvoiceClerkServiceImpl.h"
 
-namespace yakbas {
-    namespace pub {
-        InvoiceClerkServiceImpl::InvoiceClerkServiceImpl() = default;
+namespace yakbas::pub {
+    InvoiceClerkServiceImpl::InvoiceClerkServiceImpl() = default;
 
-        grpc::Status InvoiceClerkServiceImpl::createInvoice(grpc::ServerContext *context,
-                                                            const communication::InvoicingRequest *request,
-                                                            communication::InvoicingResponse *response) {
+    grpc::Status InvoiceClerkServiceImpl::createInvoice(grpc::ServerContext *context,
+                                                        const communication::InvoicingRequest *request,
+                                                        communication::InvoicingResponse *response) {
 
-            // Implementation comes here
-            return Service::createInvoice(context, request, response);
-        }
-    } // yakbas
-} // pub
+        // Implementation comes here
+        return Service::createInvoice(context, request, response);
+    }
+} // yakbas

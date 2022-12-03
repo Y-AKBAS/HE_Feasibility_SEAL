@@ -2,13 +2,11 @@
 
 #include "BaseClientManager.h"
 
-namespace yakbas {
-    namespace pub {
+namespace yakbas::pub {
 
-        class InvoiceClerkClientManager : protected BaseClientManager  {
-        public:
-            InvoiceClerkClientManager();
-        };
+    class InvoiceClerkClientManager : protected BaseClientManager {
+    public:
+        InvoiceClerkClientManager();
+    };
 
-    } // yakbas
-} // pub
+} // yakbas

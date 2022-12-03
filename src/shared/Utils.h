@@ -22,7 +22,7 @@ namespace yakbas::util {
 
     template<typename T>
     constexpr std::unique_ptr<T> getUnique(const auto &... constructorParams) {
-        return std::move(std::make_unique<T>(constructorParams...));
+        return std::make_unique<T>(constructorParams...);
     }
 
     template<typename T>
@@ -33,12 +33,12 @@ namespace yakbas::util {
             const auto &func = function.value();
             func(*ptr);
         }
-        return std::move(ptr);
+        return ptr;
     }
 
     template<typename T>
     constexpr std::shared_ptr<T> getShared(const auto &... constructorParams) {
-        return std::move(std::make_shared<T>(constructorParams...));
+        return std::make_shared<T>(constructorParams...);
     }
 
     template<typename T>
@@ -49,18 +49,19 @@ namespace yakbas::util {
             const auto &func = function.value();
             func(*ptr);
         }
-        return std::move(ptr);
+        return ptr;
     }
 
     const auto optionalStreamLambda = std::make_optional([](std::stringstream &stream) {
         stream.exceptions(std::ios::badbit | std::ios::failbit);
     });
 
-    auto getSharedStream() {
-        return std::move(getModifiedShared<std::stringstream>(optionalStreamLambda));
+    decltype(auto) getSharedStream() {
+        return getModifiedShared<std::stringstream>(optionalStreamLambda);
     }
 
-    auto getUniqueStream() {
-        return std::move(getModifiedUnique<std::stringstream>(optionalStreamLambda));
+    decltype(auto) getUniqueStream() {
+        return getModifiedUnique<std::stringstream>(optionalStreamLambda);
     }
-}
+
+}// yakbas

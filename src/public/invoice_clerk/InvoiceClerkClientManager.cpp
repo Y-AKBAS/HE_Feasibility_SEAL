@@ -2,10 +2,8 @@
 #include "InvoiceClerkClientManager.h"
 #include "ApplicationConstants.h"
 
-namespace yakbas {
-    namespace pub {
-        InvoiceClerkClientManager::InvoiceClerkClientManager()
-                : BaseClientManager() {
-        }
-    } // yakbas
+namespace yakbas::pub {
+    InvoiceClerkClientManager::InvoiceClerkClientManager()
+            : BaseClientManager() {
+    }
 } // pub

@@ -3,17 +3,15 @@
 #include <grpcpp/grpcpp.h>
 #include "PublicCommunication.grpc.pb.h"
 
-namespace yakbas {
-    namespace pub {
+namespace yakbas::pub {
 
-        class InvoiceClerkServiceImpl final : public communication::pub::PublicCommunicationService::Service {
+    class InvoiceClerkServiceImpl final : public communication::pub::PublicCommunicationService::Service {
 
-        public:
-            InvoiceClerkServiceImpl();
+    public:
+        InvoiceClerkServiceImpl();
 
-            grpc::Status createInvoice(::grpc::ServerContext *context, const ::communication::InvoicingRequest *request,
-                                       ::communication::InvoicingResponse *response) override;
-        };
+        grpc::Status createInvoice(::grpc::ServerContext *context, const ::communication::InvoicingRequest *request,
+                                   ::communication::InvoicingResponse *response) override;
+    };
 
-    } // yakbas
-} // pub
+}// yakbas

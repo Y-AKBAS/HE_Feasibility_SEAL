@@ -1,21 +1,19 @@
 
 #include "IApplication.h"
 
-namespace yakbas {
-    namespace pub {
+namespace yakbas::pub {
 
-        class InvoiceClerkApplication : public IApplication {
-        public:
-            ~InvoiceClerkApplication() override;
+    class InvoiceClerkApplication : public IApplication {
+    public:
+        ~InvoiceClerkApplication() override;
 
-            void Run() override;
+        void Run() override;
 
-            void EnableLogging() override;
+        void EnableLogging() override;
 
-            void StartServer() override;
+        void StartServer() override;
 
 
-        };
+    };
 
-    } // yakbas
-} // pub
+} // yakbas
