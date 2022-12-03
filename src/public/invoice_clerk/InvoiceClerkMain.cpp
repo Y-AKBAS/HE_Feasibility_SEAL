@@ -3,7 +3,8 @@
 #include <memory>
 
 int main() {
-    std::make_unique<yakbas::pub::InvoiceClerkApplication>()->Run();
+    const auto application = std::make_unique<yakbas::pub::InvoiceClerkApplication>();
+    application->Run();
     return 0;
 }
 

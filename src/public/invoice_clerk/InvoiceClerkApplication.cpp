@@ -2,17 +2,18 @@
 #include "InvoiceClerkApplication.h"
 #include "InvoiceClerkServerManager.h"
 #include "InvoiceClerkServiceImpl.h"
+#include "Utils.h"
 
-#include <iostream>
 #include <log4cplus/configurator.h>
 
 namespace yakbas::pub {
+    using namespace yakbas::util;
 
     InvoiceClerkApplication::~InvoiceClerkApplication() = default;
 
     void InvoiceClerkApplication::Run() {
         EnableLogging();
-        const auto worker = std::make_unique<std::jthread>(&InvoiceClerkApplication::StartServer, this);
+        const auto worker = getUnique<std::jthread>(&InvoiceClerkApplication::StartServer, this);
     }
 
     void InvoiceClerkApplication::EnableLogging() {
@@ -21,8 +22,8 @@ namespace yakbas::pub {
     }
 
     void InvoiceClerkApplication::StartServer() {
-        const auto serverManager = std::make_unique<InvoiceClerkServerManager>(
-                std::make_shared<InvoiceClerkServiceImpl>(),
+        const auto serverManager = getUnique<InvoiceClerkServerManager>(
+                getShared<InvoiceClerkServiceImpl>(),
                 PUBLIC_INVOICE_CLERK_SERVER_PORT,
                 "Public Invoice Clerk");
 
