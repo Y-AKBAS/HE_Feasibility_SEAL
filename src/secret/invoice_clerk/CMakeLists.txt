@@ -1,5 +1,10 @@
 
-set(CMAKE_CXX_STANDARD 23)
+aux_source_directory(. SOURCE_FILES)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include(C:/vcpkg/scripts/buildsystems/vcpkg.cmake)
+set(TARGET_NAME secretInvoiceClerk)
+add_executable(${TARGET_NAME} ${SOURCE_FILES})
+target_link_libraries(${TARGET_NAME} PRIVATE ${SHARED_LIBS})
+
+PLACE_LOG_CONFIG(${TARGET_NAME}
+        CONFIG_FILE_DIR "${DEFAULT_LOG_CONFIGURER}"
+        )

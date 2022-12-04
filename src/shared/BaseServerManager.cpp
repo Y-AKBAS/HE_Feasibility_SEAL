@@ -26,7 +26,7 @@ namespace yakbas {
     }
 
     void BaseServerManager::Shutdown() {
-        if(m_server != nullptr){
+        if (m_server != nullptr) {
             m_server->Shutdown();
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }

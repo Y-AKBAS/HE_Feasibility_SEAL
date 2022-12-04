@@ -6,5 +6,4 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SEAL::seal Boost::boost doctest::doctest
-        log4cplus::log4cplus secret_proto public_proto)
+target_link_libraries(${PROJECT_NAME} PRIVATE SEAL::seal)

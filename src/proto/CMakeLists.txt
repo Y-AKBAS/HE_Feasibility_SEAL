@@ -34,9 +34,12 @@ set(PUBLIC_PROTO_FILES "${PUBLIC_PROTO_FILES}" PARENT_SCOPE)
 set(GRPC_LIBS gRPC::grpc++ gRPC::grpc++_reflection protobuf::libprotoc protobuf::libprotobuf)
 
 add_library(public_proto STATIC "${SHARED_PROTO_FILES}" "${PUBLIC_PROTO_FILES}")
-target_link_libraries(public_proto PUBLIC "${GRPC_LIBS}")
+target_link_libraries(public_proto PRIVATE "${GRPC_LIBS}")
 target_include_directories(public_proto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(secret_proto STATIC "${SHARED_PROTO_FILES}" "${SECRET_PROTO_FILES}")
-target_link_libraries(secret_proto PUBLIC "${GRPC_LIBS}")
+target_link_libraries(secret_proto PRIVATE "${GRPC_LIBS}")
 target_include_directories(secret_proto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
+list(APPEND SHARED_LIBS "${GRPC_LIBS}" secret_proto public_proto)
+set(SHARED_LIBS "${SHARED_LIBS}" PARENT_SCOPE)
