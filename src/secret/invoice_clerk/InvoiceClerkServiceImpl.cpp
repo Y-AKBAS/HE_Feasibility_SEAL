@@ -1,10 +1,10 @@
 
-#include "PlatformServiceImpl.h"
+#include "InvoiceClerkServiceImpl.h"
 
-namespace yakbas::pub {
-    PlatformServiceImpl::PlatformServiceImpl() = default;
+namespace yakbas::sec {
+    InvoiceClerkServiceImpl::InvoiceClerkServiceImpl() = default;
 
-    grpc::Status PlatformServiceImpl::createInvoice(grpc::ServerContext *context,
+    grpc::Status InvoiceClerkServiceImpl::createInvoice(grpc::ServerContext *context,
                                                         const communication::InvoicingRequest *request,
                                                         communication::InvoicingResponse *response) {
 

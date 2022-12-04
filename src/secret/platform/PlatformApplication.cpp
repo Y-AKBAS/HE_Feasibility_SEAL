@@ -6,7 +6,7 @@
 
 #include <log4cplus/configurator.h>
 
-namespace yakbas::pub {
+namespace yakbas::sec {
     using namespace yakbas::util;
 
     PlatformApplication::~PlatformApplication() = default;
@@ -24,8 +24,8 @@ namespace yakbas::pub {
     void PlatformApplication::StartServer() {
         const auto serverManager = getUnique<PlatformServerManager>(
                 getShared<PlatformServiceImpl>(),
-                PUBLIC_INVOICE_CLERK_SERVER_PORT,
-                "Public Platform");
+                SECRET_PLATFORM_SERVER_PORT,
+                "Secret Platform");
 
         serverManager->Init();
     }

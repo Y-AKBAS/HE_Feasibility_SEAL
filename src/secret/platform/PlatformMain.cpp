@@ -3,7 +3,7 @@
 #include <memory>
 
 int main() {
-    const auto application = std::make_unique<yakbas::pub::PlatformApplication>();
+    const auto application = std::make_unique<yakbas::sec::PlatformApplication>();
     application->Run();
     return 0;
 }

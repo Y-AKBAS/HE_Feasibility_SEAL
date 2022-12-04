@@ -7,7 +7,7 @@
 #include <iostream>
 #include <log4cplus/configurator.h>
 
-namespace yakbas::pub {
+namespace yakbas::sec {
     using namespace yakbas::util;
 
     TransporterApplication::~TransporterApplication() = default;
@@ -25,8 +25,8 @@ namespace yakbas::pub {
     void TransporterApplication::StartServer() {
         const auto serverManager = getUnique<TransporterServerManager>(
                 getShared<TransporterServiceImpl>(),
-                PUBLIC_TRANSPORTER_SERVER_PORT,
-                "Public Transporter");
+                SECRET_TRANSPORTER_SERVER_PORT,
+                "Secret Transporter");
 
         serverManager->Init();
     }

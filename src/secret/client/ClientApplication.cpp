@@ -6,7 +6,7 @@
 
 #include <log4cplus/configurator.h>
 
-namespace yakbas::pub {
+namespace yakbas::sec {
     using namespace yakbas::util;
 
     ClientApplication::~ClientApplication() = default;
@@ -24,8 +24,8 @@ namespace yakbas::pub {
     void ClientApplication::StartServer() {
         const auto serverManager = getUnique<ClientServerManager>(
                 getShared<ClientServiceImpl>(),
-                PUBLIC_CLIENT_SERVER_PORT,
-                "Public Client");
+                SECRET_CLIENT_SERVER_PORT,
+                "Secret Client");
 
         serverManager->Init();
     }

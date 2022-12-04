@@ -1,3 +1,10 @@
 
-message("CLIENT DIR: ${SECRET_PROTO_FILES}")
-message("CLIENT DIR: ${PUBLIC_PROTO_FILES}")
+aux_source_directory(. SOURCE_FILES)
+
+set(TARGET_NAME secretClient)
+add_executable(${TARGET_NAME} ${SOURCE_FILES})
+target_link_libraries(${TARGET_NAME} PRIVATE ${SHARED_LIBS})
+
+PLACE_LOG_CONFIG(${TARGET_NAME}
+        CONFIG_FILE_DIR "${DEFAULT_LOG_CONFIGURER}"
+        )

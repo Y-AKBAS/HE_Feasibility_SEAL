@@ -1,8 +1,8 @@
 
-#include "PlatformServerManager.h"
+#include "InvoiceClerkServerManager.h"
 
-namespace yakbas::pub {
-    PlatformServerManager::PlatformServerManager(const std::shared_ptr<grpc::Service> &serverImpl,
+namespace yakbas::sec {
+    InvoiceClerkServerManager::InvoiceClerkServerManager(const std::shared_ptr<grpc::Service> &serverImpl,
                                                          const std::string &hostAndPort,
                                                          const std::string &&loggerInstance)
             : BaseServerManager(serverImpl, hostAndPort) {}

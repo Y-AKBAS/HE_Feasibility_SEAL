@@ -1,8 +1,7 @@
 
 #include "PlatformClientManager.h"
-#include "ApplicationConstants.h"
 
-namespace yakbas::pub {
+namespace yakbas::sec {
     PlatformClientManager::PlatformClientManager()
             : BaseClientManager() {
     }

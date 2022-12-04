@@ -2,7 +2,7 @@
 
 #include "BaseServerManager.h"
 
-namespace yakbas::pub {
+namespace yakbas::sec {
 
     class MobilityProviderServerManager : public BaseServerManager {
     public:
