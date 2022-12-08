@@ -1,10 +1,7 @@
 
 aux_source_directory(. SOURCE_FILES)
 
-# Add header only util file
-list(APPEND SOURCE_FILES Utils.h)
-
-add_library(sharedLib STATIC "${SOURCE_FILES}")
+add_library(sharedLib STATIC "${SOURCE_FILES}" IApplication.cpp)
 target_link_libraries(sharedLib PUBLIC Boost::boost doctest::doctest log4cplus::log4cplus)
 target_include_directories(sharedLib PUBLIC .)
 

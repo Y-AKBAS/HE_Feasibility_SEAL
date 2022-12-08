@@ -15,3 +15,9 @@ add_compile_definitions(${PUBLIC_PREFIX}INVOICE_CLERK_SERVER_PORT="${LOCALHOST}8
 add_compile_definitions(${PUBLIC_PREFIX}MOBILITY_PROVIDER_SERVER_PORT="${LOCALHOST}8087")
 add_compile_definitions(${PUBLIC_PREFIX}PLATFORM_SERVER_PORT="${LOCALHOST}8088")
 add_compile_definitions(${PUBLIC_PREFIX}TRANSPORTER_SERVER_PORT="${LOCALHOST}8089")
+
+
+#add_compile_definitions(DOCTEST_CONFIG_IMPLEMENT)
+#add_compile_definitions(DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN )
+
+#add_compile_definitions(DISABLE_TESTS)

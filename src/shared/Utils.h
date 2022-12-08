@@ -16,10 +16,6 @@ namespace yakbas::util {
     // Add getting random numbers with random number engine and make engine and distribution instances
     // either global or static. Because it is pretty time-consuming to generate them.
 
-    std::ostream &operator<<(std::ostream &os, std::byte b) {
-        return os << std::bitset<8>(std::to_integer<int>(b));
-    }
-
     template<typename T>
     constexpr std::unique_ptr<T> getUnique(const auto &... constructorParams) {
         return std::make_unique<T>(constructorParams...);
@@ -52,16 +48,10 @@ namespace yakbas::util {
         return ptr;
     }
 
-    const auto optionalStreamLambda = std::make_optional([](std::stringstream &stream) {
-        stream.exceptions(std::ios::badbit | std::ios::failbit);
-    });
+    std::shared_ptr<std::stringstream> getSharedStream();
 
-    decltype(auto) getSharedStream() {
-        return getModifiedShared<std::stringstream>(optionalStreamLambda);
-    }
+    std::unique_ptr<std::stringstream> getUniqueStream();
 
-    decltype(auto) getUniqueStream() {
-        return getModifiedUnique<std::stringstream>(optionalStreamLambda);
-    }
+    std::ostream &operator<<(std::ostream &os, std::byte b);
 
 }// yakbas

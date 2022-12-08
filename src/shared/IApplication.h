@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef DISABLE_TESTS
+#define DOCTEST_CONFIG_DISABLE
+#endif
+
 namespace yakbas {
 
     class IApplication {
@@ -11,6 +15,9 @@ namespace yakbas {
         virtual void StartServer() = 0;
 
         virtual void Run() = 0;
+
+        // default implementation
+        int RunTests(int argc, char **argv);
     };
 
 } // yakbas
