@@ -11,7 +11,7 @@ namespace yakbas::sec {
             : m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance(loggerInstance))) {
 
         const auto &operations =
-                UserSealOperations::getOperations(sealKeys);
+                UserSealOperations::GetOperations(sealKeys);
 
         m_publicKeyPtr = getUnique<seal::PublicKey>();
         operations.GetSealInfoPtr()->m_keyGeneratorPtr->create_public_key(*m_publicKeyPtr);
@@ -30,8 +30,9 @@ namespace yakbas::sec {
 
     // Doesn't cause memory leak :)
     const SealOperations &
-    UserSealOperations::getOperations(const SealKeys &sealKeys) {
-        static const auto logger = getUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("MethodLogger"));
+    UserSealOperations::GetOperations(const SealKeys &sealKeys) {
+        static const auto logger
+                = getUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("GetOperations_Logger"));
         static std::vector<const SealOperations *> operations{};
 
         const auto it = std::ranges::find_if(operations, [&sealKeys](const SealOperations *operationsPtr) {
@@ -39,7 +40,7 @@ namespace yakbas::sec {
         });
 
         if (it != std::end(operations)) {
-            LOG4CPLUS_DEBUG(*logger, "Found existing SealKeys. They will be returned..." );
+            LOG4CPLUS_DEBUG(*logger, "Found existing SealKeys. They will be returned...");
             return *(*it);
         } else {
             LOG4CPLUS_DEBUG(*logger, "Creating new SealKeys with params: \n" + sealKeys.ToString());

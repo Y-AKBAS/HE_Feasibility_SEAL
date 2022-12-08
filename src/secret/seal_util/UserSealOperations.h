@@ -11,7 +11,7 @@ namespace yakbas::sec {
         explicit UserSealOperations(const std::string &&loggerInstance,
                                     const SealKeys &sealKeys = {seal::scheme_type::bfv, 16384, 1024});
 
-        static const SealOperations &getOperations(const SealKeys &sealKeys = {seal::scheme_type::bfv, 16384, 1024});
+        static const SealOperations &GetOperations(const SealKeys &sealKeys = {seal::scheme_type::bfv, 16384, 1024});
 
     private:
         std::unique_ptr<seal::PublicKey> m_publicKeyPtr{nullptr};
