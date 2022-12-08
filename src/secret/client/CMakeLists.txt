@@ -3,7 +3,7 @@ aux_source_directory(. SOURCE_FILES)
 
 set(TARGET_NAME secretClient)
 add_executable(${TARGET_NAME} ${SOURCE_FILES})
-target_link_libraries(${TARGET_NAME} PRIVATE ${SHARED_LIBS})
+target_link_libraries(${TARGET_NAME} PRIVATE ${SHARED_LIBS} sealUtils)
 
 PLACE_LOG_CONFIG(${TARGET_NAME}
         CONFIG_FILE_DIR "${DEFAULT_LOG_CONFIGURER}"

@@ -7,5 +7,3 @@ int main() {
     application->Run();
     return 0;
 }
-
-
