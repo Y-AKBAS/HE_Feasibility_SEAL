@@ -7,4 +7,8 @@ namespace yakbas::constants {
     const std::string PLATFORM_CHANNEL = "platformChannel";
     const std::string CLIENT_CHANNEL = "clientChannel";
     const std::string TRANSPORT_CHANNEL = "transportChannel";
+    const std::pair<const char *, bool> DOCKTEST_NO_RUN = std::make_pair("no-run", true);
+    const std::pair<const char *, bool> DOCKTEST_NO_BREAKS = std::make_pair("no-breaks", true);
+    const std::pair<const char *, int> DOCKTEST_ABORT_AFTER = std::make_pair("abort-after", 1);
+
 } // yakbas

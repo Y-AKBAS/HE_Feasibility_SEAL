@@ -4,6 +4,7 @@ SET(SHARED_LIBS "")
 include(PackageFinder)
 include(ApplicationConfig)
 include(LogConfigurer)
+include(TestHandler)
 
 add_subdirectory(proto)
 add_subdirectory(shared)

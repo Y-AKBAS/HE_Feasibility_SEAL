@@ -8,19 +8,19 @@ namespace yakbas::sec {
             : m_sealInfoPtr(std::make_unique<SealInfo>(sealKeys)) {}
 
     std::unique_ptr<seal::Ciphertext>
-    SealOperations::Encrypt(const uint64_t &num, const std::shared_ptr<seal::Encryptor> &encryptor) const {
+    SealOperations::Encrypt(const uint64_t &num, const seal::Encryptor &encryptor) const {
         const std::string hexString = seal::util::uint_to_hex_string(&num, std::size_t(1));
         const auto plainTextToEncrypt = std::make_unique<seal::Plaintext>(hexString);
         auto cipherText = std::make_unique<seal::Ciphertext>();
-        encryptor->encrypt(*plainTextToEncrypt, *cipherText);
+        encryptor.encrypt(*plainTextToEncrypt, *cipherText);
         return cipherText;
     }
 
     std::uint64_t SealOperations::Decrypt(const seal::Ciphertext &cipher,
-                                          const std::shared_ptr<seal::Decryptor> &decryptor) const {
+                                          seal::Decryptor &decryptor) const {
 
         const auto decryptedPlaintext = std::make_unique<seal::Plaintext>();
-        decryptor->decrypt(cipher, *decryptedPlaintext);
+        decryptor.decrypt(cipher, *decryptedPlaintext);
         const std::string hexString = decryptedPlaintext->to_string();
         std::uint64_t result{};
         seal::util::hex_string_to_uint(hexString.c_str(), static_cast<int>(hexString.length()),
@@ -29,21 +29,21 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<std::string> SealOperations::GetEncryptedBuffer(const uint64_t &num,
-                                                                    const std::shared_ptr<seal::Encryptor> &encryptor) const {
+                                                                    const seal::Encryptor &encryptor) const {
         const auto &stream = util::getUniqueStream();
         this->Encrypt(num, encryptor)->save(*stream);
         return std::make_unique<std::string>(stream->str());
     }
 
     std::unique_ptr<seal::Ciphertext>
-    SealOperations::GetCipherFromBuffer(const std::unique_ptr<std::stringstream> &stream) const {
+    SealOperations::GetCipherFromBuffer(std::stringstream &stream) const {
         auto cipher = util::getUnique<seal::Ciphertext>();
-        cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, *stream);
+        cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, stream);
         return cipher;
     }
 
-    std::uint64_t SealOperations::DecryptFromBuffer(const std::unique_ptr<std::stringstream> &stream,
-                                                    const std::shared_ptr<seal::Decryptor> &decryptor) const {
+    std::uint64_t SealOperations::DecryptFromBuffer(std::stringstream &stream,
+                                                    seal::Decryptor &decryptor) const {
 
         const auto &cipherFromBuffer = this->GetCipherFromBuffer(stream);
         return this->Decrypt(*cipherFromBuffer, decryptor);
