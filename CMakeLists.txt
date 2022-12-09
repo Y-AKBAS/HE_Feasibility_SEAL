@@ -13,4 +13,5 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+enable_testing()
 add_subdirectory(src)
