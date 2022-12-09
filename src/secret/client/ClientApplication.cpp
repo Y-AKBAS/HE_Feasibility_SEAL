@@ -16,7 +16,7 @@ namespace yakbas::sec {
     void ClientApplication::Run() {
         EnableLogging();
         const auto worker = getUnique<std::jthread>(&ClientApplication::StartServer, this);
-        const auto sealOperations = getUnique<UserSealOperations>("Client Logger");
+        const auto sealOperations = getUnique<UserSealOperations>();
     }
 
     void ClientApplication::EnableLogging() {

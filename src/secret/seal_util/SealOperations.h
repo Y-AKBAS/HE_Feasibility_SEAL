@@ -12,19 +12,19 @@ namespace yakbas::sec {
         explicit SealOperations(const SealKeys &mSealKeys = {seal::scheme_type::bfv, 16384, 1024});
 
         [[nodiscard]] std::unique_ptr<seal::Ciphertext> Encrypt(const std::uint64_t &num,
-                                                                const std::shared_ptr<seal::Encryptor> &encryptor) const;
+                                                                const seal::Encryptor &encryptor) const;
 
         [[nodiscard]] std::uint64_t Decrypt(const seal::Ciphertext &cipher,
-                                            const std::shared_ptr<seal::Decryptor> &decryptor) const;
+                                            seal::Decryptor &decryptor) const;
 
         [[nodiscard]] std::unique_ptr<std::string>
-        GetEncryptedBuffer(const uint64_t &num, const std::shared_ptr<seal::Encryptor> &encryptor) const;
+        GetEncryptedBuffer(const uint64_t &num, const seal::Encryptor &encryptor) const;
 
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
-        GetCipherFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
+        GetCipherFromBuffer(std::stringstream &stream) const;
 
-        [[nodiscard]] std::uint64_t DecryptFromBuffer(const std::unique_ptr<std::stringstream> &stream,
-                                                      const std::shared_ptr<seal::Decryptor> &decryptor) const;
+        [[nodiscard]] std::uint64_t DecryptFromBuffer(std::stringstream &stream,
+                                                      seal::Decryptor &decryptor) const;
 
         [[nodiscard]] const std::unique_ptr<SealInfo> &GetSealInfoPtr() const;
 
