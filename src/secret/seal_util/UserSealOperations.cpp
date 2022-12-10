@@ -11,17 +11,17 @@ namespace yakbas::sec {
             : m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("UserSealOperations"))),
               m_sealOperations(&UserSealOperations::GetOperations(sealKeys)) {
 
-        m_publicKeyPtr = getUnique<seal::PublicKey>();
+        m_publicKeyPtr = GetUnique<seal::PublicKey>();
         m_sealOperations->GetSealInfoPtr()->m_keyGeneratorPtr->create_public_key(*m_publicKeyPtr);
 
-        m_secretKeyPtr = getUnique<seal::SecretKey>(
+        m_secretKeyPtr = GetUnique<seal::SecretKey>(
                 m_sealOperations->GetSealInfoPtr()->m_keyGeneratorPtr->secret_key());
 
-        m_encryptorPtr = getUnique<seal::Encryptor>(
+        m_encryptorPtr = GetUnique<seal::Encryptor>(
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
                 *m_publicKeyPtr);
 
-        m_decryptorPtr = getUnique<seal::Decryptor>(
+        m_decryptorPtr = GetUnique<seal::Decryptor>(
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
                 *m_secretKeyPtr);
     }
@@ -30,7 +30,7 @@ namespace yakbas::sec {
     const SealOperations &
     UserSealOperations::GetOperations(const SealKeys &sealKeys) {
         static const auto logger
-                = getUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("GetOperations_Logger"));
+                = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("GetOperations_Logger"));
         static std::vector<const SealOperations *> operations{};
 
         const auto it = std::ranges::find_if(operations, [&sealKeys](const SealOperations *operationsPtr) {

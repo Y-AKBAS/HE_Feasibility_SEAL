@@ -13,7 +13,7 @@ namespace yakbas::pub {
 
     void ClientApplication::Run() {
         EnableLogging();
-        const auto worker = getUnique<std::jthread>(&ClientApplication::StartServer, this);
+        const auto worker = GetUnique<std::jthread>(&ClientApplication::StartServer, this);
     }
 
     void ClientApplication::EnableLogging() {
@@ -22,8 +22,8 @@ namespace yakbas::pub {
     }
 
     void ClientApplication::StartServer() {
-        const auto serverManager = getUnique<ClientServerManager>(
-                getShared<ClientServiceImpl>(),
+        const auto serverManager = GetUnique<ClientServerManager>(
+                GetShared<ClientServiceImpl>(),
                 PUBLIC_CLIENT_SERVER_PORT,
                 "Public Client");
 

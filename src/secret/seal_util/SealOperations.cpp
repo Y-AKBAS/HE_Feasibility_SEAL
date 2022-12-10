@@ -30,14 +30,14 @@ namespace yakbas::sec {
 
     std::unique_ptr<std::string> SealOperations::GetEncryptedBuffer(const uint64_t &num,
                                                                     const seal::Encryptor &encryptor) const {
-        const auto &stream = util::getUniqueStream();
+        const auto &stream = util::GetUniqueStream();
         this->Encrypt(num, encryptor)->save(*stream);
         return std::make_unique<std::string>(stream->str());
     }
 
     std::unique_ptr<seal::Ciphertext>
     SealOperations::GetCipherFromBuffer(std::stringstream &stream) const {
-        auto cipher = util::getUnique<seal::Ciphertext>();
+        auto cipher = util::GetUnique<seal::Ciphertext>();
         cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, stream);
         return cipher;
     }

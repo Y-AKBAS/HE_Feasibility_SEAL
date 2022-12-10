@@ -1,6 +1,8 @@
 
 aux_source_directory(. SOURCE_FILES)
 
+message("Sources: ${SOURCE_FILES}")
+
 set(TEST_EXEC_FILE "./TestExecutable.cpp")
 list(REMOVE_ITEM SOURCE_FILES ${TEST_EXEC_FILE})
 
@@ -19,4 +21,4 @@ add_executable(${TEST_EXEC} ${TEST_EXEC_FILE})
 target_link_libraries(${TEST_EXEC} PRIVATE doctest::doctest)
 set_property(GLOBAL PROPERTY TEST_EXEC ${TEST_EXEC})
 
-#get_property(TEST_EXEC GLOBAL PROPERTY TEST_EXEC)
+add_subdirectory(test)

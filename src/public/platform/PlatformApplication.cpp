@@ -13,7 +13,7 @@ namespace yakbas::pub {
 
     void PlatformApplication::Run() {
         EnableLogging();
-        const auto worker = getUnique<std::jthread>(&PlatformApplication::StartServer, this);
+        const auto worker = GetUnique<std::jthread>(&PlatformApplication::StartServer, this);
     }
 
     void PlatformApplication::EnableLogging() {
@@ -22,8 +22,8 @@ namespace yakbas::pub {
     }
 
     void PlatformApplication::StartServer() {
-        const auto serverManager = getUnique<PlatformServerManager>(
-                getShared<PlatformServiceImpl>(),
+        const auto serverManager = GetUnique<PlatformServerManager>(
+                GetShared<PlatformServiceImpl>(),
                 PUBLIC_INVOICE_CLERK_SERVER_PORT,
                 "Public Platform");
 

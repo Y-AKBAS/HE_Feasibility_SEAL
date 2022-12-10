@@ -15,8 +15,8 @@ namespace yakbas::sec {
 
     void ClientApplication::Run() {
         EnableLogging();
-        const auto worker = getUnique<std::jthread>(&ClientApplication::StartServer, this);
-        const auto sealOperations = getUnique<UserSealOperations>();
+        const auto worker = GetUnique<std::jthread>(&ClientApplication::StartServer, this);
+        const auto sealOperations = GetUnique<UserSealOperations>();
     }
 
     void ClientApplication::EnableLogging() {
@@ -25,8 +25,8 @@ namespace yakbas::sec {
     }
 
     void ClientApplication::StartServer() {
-        const auto serverManager = getUnique<ClientServerManager>(
-                getShared<ClientServiceImpl>(),
+        const auto serverManager = GetUnique<ClientServerManager>(
+                GetShared<ClientServiceImpl>(),
                 SECRET_CLIENT_SERVER_PORT,
                 "Secret Client");
 

@@ -13,7 +13,7 @@ namespace yakbas::sec {
 
     void MobilityProviderApplication::Run() {
         EnableLogging();
-        const auto worker = getUnique<std::jthread>(&MobilityProviderApplication::StartServer, this);
+        const auto worker = GetUnique<std::jthread>(&MobilityProviderApplication::StartServer, this);
     }
 
     void MobilityProviderApplication::EnableLogging() {
@@ -22,8 +22,8 @@ namespace yakbas::sec {
     }
 
     void MobilityProviderApplication::StartServer() {
-        const auto serverManager = getUnique<MobilityProviderServerManager>(
-                getShared<MobilityProviderServiceImpl>(),
+        const auto serverManager = GetUnique<MobilityProviderServerManager>(
+                GetShared<MobilityProviderServiceImpl>(),
                 SECRET_MOBILITY_PROVIDER_SERVER_PORT,
                 "Secret Mobility Provider");
 

@@ -14,7 +14,7 @@ namespace yakbas::pub {
 
     void MobilityProviderApplication::Run() {
         EnableLogging();
-        const auto worker = getUnique<std::jthread>(&MobilityProviderApplication::StartServer, this);
+        const auto worker = GetUnique<std::jthread>(&MobilityProviderApplication::StartServer, this);
     }
 
     void MobilityProviderApplication::EnableLogging() {
@@ -23,8 +23,8 @@ namespace yakbas::pub {
     }
 
     void MobilityProviderApplication::StartServer() {
-        const auto serverManager = getUnique<MobilityProviderServerManager>(
-                getShared<
+        const auto serverManager = GetUnique<MobilityProviderServerManager>(
+                GetShared<
                         MobilityProviderServiceImpl>(),
                 PUBLIC_INVOICE_CLERK_SERVER_PORT,
                 "Public Mobility Provider");
