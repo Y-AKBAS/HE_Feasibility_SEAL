@@ -9,20 +9,21 @@
 #include <memory>
 #include <ostream>
 #include <sstream>
+#include <log4cplus/logger.h>
+
 
 
 namespace yakbas::util {
 
-    // Add getting random numbers with random number engine and make engine and distribution instances
-    // either global or static. Because it is pretty time-consuming to generate them.
+    extern const std::unique_ptr<log4cplus::Logger> utilLogger;
 
     template<typename T>
-    constexpr std::unique_ptr<T> getUnique(const auto &... constructorParams) {
+    constexpr std::unique_ptr<T> GetUnique(const auto &... constructorParams) {
         return std::make_unique<T>(constructorParams...);
     }
 
     template<typename T>
-    constexpr std::unique_ptr<T> getModifiedUnique(const std::optional<std::function<void(T &t)>> &function,
+    constexpr std::unique_ptr<T> GetModifiedUnique(const std::optional<std::function<void(T &t)>> &function,
                                                    const auto &... constructorParams) {
         auto ptr = std::make_unique<T>(constructorParams...);
         if (function.has_value()) {
@@ -33,14 +34,14 @@ namespace yakbas::util {
     }
 
     template<typename T>
-    constexpr std::shared_ptr<T> getShared(const auto &... constructorParams) {
+    constexpr std::shared_ptr<T> GetShared(const auto &... constructorParams) {
         return std::make_shared<T>(constructorParams...);
     }
 
     template<typename T>
-    constexpr std::shared_ptr<T> getModifiedShared(const std::optional<std::function<void(T &t)>> &function,
+    constexpr std::shared_ptr<T> GetModifiedShared(const std::optional<std::function<void(T &t)>> &function,
                                                    const auto &... constructorParams) {
-        auto ptr = getShared<T>(constructorParams...);
+        auto ptr = GetShared<T>(constructorParams...);
         if (function.has_value()) {
             const auto &func = function.value();
             func(*ptr);
@@ -48,10 +49,12 @@ namespace yakbas::util {
         return ptr;
     }
 
-    std::shared_ptr<std::stringstream> getSharedStream();
+    std::shared_ptr<std::stringstream> GetSharedStream();
 
-    std::unique_ptr<std::stringstream> getUniqueStream();
+    std::unique_ptr<std::stringstream> GetUniqueStream();
 
     std::ostream &operator<<(std::ostream &os, std::byte b);
+
+    std::uint64_t GetRandomNumber();
 
 }// yakbas

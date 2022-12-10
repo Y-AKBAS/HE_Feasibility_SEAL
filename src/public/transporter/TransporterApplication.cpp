@@ -14,7 +14,7 @@ namespace yakbas::pub {
 
     void TransporterApplication::Run() {
         EnableLogging();
-        const auto worker = getUnique<std::jthread>(&TransporterApplication::StartServer, this);
+        const auto worker = GetUnique<std::jthread>(&TransporterApplication::StartServer, this);
     }
 
     void TransporterApplication::EnableLogging() {
@@ -23,8 +23,8 @@ namespace yakbas::pub {
     }
 
     void TransporterApplication::StartServer() {
-        const auto serverManager = getUnique<TransporterServerManager>(
-                getShared<TransporterServiceImpl>(),
+        const auto serverManager = GetUnique<TransporterServerManager>(
+                GetShared<TransporterServiceImpl>(),
                 PUBLIC_TRANSPORTER_SERVER_PORT,
                 "Public Transporter");
 

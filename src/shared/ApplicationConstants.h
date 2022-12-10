@@ -12,4 +12,7 @@ namespace yakbas::constants {
     extern const std::pair<const char *, bool> DOCKTEST_NO_RUN;
     extern const std::pair<const char *, bool> DOCKTEST_NO_BREAKS;
     extern const std::pair<const char *, int> DOCKTEST_ABORT_AFTER;
+    extern const int APP_MAX_RANDOM_NUMBER;
+    extern const int APP_MIN_RANDOM_NUMBER;
+
 } // yakbas

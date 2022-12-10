@@ -13,7 +13,7 @@ namespace yakbas::pub {
 
     void InvoiceClerkApplication::Run() {
         EnableLogging();
-        const auto worker = getUnique<std::jthread>(&InvoiceClerkApplication::StartServer, this);
+        const auto worker = GetUnique<std::jthread>(&InvoiceClerkApplication::StartServer, this);
     }
 
     void InvoiceClerkApplication::EnableLogging() {
@@ -22,8 +22,8 @@ namespace yakbas::pub {
     }
 
     void InvoiceClerkApplication::StartServer() {
-        const auto serverManager = getUnique<InvoiceClerkServerManager>(
-                getShared<InvoiceClerkServiceImpl>(),
+        const auto serverManager = GetUnique<InvoiceClerkServerManager>(
+                GetShared<InvoiceClerkServiceImpl>(),
                 PUBLIC_INVOICE_CLERK_SERVER_PORT,
                 "Public Invoice Clerk");
 
