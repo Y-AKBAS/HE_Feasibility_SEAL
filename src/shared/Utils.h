@@ -12,7 +12,6 @@
 #include <log4cplus/logger.h>
 
 
-
 namespace yakbas::util {
 
     extern const std::unique_ptr<log4cplus::Logger> utilLogger;
@@ -56,5 +55,7 @@ namespace yakbas::util {
     std::ostream &operator<<(std::ostream &os, std::byte b);
 
     std::uint64_t GetRandomNumber();
+
+    std::string GetUUID();
 
 }// yakbas

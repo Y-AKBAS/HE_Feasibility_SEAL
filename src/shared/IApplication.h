@@ -2,6 +2,8 @@
 
 #ifdef DISABLE_TESTS
 #define DOCTEST_CONFIG_DISABLE
+#else
+#define DOCTEST_CONFIG_IMPLEMENT
 #endif
 
 namespace yakbas {

@@ -4,7 +4,7 @@
 #include "ClientServiceImpl.h"
 #include "Utils.h"
 #include "SealOperations.h"
-#include "UserSealOperations.h"
+#include "CustomSealOperations.h"
 
 #include <log4cplus/configurator.h>
 
@@ -16,7 +16,7 @@ namespace yakbas::sec {
     void ClientApplication::Run() {
         EnableLogging();
         const auto worker = GetUnique<std::jthread>(&ClientApplication::StartServer, this);
-        const auto sealOperations = GetUnique<UserSealOperations>();
+        const auto sealOperations = GetUnique<CustomSealOperations>();
     }
 
     void ClientApplication::EnableLogging() {

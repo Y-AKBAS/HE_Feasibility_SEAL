@@ -4,7 +4,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "doctest/doctest.h"
-#include "UserSealOperations.h"
+#include "CustomSealOperations.h"
 #include "Utils.h"
 #include <memory>
 #include <log4cplus/configurator.h>
@@ -24,45 +24,45 @@ namespace yakbas::sec::test {
                         seal::scheme_type::bfv, 16384, 1024
                 );
 
-                const auto userSealOperations =
-                        util::GetUnique<UserSealOperations>(*sealKeys_1);
-                const SealOperations &operations_1 = UserSealOperations::GetOperations(*sealKeys_1);
-                const SealOperations &operations_1_1 = UserSealOperations::GetOperations(*sealKeys_1);
+                const auto customSealOperations =
+                        util::GetUnique<CustomSealOperations>(*sealKeys_1);
+                const SealOperations &operations_1 = CustomSealOperations::GetOperations(*sealKeys_1);
+                const SealOperations &operations_1_1 = CustomSealOperations::GetOperations(*sealKeys_1);
                 CHECK(operations_1 == operations_1_1);
                 CHECK(*operations_1.GetSealInfoPtr() == *operations_1_1.GetSealInfoPtr());
             }
 
             SUBCASE("Encryption Test") {
-                const auto userSealOperations = util::GetUnique<UserSealOperations>();
+                const auto customSealOperations = util::GetUnique<CustomSealOperations>();
                 std::uint64_t num = util::GetRandomNumber();
                 CHECK(num < 15);
 
-                const auto cipherTextPtr = userSealOperations->Encrypt(num);
-                CHECK(num == userSealOperations->Decrypt(*cipherTextPtr));
+                const auto cipherTextPtr = customSealOperations->Encrypt(num);
+                CHECK(num == customSealOperations->Decrypt(*cipherTextPtr));
             }
 
             SUBCASE("Serialization Test") {
-                const auto userSealOperations = util::GetUnique<UserSealOperations>();
+                const auto customSealOperations = util::GetUnique<CustomSealOperations>();
 
                 std::uint64_t num = util::GetRandomNumber();
                 CHECK(num < 15);
 
-                const auto cipherStringPtr = userSealOperations->GetEncryptedBuffer(num);
+                const auto cipherStringPtr = customSealOperations->GetEncryptedBuffer(num);
                 const auto stream = util::GetUnique<std::stringstream>(*cipherStringPtr);
 
-                const auto newCipher = userSealOperations->GetCipherFromBuffer(stream);
-                CHECK(num == userSealOperations->Decrypt(*newCipher));
+                const auto newCipher = customSealOperations->GetCipherFromBuffer(stream);
+                CHECK(num == customSealOperations->Decrypt(*newCipher));
             }
 
             SUBCASE("Serialization Test 2") {
-                const auto userSealOperations = util::GetUnique<UserSealOperations>();
+                const auto customSealOperations = util::GetUnique<CustomSealOperations>();
 
                 std::uint64_t num = util::GetRandomNumber();
                 CHECK(num < 15);
 
-                const auto cipherStringPtr = userSealOperations->GetEncryptedBuffer(num);
+                const auto cipherStringPtr = customSealOperations->GetEncryptedBuffer(num);
                 const auto stream = std::make_unique<std::stringstream>(*cipherStringPtr);
-                CHECK(num == userSealOperations->DecryptFromBuffer(stream));
+                CHECK(num == customSealOperations->DecryptFromBuffer(stream));
             }
 
             ::log4cplus::deinitialize();

@@ -5,10 +5,10 @@
 
 namespace yakbas::sec {
 
-    class UserSealOperations {
+    class CustomSealOperations {
     public:
 
-        explicit UserSealOperations(const SealKeys &sealKeys = {seal::scheme_type::bfv, 16384, 1024});
+        explicit CustomSealOperations(const SealKeys &sealKeys = {seal::scheme_type::bfv, 16384, 1024});
 
         static const SealOperations &GetOperations(const SealKeys &sealKeys = {seal::scheme_type::bfv, 16384, 1024});
 

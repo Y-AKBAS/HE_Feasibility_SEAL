@@ -1,9 +1,17 @@
 
 #include "Utils.h"
 #include "ApplicationConstants.h"
+#include "Timer.h"
+
 #include <random>
 #include <iostream>
 #include <log4cplus/loggingmacros.h>
+
+/*
+#include <boost/uuid/uuid_generators.hpp> // generators
+#include "boost/lexical_cast.hpp"
+#include <boost/uuid/uuid_io.hpp>
+ */
 
 namespace yakbas::util {
 
@@ -37,6 +45,15 @@ namespace yakbas::util {
                                                                           constants::APP_MAX_RANDOM_NUMBER);
         distribution.reset();
         return static_cast<std::uint64_t>(distribution(*mtPtr));
+    }
+
+    std::string GetUUID() {
+        /*
+        static const auto uuidGenPtr = GetUnique<boost::uuids::random_generator>();
+        return boost::lexical_cast<std::string>((*uuidGenPtr)());
+        */
+
+        return "user_" + std::to_string(Timer::GetCurrentTimeNanos());
     }
 
 }
