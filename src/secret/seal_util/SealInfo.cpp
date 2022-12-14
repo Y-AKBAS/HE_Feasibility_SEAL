@@ -3,8 +3,8 @@
 
 namespace yakbas::sec {
 
-    SealKeys::SealKeys(seal::scheme_type mSchemeType, size_t mPolyModulusDegree, int mPlainModulus)
-            : m_schemeType(mSchemeType), m_polyModulusDegree(mPolyModulusDegree), m_plainModulus(mPlainModulus) {}
+    SealKeys::SealKeys(seal::scheme_type schemeType, size_t polyModulusDegree, int plainModulus)
+            : m_schemeType(schemeType), m_polyModulusDegree(polyModulusDegree), m_plainModulus(plainModulus) {}
 
     bool SealKeys::operator==(const SealKeys &rhs) const {
         return (this->m_polyModulusDegree == rhs.m_polyModulusDegree) &&
@@ -44,6 +44,8 @@ namespace yakbas::sec {
 
         return stream->str();
     }
+
+    SealKeys::SealKeys() = default;
 
     SealInfo::SealInfo(const SealKeys &sealKeys)
             : m_sealKeys(sealKeys) {

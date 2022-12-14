@@ -26,6 +26,8 @@ namespace yakbas::sec {
         [[nodiscard]] std::uint64_t DecryptFromBuffer(std::stringstream &stream,
                                                       seal::Decryptor &decryptor) const;
 
+        std::unique_ptr<seal::PublicKey> GetPublicKeyFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
+
         [[nodiscard]] const std::unique_ptr<SealInfo> &GetSealInfoPtr() const;
 
         bool operator==(const SealOperations &rhs) const;

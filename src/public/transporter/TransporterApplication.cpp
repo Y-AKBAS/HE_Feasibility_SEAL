@@ -12,9 +12,10 @@ namespace yakbas::pub {
 
     TransporterApplication::~TransporterApplication() = default;
 
-    void TransporterApplication::Run() {
+    void TransporterApplication::Run(int argc, char **argv) {
         EnableLogging();
         const auto worker = GetUnique<std::jthread>(&TransporterApplication::StartServer, this);
+        RunTests(argc, argv);
     }
 
     void TransporterApplication::EnableLogging() {

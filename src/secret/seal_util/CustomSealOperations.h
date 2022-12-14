@@ -5,10 +5,10 @@
 
 namespace yakbas::sec {
 
-    class UserSealOperations {
+    class CustomSealOperations {
     public:
 
-        explicit UserSealOperations(const SealKeys &sealKeys = {seal::scheme_type::bfv, 16384, 1024});
+        explicit CustomSealOperations(const SealKeys &sealKeys = {});
 
         static const SealOperations &GetOperations(const SealKeys &sealKeys = {seal::scheme_type::bfv, 16384, 1024});
 
@@ -21,7 +21,12 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
         GetCipherFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
 
+        [[nodiscard]] std::unique_ptr<seal::PublicKey>
+        GetPublicKeyFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
+
         [[nodiscard]] std::uint64_t DecryptFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
+
+        [[nodiscard]] std::unique_ptr<std::stringstream> PublicKeyToBuffer() const;
 
         [[nodiscard]] const SealOperations *GetSealOperations() const;
 

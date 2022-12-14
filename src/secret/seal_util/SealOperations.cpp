@@ -3,6 +3,7 @@
 #include "Utils.h"
 
 namespace yakbas::sec {
+    using namespace yakbas::util;
 
     SealOperations::SealOperations(const SealKeys &sealKeys)
             : m_sealInfoPtr(std::make_unique<SealInfo>(sealKeys)) {}
@@ -44,7 +45,6 @@ namespace yakbas::sec {
 
     std::uint64_t SealOperations::DecryptFromBuffer(std::stringstream &stream,
                                                     seal::Decryptor &decryptor) const {
-
         const auto &cipherFromBuffer = this->GetCipherFromBuffer(stream);
         return this->Decrypt(*cipherFromBuffer, decryptor);
     }
@@ -55,6 +55,13 @@ namespace yakbas::sec {
 
     bool SealOperations::operator==(const SealOperations &rhs) const {
         return this->m_sealInfoPtr->m_sealKeys == rhs.m_sealInfoPtr->m_sealKeys;
+    }
+
+    std::unique_ptr<seal::PublicKey>
+    SealOperations::GetPublicKeyFromBuffer(const std::unique_ptr<std::stringstream> &stream) const {
+        auto keyPtr = GetUnique<seal::PublicKey>();
+        keyPtr->load(*this->m_sealInfoPtr->m_sealContextPtr, *stream);
+        return keyPtr;
     }
 
 } // yakbas

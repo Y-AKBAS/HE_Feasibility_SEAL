@@ -2,9 +2,9 @@
 #include "TransporterApplication.h"
 #include <memory>
 
-int main() {
+int main(int argc, char **argv) {
     const auto application = std::make_unique<yakbas::sec::TransporterApplication>();
-    application->Run();
+    application->Run(argc, argv);
     return 0;
 }
 

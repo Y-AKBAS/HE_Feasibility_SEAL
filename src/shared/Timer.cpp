@@ -24,7 +24,7 @@ namespace yakbas {
         if (m_end <= m_begin) {
             return 0.0;
         }
-        return (m_end - m_begin) / 1ms;
+        return std::chrono::duration_cast<std::chrono::milliseconds>(m_end - m_begin).count();
     }
 
     long long Timer::PassedTimeInMillisWithStop() {
@@ -32,16 +32,25 @@ namespace yakbas {
         return this->PassedTimeInMillisWithoutStop();
     }
 
-    void Timer::extraction(std::ostream &os) const {
-        os << PassedTimeInMillisWithoutStop();
-    }
-
-    std::chrono::steady_clock::time_point Timer::GetTimePoint() {
+    std::chrono::steady_clock::time_point Timer::GetSteadyTimePoint() {
         return steady::now();
     }
 
-    long long Timer::GetCurrentTimeMillis() {
-        return steady::now().time_since_epoch().count();
+    std::chrono::system_clock::time_point Timer::GetSystemTimePoint() {
+        return system::now();
+    }
+
+    long long int Timer::GetCurrentTimeNanos() {
+        return system::now().time_since_epoch().count();
+    }
+
+    long long int Timer::GetCurrentTimeMillis() {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+                system::now().time_since_epoch()).count();
+    }
+
+    void Timer::extraction(std::ostream &os) const {
+        os << PassedTimeInMillisWithoutStop();
     }
 
     std::ostream &operator<<(std::ostream &os, const Timer &timer) {

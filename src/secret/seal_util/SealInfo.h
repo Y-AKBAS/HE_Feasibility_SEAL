@@ -12,21 +12,25 @@ namespace yakbas::sec {
 
     struct SealKeys {
 
-        SealKeys(seal::scheme_type mSchemeType, size_t mPolyModulusDegree, int mPlainModulus);
+        SealKeys(seal::scheme_type schemeType, size_t polyModulusDegree, int plainModulus);
+
+        SealKeys();
 
         bool operator==(const SealKeys &rhs) const;
+
         bool operator<(const SealKeys &rhs) const;
+
         [[nodiscard]] std::string ToString() const;
 
-        const seal::scheme_type m_schemeType;
-        const std::size_t m_polyModulusDegree;
-        const int m_plainModulus;
+        const seal::scheme_type m_schemeType = static_cast<const seal::scheme_type>(SEAL_SCHEME_TYPE);
+        const std::size_t m_polyModulusDegree = SEAL_POLY_MODULUS_DEGREE;
+        const int m_plainModulus = SEAL_PLAIN_MODULUS_DEGREE;
     };
 
     struct SealInfo {
     public:
 
-        explicit SealInfo(const SealKeys &mSealKeys = {seal::scheme_type::bfv, 16384, 1024});
+        explicit SealInfo(const SealKeys &mSealKeys = {});
 
         bool operator==(const SealInfo &rhs) const;
 

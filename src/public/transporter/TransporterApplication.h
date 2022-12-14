@@ -7,7 +7,7 @@ namespace yakbas::pub {
     public:
         ~TransporterApplication() override;
 
-        void Run() override;
+        void Run(int argc, char **argv) override;
 
         void EnableLogging() override;
 

@@ -1,13 +1,16 @@
 
-
-#ifndef DISABLE_TESTS
 #ifndef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#endif
 
 #include "doctest/doctest.h"
+
+#if (!DISABLE_TESTS)
+
 #include "Timer.h"
 #include "Utils.h"
 #include "ApplicationConstants.h"
+#include <chrono>
 
 #include <log4cplus/configurator.h>
 #include <log4cplus/loggingmacros.h>
@@ -70,10 +73,76 @@ namespace yakbas::test {
                 CHECK(timer->PassedTimeInMillisWithoutStop() >= millis);
             }
 
+            SUBCASE("Timer GetCurrentTimeNanos Test") {
+                const long long int nanos = Timer::GetCurrentTimeNanos();
+                const std::chrono::duration timeSinceEpoch = std::chrono::system_clock::now().time_since_epoch();
+                const long long int applicationsMillis = Timer::GetCurrentTimeMillis();
+                const auto nanosCount = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        timeSinceEpoch).count();
+                const auto millisCount = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        timeSinceEpoch).count();
+                const auto hoursCount = std::chrono::duration_cast<std::chrono::hours>(
+                        timeSinceEpoch).count();
+
+                LOG4CPLUS_DEBUG(*logger, "\nnanos: " + std::to_string(nanos) +
+                                         "\nnanosCount: " + std::to_string(nanosCount) +
+                                         "\nmillisCount: " + std::to_string(millisCount) +
+                                         "\napplicationsMillis: " + std::to_string(applicationsMillis) +
+                                         "\nhoursCount: " + std::to_string(hoursCount));
+                CHECK(nanos < nanosCount);
+            }
+
+            SUBCASE("Time measurements") {
+                const auto nowResult = std::chrono::system_clock::now().time_since_epoch();
+
+                const auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(nowResult).count();
+                const auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(nowResult).count();
+                const auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(nowResult).count();
+                const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(nowResult).count();
+
+                const auto systemStream = GetUniqueStream();
+
+                *systemStream << "\nnanoseconds : " << nanoseconds
+                              << "\nmicroseconds: " << microseconds
+                              << "\nmilliseconds: " << milliseconds
+                              << "\nseconds: " << seconds
+                              << std::endl;
+
+                LOG4CPLUS_DEBUG(*logger, systemStream->str());
+
+                const auto steadyStream = GetUniqueStream();
+
+                const auto start = std::chrono::steady_clock::now();
+                const auto timer = GetUnique<Timer>();
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                const auto end = std::chrono::steady_clock::now();
+                timer->stop();
+
+                const auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+                const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+                const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+                const auto secondss = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+
+                const auto timersMillis = timer->PassedTimeInMillisWithoutStop();
+
+                *steadyStream << "\nnanoseconds : " << nanos
+                              << "\nmicroseconds: " << micros
+                              << "\nmilliseconds: " << millis
+                              << "\nseconds: " << secondss
+                              << "\ntimer millis: " << timersMillis
+                              << std::endl;
+
+                LOG4CPLUS_DEBUG(*logger, steadyStream->str());
+                CHECK(timersMillis == millis);
+            }
+
             ::log4cplus::deinitialize();
         }
     }
 }
 
 #endif
+
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#undef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #endif

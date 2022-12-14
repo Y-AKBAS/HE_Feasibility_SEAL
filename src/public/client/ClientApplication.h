@@ -7,12 +7,11 @@ namespace yakbas::pub {
     public:
         ~ClientApplication() override;
 
-        void Run() override;
+        void Run(int argc, char **argv) override;
 
         void EnableLogging() override;
 
         void StartServer() override;
-
 
     };
 
