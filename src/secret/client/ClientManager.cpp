@@ -18,8 +18,8 @@ namespace yakbas::sec {
 
         std::call_once(m_isInitialized, [this]() {
             LOG4CPLUS_DEBUG(*m_logger, "Secret Client Manager is being initialized...");
+            ClientManager::CreateChannels();
             this->GetPublicKey();
-            ClientManager::GetPublicKey();
         });
     }
 
@@ -40,12 +40,15 @@ namespace yakbas::sec {
         auto invoiceClerkPublicKey = m_userPtr->GetCustomSealOperations()->GetPublicKeyFromBuffer(
                 GetUniqueStream(response->publickey()));
 
+        LOG4CPLUS_DEBUG(*m_logger, "Secret Client Manager requested public key...");
+
         std::shared_ptr<seal::PublicKey> key(invoiceClerkPublicKey.release());
         m_publicKeyMap.insert(std::make_pair(constants::INVOICE_CLERK_CHANNEL, key));
     }
 
     void ClientManager::CreateChannels() {
         if (m_channelMap.empty()) {
+            LOG4CPLUS_TEXT("Secret Client Manager channels are being initialized...");
             m_channelMap.insert(
                     std::make_pair(constants::INVOICE_CLERK_CHANNEL,
                                    grpc::CreateChannel(SECRET_INVOICE_CLERK_SERVER_PORT,

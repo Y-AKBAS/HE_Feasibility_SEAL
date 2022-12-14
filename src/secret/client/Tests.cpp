@@ -19,7 +19,6 @@ namespace yakbas::sec::test {
             const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
 
             SUBCASE("Client Manager Initialization Test") {
-                LOG4CPLUS_DEBUG(*logger, "Test is running...");
                 const auto clientManagerPtr = std::make_unique<ClientManager>();
                 CHECK(ClientManager::IsInitialized() == true);
             }

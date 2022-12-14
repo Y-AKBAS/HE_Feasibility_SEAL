@@ -78,5 +78,11 @@ namespace yakbas::sec {
         return m_sealOperations->GetPublicKeyFromBuffer(stream);
     }
 
+    std::unique_ptr<std::stringstream> CustomSealOperations::PublicKeyToBuffer() const {
+        auto stream = GetUniqueStream();
+        m_publicKeyPtr->save(*stream);
+        return stream;
+    }
+
 
 } // yakbas

@@ -26,6 +26,8 @@ namespace yakbas::sec {
 
         [[nodiscard]] std::uint64_t DecryptFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
 
+        [[nodiscard]] std::unique_ptr<std::stringstream> PublicKeyToBuffer() const;
+
         [[nodiscard]] const SealOperations *GetSealOperations() const;
 
     private:

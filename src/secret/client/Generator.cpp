@@ -6,7 +6,6 @@ namespace yakbas::sec {
     using namespace yakbas::util;
 
     std::unique_ptr<SecretUser> Generator::GenerateSecretUser(const SealKeys &sealKeys) {
-        std::cout << "came here" << std::endl;
 
         auto addressPtr = std::make_unique<BaseUser::Address>(
                 "My street",
