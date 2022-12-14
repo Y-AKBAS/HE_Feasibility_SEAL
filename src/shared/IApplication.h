@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef DISABLE_TESTS
+#if (DISABLE_TESTS)
 #define DOCTEST_CONFIG_DISABLE
 #else
 #define DOCTEST_CONFIG_IMPLEMENT

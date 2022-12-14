@@ -1,4 +1,6 @@
 
+#if (!DISABLE_TESTS)
+
 #include "doctest/doctest.h"
 #include "CustomSealOperations.h"
 #include "Utils.h"
@@ -27,3 +29,5 @@ namespace yakbas::sec::test {
     }
 
 }
+
+#endif

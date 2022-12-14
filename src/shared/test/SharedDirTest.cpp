@@ -1,10 +1,12 @@
 
-
-#ifndef DISABLE_TESTS
 #ifndef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#endif
 
 #include "doctest/doctest.h"
+
+#if (!DISABLE_TESTS)
+
 #include "Timer.h"
 #include "Utils.h"
 #include "ApplicationConstants.h"
@@ -140,4 +142,7 @@ namespace yakbas::test {
 }
 
 #endif
+
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#undef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #endif

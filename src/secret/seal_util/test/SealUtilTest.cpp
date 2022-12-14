@@ -1,9 +1,12 @@
 
-#ifndef DISABLE_TESTS
 #ifndef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#endif
 
 #include "doctest/doctest.h"
+
+#if (!DISABLE_TESTS)
+
 #include "CustomSealOperations.h"
 #include "Utils.h"
 #include <memory>
@@ -65,6 +68,13 @@ namespace yakbas::sec::test {
                 CHECK(num == customSealOperations->DecryptFromBuffer(stream));
             }
 
+            SUBCASE("SealKeys Initialization test") {
+                SealKeys keys = {};
+                CHECK(keys.m_schemeType == static_cast<const seal::scheme_type>(SEAL_SCHEME_TYPE));
+                CHECK(keys.m_polyModulusDegree == SEAL_POLY_MODULUS_DEGREE);
+                CHECK(keys.m_plainModulus == SEAL_PLAIN_MODULUS_DEGREE);
+            }
+
             ::log4cplus::deinitialize();
         }
     }
@@ -72,4 +82,7 @@ namespace yakbas::sec::test {
 } // yakbas
 
 #endif
+
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#undef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #endif
