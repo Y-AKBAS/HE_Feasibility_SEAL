@@ -51,6 +51,7 @@ namespace yakbas::util {
     std::shared_ptr<std::stringstream> GetSharedStream();
 
     std::unique_ptr<std::stringstream> GetUniqueStream();
+    std::unique_ptr<std::stringstream> GetUniqueStream(const std::string &message);
 
     std::ostream &operator<<(std::ostream &os, std::byte b);
 

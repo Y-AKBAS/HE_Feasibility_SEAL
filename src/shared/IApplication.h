@@ -16,10 +16,9 @@ namespace yakbas {
 
         virtual void StartServer() = 0;
 
-        virtual void Run() = 0;
+        virtual void Run(int argc, char **argv) = 0;
 
-        // default implementation
-        int RunTests(int argc, char **argv);
+        virtual int RunTests(int argc, char **argv);
     };
 
 } // yakbas

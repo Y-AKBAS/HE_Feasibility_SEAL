@@ -62,4 +62,5 @@ namespace yakbas {
               m_postalCode(std::move(postalCode)),
               m_city(std::move(city)),
               m_country(std::move(country)) {}
+
 } // yakbas

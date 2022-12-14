@@ -11,9 +11,10 @@ namespace yakbas::pub {
 
     ClientApplication::~ClientApplication() = default;
 
-    void ClientApplication::Run() {
+    void ClientApplication::Run(int argc, char **argv) {
         EnableLogging();
         const auto worker = GetUnique<std::jthread>(&ClientApplication::StartServer, this);
+        RunTests(argc, argv);
     }
 
     void ClientApplication::EnableLogging() {

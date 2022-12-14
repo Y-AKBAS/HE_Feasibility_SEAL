@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include <string>
 #include <memory>
 #include "SharedCommunication.pb.h"
@@ -43,8 +45,6 @@ namespace yakbas {
         const std::string m_postalCode{};
         const std::string m_city{};
         const std::string m_country{};
-
-        Address() {}
 
         Address(std::string street, std::string houseNumber, std::string postalCode,
                 std::string city, std::string country);

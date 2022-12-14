@@ -1,12 +1,12 @@
 
 #include "Generator.h"
 #include "Utils.h"
-#include "SecretUser.h"
 
 namespace yakbas::sec {
     using namespace yakbas::util;
 
-    decltype(auto) Generator::GenerateSecretUser(const SealKeys &sealKeys) {
+    std::unique_ptr<SecretUser> Generator::GenerateSecretUser(const SealKeys &sealKeys) {
+        std::cout << "came here" << std::endl;
 
         auto addressPtr = std::make_unique<BaseUser::Address>(
                 "My street",

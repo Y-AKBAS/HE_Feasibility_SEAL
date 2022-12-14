@@ -11,9 +11,10 @@ namespace yakbas::sec {
 
     InvoiceClerkApplication::~InvoiceClerkApplication() = default;
 
-    void InvoiceClerkApplication::Run() {
+    void InvoiceClerkApplication::Run(int argc, char **argv) {
         EnableLogging();
         const auto worker = GetUnique<std::jthread>(&InvoiceClerkApplication::StartServer, this);
+        RunTests(argc, argv);
     }
 
     void InvoiceClerkApplication::EnableLogging() {

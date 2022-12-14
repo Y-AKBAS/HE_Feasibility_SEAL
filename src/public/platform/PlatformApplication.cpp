@@ -11,9 +11,10 @@ namespace yakbas::pub {
 
     PlatformApplication::~PlatformApplication() = default;
 
-    void PlatformApplication::Run() {
+    void PlatformApplication::Run(int argc, char **argv) {
         EnableLogging();
         const auto worker = GetUnique<std::jthread>(&PlatformApplication::StartServer, this);
+        RunTests(argc, argv);
     }
 
     void PlatformApplication::EnableLogging() {

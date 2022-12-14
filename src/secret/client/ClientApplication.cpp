@@ -13,10 +13,10 @@ namespace yakbas::sec {
 
     ClientApplication::~ClientApplication() = default;
 
-    void ClientApplication::Run() {
+    void ClientApplication::Run(int argc, char **argv) {
         EnableLogging();
         const auto worker = GetUnique<std::jthread>(&ClientApplication::StartServer, this);
-        const auto sealOperations = GetUnique<CustomSealOperations>();
+        RunTests(argc, argv);
     }
 
     void ClientApplication::EnableLogging() {

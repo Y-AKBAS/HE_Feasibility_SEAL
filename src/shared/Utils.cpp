@@ -30,6 +30,10 @@ namespace yakbas::util {
         return GetModifiedUnique<std::stringstream>(optionalStreamLambda);
     }
 
+    std::unique_ptr<std::stringstream> GetUniqueStream(const std::string &message) {
+        return GetModifiedUnique<std::stringstream>(optionalStreamLambda, message);
+    }
+
     std::ostream &operator<<(std::ostream &os, std::byte b) {
         return os << std::bitset<8>(std::to_integer<int>(b));
     }

@@ -12,7 +12,7 @@ namespace yakbas::pub {
 
     MobilityProviderApplication::~MobilityProviderApplication() = default;
 
-    void MobilityProviderApplication::Run() {
+    void MobilityProviderApplication::Run(int argc, char **argv) {
         EnableLogging();
         const auto worker = GetUnique<std::jthread>(&MobilityProviderApplication::StartServer, this);
     }
