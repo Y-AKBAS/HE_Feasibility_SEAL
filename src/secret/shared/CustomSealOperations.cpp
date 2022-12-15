@@ -24,6 +24,8 @@ namespace yakbas::sec {
         m_decryptorPtr = GetUnique<seal::Decryptor>(
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
                 *m_secretKeyPtr);
+
+        m_publicKeyBufferPtr = this->PublicKeyToBuffer();
     }
 
     // No worries. Doesn't cause memory leak :)
@@ -79,9 +81,9 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<std::stringstream> CustomSealOperations::PublicKeyToBuffer() const {
-        auto stream = GetUniqueStream();
-        m_publicKeyPtr->save(*stream);
-        return stream;
+        auto streamPtr = GetUniqueStream();
+        m_publicKeyPtr->save(*streamPtr);
+        return streamPtr;
     }
 
 

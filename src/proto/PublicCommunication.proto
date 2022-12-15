@@ -1,20 +1,47 @@
 syntax = "proto3";
 
 import "SharedCommunication.proto";
+import "google/protobuf/timestamp.proto";
 package communication.pub;
 
 service PublicCommunicationService {
   rpc createInvoice(InvoicingRequest) returns (InvoicingResponse);
 }
 
+message SearchRequest {
+  string from = 1;
+  string to = 2;
+  google.protobuf.Timestamp startTime = 3;
+  google.protobuf.Timestamp endTime = 4;
+}
+
+message SearchResponse {
+  repeated Ride rides = 1;
+}
+
+message Ride {
+  string rideId = 1;
+  string providerId = 2;
+  Transporter transporter = 3;
+  string from = 4;
+  string to = 5;
+  google.protobuf.Timestamp startTime = 6;
+  google.protobuf.Timestamp endTime = 7;
+  UnitPriceType unitPriceType = 8;
+  uint64 unitPrice = 9;
+  uint64 coefficient = 10;
+  uint64 discountRate = 11;
+  uint64 seatPrice = 12;
+}
+
 message BookingRequest {
   string ride_id = 1;
-  optional int32 seatNumber = 2;
+  int32 seatNumber = 2;
   BookingType bookingType = 3;
   InvoicingClerkType invoicingClerkType = 4;
   UnitPriceType unitPriceType = 5;
   int32 unitPrice = 6;
   int32 coefficient = 7;
   int32 discountRate = 8;
-  optional int32 seatPrice = 9;
+  int32 seatPrice = 9;
 }

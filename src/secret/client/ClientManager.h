@@ -2,6 +2,7 @@
 
 #include "BaseClientManager.h"
 #include "SharedCommunication.pb.h"
+#include "SecretCommunication.grpc.pb.h"
 #include "SecretUser.h"
 
 namespace yakbas::sec {
@@ -11,6 +12,8 @@ namespace yakbas::sec {
         explicit ClientManager(const SealKeys &sealKeys = {});
 
         ~ClientManager() override;
+
+        static auto GetStub(const std::string &channelName);
 
         void GetPublicKey() const;
 

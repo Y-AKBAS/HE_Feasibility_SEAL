@@ -47,7 +47,7 @@ namespace yakbas::util {
         }();
         static auto distribution = std::uniform_real_distribution<double>(constants::APP_MIN_RANDOM_NUMBER,
                                                                           constants::APP_MAX_RANDOM_NUMBER);
-        distribution.reset();
+
         return static_cast<std::uint64_t>(distribution(*mtPtr));
     }
 

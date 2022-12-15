@@ -37,6 +37,7 @@ namespace yakbas::sec {
         std::unique_ptr<seal::Encryptor> m_encryptorPtr{nullptr};
         std::unique_ptr<seal::Decryptor> m_decryptorPtr{nullptr};
         std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
+        std::unique_ptr<std::stringstream> m_publicKeyBufferPtr{nullptr};
     };
 
 } // yakbas

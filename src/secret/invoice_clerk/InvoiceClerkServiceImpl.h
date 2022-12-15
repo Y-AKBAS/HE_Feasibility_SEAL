@@ -16,6 +16,7 @@ namespace yakbas::sec {
 
         grpc::Status getPublicKey(grpc::ServerContext *context, const google::protobuf::Empty *request,
                                   communication::sec::PublicKey *response) override;
+
     private:
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};

@@ -1,10 +1,9 @@
 
 #include <log4cplus/loggingmacros.h>
 #include "ClientManager.h"
-#include "Generator.h"
+#include "ClientGenerator.h"
 #include "ApplicationConstants.h"
 #include "SecretCommunication.pb.h"
-#include "SecretCommunication.grpc.pb.h"
 #include "Utils.h"
 
 namespace yakbas::sec {
@@ -13,7 +12,7 @@ namespace yakbas::sec {
     ClientManager::~ClientManager() = default;
 
     ClientManager::ClientManager(const SealKeys &sealKeys)
-            : m_userPtr(Generator::GenerateSecretUser(sealKeys)),
+            : m_userPtr(ClientGenerator::GenerateSecretUser(sealKeys)),
               m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))) {
 
         std::call_once(m_isInitialized, [this]() {
@@ -25,11 +24,20 @@ namespace yakbas::sec {
 
     std::map<std::string, const std::shared_ptr<seal::PublicKey>> ClientManager::m_publicKeyMap{};
 
+    auto ClientManager::GetStub(const std::string &channelName) {
+
+        const auto pair = m_channelMap.find(channelName);
+
+        if (pair != m_channelMap.end()) {
+            return communication::sec::SecretCommunicationService::NewStub(pair->second);
+        }
+
+        throw std::invalid_argument("No Such Channel");
+    }
+
     void ClientManager::GetPublicKey() const {
 
-        const auto invoiceClerkChannelPtr = m_channelMap.find(constants::INVOICE_CLERK_CHANNEL)->second;
-        const auto invoiceClerkStubPtr = communication::sec::SecretCommunicationService::NewStub(
-                invoiceClerkChannelPtr);
+        const auto invoiceClerkStubPtr = GetStub(constants::INVOICE_CLERK_CHANNEL);
 
         const auto clientContext = GetUnique<grpc::ClientContext>();
         const auto request = GetUnique<google::protobuf::Empty>();
@@ -48,7 +56,6 @@ namespace yakbas::sec {
 
     void ClientManager::CreateChannels() {
         if (m_channelMap.empty()) {
-            LOG4CPLUS_TEXT("Secret Client Manager channels are being initialized...");
             m_channelMap.insert(
                     std::make_pair(constants::INVOICE_CLERK_CHANNEL,
                                    grpc::CreateChannel(SECRET_INVOICE_CLERK_SERVER_PORT,
