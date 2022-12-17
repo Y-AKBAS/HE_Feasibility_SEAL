@@ -103,7 +103,7 @@ namespace yakbas::sec {
             }
         } catch (const std::exception &e) {
             const std::string message = "Setting Journeys has failed...";
-            LOG4CPLUS_DEBUG(*logger, message + "\n" + e.what());
+            LOG4CPLUS_ERROR(*logger, message + "\n" + e.what());
             return {grpc::StatusCode::INTERNAL, message};
         }
 

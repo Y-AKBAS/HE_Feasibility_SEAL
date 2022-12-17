@@ -24,15 +24,12 @@ namespace yakbas::sec {
                                                              const communication::sec::SearchRequest *request,
                                                              communication::sec::SearchResponse *response) {
 
+        const int numberOfJourneys = 10;
         const auto stream = GetUniqueStream(request->publickey());
         const auto publicKeyPtr = m_customSealOperationsPtr->GetPublicKeyFromBuffer(stream);
         const auto newEncryptorPtr = CustomSealOperations::CreateNewEncryptor(*publicKeyPtr);
 
-        MobilityProviderGenerator::GenerateJourneys(request, response, *newEncryptorPtr, 10);
-
-        auto journeyPtr = response->add_journeys();
-
-        return {};
+        return MobilityProviderGenerator::GenerateJourneys(request, response, *newEncryptorPtr, numberOfJourneys);
     }
 
 } // yakbas

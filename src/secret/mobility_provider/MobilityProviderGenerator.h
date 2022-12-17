@@ -26,15 +26,13 @@ namespace yakbas::sec {
                                   communication::sec::Journey *journeyPtr,
                                   int numberOfRides);
 
-        static grpc::Status GenerateJourneys(const communication::sec::SearchRequest *request,
-                                             communication::sec::SearchResponse *response,
-                                             const seal::Encryptor &encryptor,
-                                             int numberOfJourneys);
+        [[nodiscard]] static grpc::Status GenerateJourneys(const communication::sec::SearchRequest *request,
+                                                           communication::sec::SearchResponse *response,
+                                                           const seal::Encryptor &encryptor,
+                                                           int numberOfJourneys);
 
     private:
-
         static std::map<communication::TransporterType, communication::UnitPriceType> m_transporterUnitPriceType;
-
     };
 
 } // yakbas
