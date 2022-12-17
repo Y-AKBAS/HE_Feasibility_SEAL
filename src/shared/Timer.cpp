@@ -53,6 +53,10 @@ namespace yakbas {
         os << PassedTimeInMillisWithoutStop();
     }
 
+    std::unique_ptr<google::protobuf::Timestamp> Timer::GetTimestamp() {
+        return std::make_unique<google::protobuf::Timestamp>(proto_util::GetCurrentTime());
+    }
+
     std::ostream &operator<<(std::ostream &os, const Timer &timer) {
         timer.extraction(os);
         return os;

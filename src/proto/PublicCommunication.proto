@@ -16,6 +16,10 @@ message SearchRequest {
 }
 
 message SearchResponse {
+  repeated Journey journeys = 1;
+}
+
+message Journey {
   repeated Ride rides = 1;
 }
 
@@ -27,11 +31,17 @@ message Ride {
   string to = 5;
   google.protobuf.Timestamp startTime = 6;
   google.protobuf.Timestamp endTime = 7;
-  UnitPriceType unitPriceType = 8;
-  uint64 unitPrice = 9;
-  uint64 coefficient = 10;
-  uint64 discountRate = 11;
-  uint64 seatPrice = 12;
+  uint64 coefficient = 8;
+  uint64 discountRate = 9;
+}
+
+message Transporter {
+  string providerId = 1;
+  TransporterType transporterType = 2;
+  uint64 unitPrice = 3;
+  UnitPriceType unitPriceType = 4;
+  uint64 capacity = 5;
+  uint64 seatPrice = 6;
 }
 
 message BookingRequest {

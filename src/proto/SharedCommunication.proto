@@ -5,14 +5,6 @@ import "google/protobuf/timestamp.proto";
 
 package communication;
 
-message Transporter {
-  string providerId = 1;
-  TransporterType transporterType = 2;
-  uint64 unitPrice = 3;
-  UnitPriceType unitPriceType = 4;
-  uint64 capacity = 5;
-}
-
 message InvoicingRequest {
   ProtoUser user = 1;
   uint64 price = 2;
