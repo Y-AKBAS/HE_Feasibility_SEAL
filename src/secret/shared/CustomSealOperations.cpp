@@ -25,7 +25,7 @@ namespace yakbas::sec {
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
                 *m_secretKeyPtr);
 
-        m_publicKeyBufferPtr = this->PublicKeyToBuffer();
+        m_publicKeyBuffer = this->PublicKeyToBuffer()->str();
     }
 
     // No worries. Doesn't cause memory leak :)
@@ -97,7 +97,10 @@ namespace yakbas::sec {
     CustomSealOperations::CreateNewEncryptor(const seal::PublicKey &publicKey, const SealKeys &sealKeys) {
         return GetUnique<seal::Encryptor>(*GetOperations(sealKeys).GetSealInfoPtr()->m_sealContextPtr,
                                           publicKey);
-    };
+    }
 
+    const std::string &CustomSealOperations::GetPublicKeyBuffer() const {
+        return m_publicKeyBuffer;
+    }
 
 } // yakbas

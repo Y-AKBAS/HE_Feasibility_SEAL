@@ -1,25 +1,27 @@
 #pragma once
 
-#include "BaseClientManager.h"
 #include "SharedCommunication.pb.h"
 #include "SecretCommunication.grpc.pb.h"
 #include "SecretUser.h"
+#include "SecretBaseClientManager.h"
 
 namespace yakbas::sec {
 
-    class ClientManager : protected BaseClientManager {
+    class ClientManager : protected SecretBaseClientManager {
     public:
         explicit ClientManager(const SealKeys &sealKeys = {});
 
         ~ClientManager() override;
 
-        static auto GetStub(const std::string &channelName);
+        void GetPublicKey() const override;
 
-        void GetPublicKey() const;
+        [[nodiscard]] std::unique_ptr<communication::SearchResponse>
+        DoSearchRequest(const std::string &from, const std::string &to);
+
+        [[nodiscard]] std::unique_ptr<communication::SearchResponse>
+        MapSecretToPublic(const google::protobuf::RepeatedPtrField<communication::sec::Journey> &journeysPtr);
 
         static bool IsInitialized();
-
-        static void CreateChannels();
 
     private:
         const std::unique_ptr<SecretUser> m_userPtr{nullptr};

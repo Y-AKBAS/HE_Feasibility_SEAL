@@ -1,4 +1,5 @@
 
+#include <log4cplus/loggingmacros.h>
 #include "MobilityProviderServiceImpl.h"
 #include "Utils.h"
 #include "MobilityProviderGenerator.h"
@@ -24,12 +25,16 @@ namespace yakbas::sec {
                                                              const communication::sec::SearchRequest *request,
                                                              communication::sec::SearchResponse *response) {
 
-        const int numberOfJourneys = 10;
+        LOG4CPLUS_DEBUG(*m_logger, "Secret Mobility Provider Service impl SearchForRides invoked...");
+
+        const int numberOfJourneys = 1;
         const auto stream = GetUniqueStream(request->publickey());
         const auto publicKeyPtr = m_customSealOperationsPtr->GetPublicKeyFromBuffer(stream);
         const auto newEncryptorPtr = CustomSealOperations::CreateNewEncryptor(*publicKeyPtr);
 
-        return MobilityProviderGenerator::GenerateJourneys(request, response, *newEncryptorPtr, numberOfJourneys);
+        auto status = MobilityProviderGenerator::GenerateJourneys(request, &(*response), *newEncryptorPtr,
+                                                                  numberOfJourneys);
+        return status;
     }
 
 } // yakbas

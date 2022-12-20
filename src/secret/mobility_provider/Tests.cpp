@@ -14,8 +14,7 @@ namespace yakbas::sec::test {
     TEST_SUITE("Secret Mobility Provider Test Suite") {
 
         TEST_CASE("Secret Mobility Provider Tests") {
-            ::log4cplus::initialize();
-            ::log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
+
             static const auto logger = util::GetUnique<log4cplus::Logger>(
                     log4cplus::Logger::getInstance("Test Logger"));
             static const auto sealOperationsPtr = util::GetUnique<CustomSealOperations>();
@@ -60,10 +59,8 @@ namespace yakbas::sec::test {
                               });
             }
 
-            ::log4cplus::deinitialize();
         }
     }
-
 }
 
 #endif

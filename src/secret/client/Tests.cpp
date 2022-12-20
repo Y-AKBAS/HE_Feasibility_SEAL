@@ -8,22 +8,50 @@
 #include <memory>
 #include <log4cplus/configurator.h>
 #include <log4cplus/loggingmacros.h>
+#include "ApplicationConstants.h"
 
 namespace yakbas::sec::test {
 
     TEST_SUITE("Secret Client Test Suite") {
 
         TEST_CASE("Secret Client Tests") {
-            ::log4cplus::initialize();
-            ::log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
-            const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
+
+            const static auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
 
             SUBCASE("Client Manager Initialization Test") {
                 const auto clientManagerPtr = std::make_unique<ClientManager>();
-                CHECK(ClientManager::IsInitialized() == true);
+                CHECK(ClientManager::IsInitialized());
             }
 
-            ::log4cplus::deinitialize();
+            SUBCASE("Client Manager Search Request Test") {
+
+                const auto clientManagerPtr = std::make_unique<ClientManager>();
+                CHECK(ClientManager::IsInitialized());
+
+                const auto searchResponsePtr = clientManagerPtr->DoSearchRequest("Leipzig", "Halle");
+                const auto journeys = searchResponsePtr->journeys();
+
+                CHECK(!journeys.empty());
+
+                for (const auto &journey: journeys) {
+
+                    const auto &rides = journey.rides();
+                    CHECK(!rides.empty());
+
+                    for (const auto &ride: rides) {
+                        CHECK(!ride.has_starttime());
+                        CHECK(!ride.providerid().empty());
+                        CHECK(!ride.from().empty());
+                        CHECK(!ride.to().empty());
+                        CHECK(ride.coefficient() > constants::APP_MIN_RANDOM_NUMBER);
+                        CHECK(ride.coefficient() < constants::APP_MAX_RANDOM_NUMBER);
+                        CHECK(!ride.transporter().providerid().empty());
+                        CHECK(ride.transporter().unitprice() > constants::APP_MIN_RANDOM_NUMBER);
+                        CHECK(ride.transporter().unitprice() < constants::APP_MAX_RANDOM_NUMBER);
+                    }
+                }
+            }
+
         }
     }
 

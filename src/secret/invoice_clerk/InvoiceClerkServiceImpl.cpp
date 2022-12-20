@@ -21,9 +21,8 @@ namespace yakbas::sec {
                                           communication::sec::PublicKey *response) {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Invoice Clerk Public Key requested ...");
-        const auto &stream = m_customSealOperationsPtr->PublicKeyToBuffer();
-        response->set_publickey(stream->str());
-        return {};
+        response->set_publickey(m_customSealOperationsPtr->GetPublicKeyBuffer());
+        return {grpc::Status::OK};
     }
 
 } // yakbas

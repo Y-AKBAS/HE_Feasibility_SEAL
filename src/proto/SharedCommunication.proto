@@ -5,6 +5,42 @@ import "google/protobuf/timestamp.proto";
 
 package communication;
 
+message SearchRequest {
+  string from = 1;
+  string to = 2;
+  google.protobuf.Timestamp startTime = 3;
+  google.protobuf.Timestamp endTime = 4;
+}
+
+message SearchResponse {
+  repeated Journey journeys = 1;
+}
+
+message Journey {
+  repeated Ride rides = 1;
+}
+
+message Ride {
+  string rideId = 1;
+  string providerId = 2;
+  Transporter transporter = 3;
+  string from = 4;
+  string to = 5;
+  google.protobuf.Timestamp startTime = 6;
+  google.protobuf.Timestamp endTime = 7;
+  uint64 coefficient = 8;
+  uint64 discountRate = 9;
+}
+
+message Transporter {
+  string providerId = 1;
+  TransporterType transporterType = 2;
+  uint64 unitPrice = 3;
+  UnitPriceType unitPriceType = 4;
+  uint64 capacity = 5;
+  uint64 seatPrice = 6;
+}
+
 message InvoicingRequest {
   ProtoUser user = 1;
   uint64 price = 2;

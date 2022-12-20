@@ -39,7 +39,14 @@ namespace yakbas::sec {
     std::unique_ptr<seal::Ciphertext>
     SealOperations::GetCipherFromBuffer(std::stringstream &stream) const {
         auto cipher = util::GetUnique<seal::Ciphertext>();
-        cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, stream);
+        try {
+            std::cout << stream.str() << std::endl;
+            cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, stream);
+        }
+        catch (std::exception &e){
+            std::cout << e.what() << std::endl;
+            std::cout << stream.str() << std::endl;
+        }
         return cipher;
     }
 

@@ -5,7 +5,7 @@ cd "C:/"
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
 #./bootstrap-vcpkg.sh # for unix
-.\bootstrap-vcpkg.bat # for windows
+./bootstrap-vcpkg.bat # for windows
 ./vcpkg integrate install
 
 # Dependencies

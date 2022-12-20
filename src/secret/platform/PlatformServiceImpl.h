@@ -4,6 +4,7 @@
 #include <log4cplus/logger.h>
 #include "SecretCommunication.grpc.pb.h"
 #include "CustomSealOperations.h"
+#include "PlatformClientManager.h"
 
 namespace yakbas::sec {
 
@@ -21,6 +22,7 @@ namespace yakbas::sec {
     private:
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
+        const std::unique_ptr<PlatformClientManager> m_platformClientManager{nullptr};
     };
 
 }// yakbas

@@ -24,4 +24,19 @@ namespace yakbas {
         throw std::invalid_argument("Channel: " + channelName + " doesn't exist!");
     }
 
+    void BaseClientManager::CreateChannels(const std::map<std::string, std::string> &namePortPair) {
+        if (m_channelMap.empty()) {
+            if (namePortPair.empty()) {
+                throw std::invalid_argument("Name Port Pair cannot be empty.");
+            }
+
+            for (const auto &pair: namePortPair) {
+                m_channelMap.insert(
+                        std::make_pair(pair.first,
+                                       grpc::CreateChannel(pair.second,
+                                                           grpc::InsecureChannelCredentials())));
+            }
+        }
+    }
+
 } // yakbas

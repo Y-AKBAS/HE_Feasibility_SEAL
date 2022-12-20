@@ -39,7 +39,7 @@ namespace yakbas::sec {
         //ciphers
         auto unitPriceBufferPtr = SealOperations::GetEncryptedBuffer(GetRandomNumber(), encryptor);
         const auto coefficientPtr = SealOperations::GetEncryptedBuffer(GetRandomNumber(), encryptor);
-        const auto discountRatePtr = SealOperations::GetEncryptedBuffer(GetRandomNumber(), encryptor);
+        //const auto discountRatePtr = SealOperations::GetEncryptedBuffer(GetRandomNumber(), encryptor);
 
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
@@ -56,7 +56,7 @@ namespace yakbas::sec {
         // set seat price if it makes sense
         if (isSeatPriceMeaningful) {
             seatPriceBufferPtr = SealOperations::GetEncryptedBuffer(GetRandomNumber(), encryptor);
-            transporterPtr->set_seatprice(*seatPriceBufferPtr);
+            //transporterPtr->set_seatprice(*seatPriceBufferPtr);
         }
 
         // set other infos
@@ -65,7 +65,7 @@ namespace yakbas::sec {
         ridePtr->set_from(request->from());
         ridePtr->set_to(request->to());
         ridePtr->set_coefficient(*coefficientPtr);
-        ridePtr->set_discountrate(*discountRatePtr);
+       // ridePtr->set_discountrate(*discountRatePtr);
     }
 
     communication::TransporterType MobilityProviderGenerator::GetTransporterType(int value) {

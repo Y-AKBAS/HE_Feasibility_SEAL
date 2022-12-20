@@ -26,7 +26,7 @@ namespace yakbas::sec {
         const auto serverManager = GetUnique<PlatformServerManager>(
                 GetShared<PlatformServiceImpl>(),
                 SECRET_PLATFORM_SERVER_PORT,
-                "Secret Platform");
+                "Secret Platform Server Manager");
 
         serverManager->Init();
     }
