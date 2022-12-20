@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <google/protobuf/util/time_util.h>
 
 namespace yakbas {
 
@@ -33,9 +34,12 @@ namespace yakbas {
 
         static long long int GetCurrentTimeMillis();
 
+        static std::unique_ptr<google::protobuf::Timestamp> GetTimestamp();
+
     private:
         using steady = std::chrono::steady_clock;
         using system = std::chrono::system_clock;
+        using proto_util = google::protobuf::util::TimeUtil;
 
         steady::time_point m_begin;
         steady::time_point m_end;

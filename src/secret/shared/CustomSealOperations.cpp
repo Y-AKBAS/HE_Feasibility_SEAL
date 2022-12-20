@@ -24,14 +24,19 @@ namespace yakbas::sec {
         m_decryptorPtr = GetUnique<seal::Decryptor>(
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
                 *m_secretKeyPtr);
+
+        m_publicKeyBuffer = this->PublicKeyToBuffer()->str();
     }
 
     // No worries. Doesn't cause memory leak :)
     const SealOperations &
     CustomSealOperations::GetOperations(const SealKeys &sealKeys) {
         static const auto logger
-                = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("GetOperations_Logger"));
+                = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("GetOperations Logger"));
         static std::vector<const SealOperations *> operations{};
+
+        static std::mutex m_mutex{};
+        std::lock_guard<std::mutex> guard{m_mutex};
 
         const auto it = std::ranges::find_if(operations, [&sealKeys](const SealOperations *operationsPtr) {
             return operationsPtr->GetSealInfoPtr()->m_sealKeys == sealKeys;
@@ -40,24 +45,24 @@ namespace yakbas::sec {
         if (it != std::end(operations)) {
             LOG4CPLUS_DEBUG(*logger, "Found existing SealKeys. They will be returned...");
             return *(*it);
-        } else {
-            LOG4CPLUS_DEBUG(*logger, "Creating new with params: \n" + sealKeys.ToString());
-            const auto newOperationsPtr = new SealOperations(sealKeys);
-            operations.push_back(newOperationsPtr);
-            return *newOperationsPtr;
         }
+
+        LOG4CPLUS_DEBUG(*logger, "Creating new with params: \n" + sealKeys.ToString());
+        const auto newOperationsPtr = new SealOperations(sealKeys);
+        operations.push_back(newOperationsPtr);
+        return *newOperationsPtr;
     }
 
     std::unique_ptr<seal::Ciphertext> CustomSealOperations::Encrypt(const uint64_t &num) const {
-        return m_sealOperations->Encrypt(num, *m_encryptorPtr);
+        return yakbas::sec::SealOperations::Encrypt(num, *m_encryptorPtr);
     }
 
     std::uint64_t CustomSealOperations::Decrypt(const seal::Ciphertext &cipher) const {
-        return m_sealOperations->Decrypt(cipher, *m_decryptorPtr);
+        return yakbas::sec::SealOperations::Decrypt(cipher, *m_decryptorPtr);
     }
 
     std::unique_ptr<std::string> CustomSealOperations::GetEncryptedBuffer(const uint64_t &num) const {
-        return m_sealOperations->GetEncryptedBuffer(num, *m_encryptorPtr);
+        return yakbas::sec::SealOperations::GetEncryptedBuffer(num, *m_encryptorPtr);
     }
 
     std::unique_ptr<seal::Ciphertext>
@@ -74,15 +79,28 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<seal::PublicKey>
-    CustomSealOperations::GetPublicKeyFromBuffer(const std::unique_ptr<std::stringstream> &stream) const{
+    CustomSealOperations::GetPublicKeyFromBuffer(const std::unique_ptr<std::stringstream> &stream) const {
         return m_sealOperations->GetPublicKeyFromBuffer(stream);
     }
 
     std::unique_ptr<std::stringstream> CustomSealOperations::PublicKeyToBuffer() const {
-        auto stream = GetUniqueStream();
-        m_publicKeyPtr->save(*stream);
-        return stream;
+        auto streamPtr = GetUniqueStream();
+        m_publicKeyPtr->save(*streamPtr);
+        return streamPtr;
     }
 
+    const std::unique_ptr<seal::Encryptor> &CustomSealOperations::GetEncryptorPtr() const {
+        return m_encryptorPtr;
+    }
+
+    std::unique_ptr<seal::Encryptor>
+    CustomSealOperations::CreateNewEncryptor(const seal::PublicKey &publicKey, const SealKeys &sealKeys) {
+        return GetUnique<seal::Encryptor>(*GetOperations(sealKeys).GetSealInfoPtr()->m_sealContextPtr,
+                                          publicKey);
+    }
+
+    const std::string &CustomSealOperations::GetPublicKeyBuffer() const {
+        return m_publicKeyBuffer;
+    }
 
 } // yakbas

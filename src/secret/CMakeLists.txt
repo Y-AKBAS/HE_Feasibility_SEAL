@@ -1,5 +1,5 @@
 
-add_subdirectory(seal_util)
+add_subdirectory(shared)
 add_subdirectory(invoice_clerk)
 add_subdirectory(mobility_provider)
 add_subdirectory(platform)

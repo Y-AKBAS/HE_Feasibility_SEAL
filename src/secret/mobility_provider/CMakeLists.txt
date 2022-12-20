@@ -3,7 +3,7 @@ aux_source_directory(. SOURCE_FILES)
 
 set(TARGET_NAME secretMobilityProvider)
 add_executable(${TARGET_NAME} ${SOURCE_FILES})
-target_link_libraries(${TARGET_NAME} PRIVATE ${SHARED_LIBS} sealUtils)
+target_link_libraries(${TARGET_NAME} PRIVATE ${SHARED_LIBS} secretShared)
 
 PLACE_LOG_CONFIG(${TARGET_NAME}
         CONFIG_FILE_DIR "${DEFAULT_LOG_CONFIGURER}"

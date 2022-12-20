@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "SharedCommunication.proto";
+import "google/protobuf/timestamp.proto";
 package communication.pub;
 
 service PublicCommunicationService {
@@ -9,12 +10,12 @@ service PublicCommunicationService {
 
 message BookingRequest {
   string ride_id = 1;
-  optional int32 seatNumber = 2;
+  int32 seatNumber = 2;
   BookingType bookingType = 3;
   InvoicingClerkType invoicingClerkType = 4;
   UnitPriceType unitPriceType = 5;
   int32 unitPrice = 6;
   int32 coefficient = 7;
   int32 discountRate = 8;
-  optional int32 seatPrice = 9;
+  int32 seatPrice = 9;
 }

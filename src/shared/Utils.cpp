@@ -16,7 +16,7 @@
 namespace yakbas::util {
 
     extern const std::unique_ptr<log4cplus::Logger> utilLogger
-            = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("UtilLogger"));
+            = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("Util Logger"));
 
     const auto optionalStreamLambda = std::make_optional([](std::stringstream &stream) {
         stream.exceptions(std::ios::badbit | std::ios::failbit);
@@ -27,11 +27,13 @@ namespace yakbas::util {
     }
 
     std::unique_ptr<std::stringstream> GetUniqueStream() {
-        return GetModifiedUnique<std::stringstream>(optionalStreamLambda);
+        return GetModifiedUnique<std::stringstream>(optionalStreamLambda,
+                                                    std::ios::in | std::ios::out | std::ios::binary);
     }
 
     std::unique_ptr<std::stringstream> GetUniqueStream(const std::string &message) {
-        return GetModifiedUnique<std::stringstream>(optionalStreamLambda, message);
+        return GetModifiedUnique<std::stringstream>(optionalStreamLambda, message,
+                                                    std::ios::in | std::ios::out | std::ios::binary);
     }
 
     std::ostream &operator<<(std::ostream &os, std::byte b) {
@@ -47,7 +49,7 @@ namespace yakbas::util {
         }();
         static auto distribution = std::uniform_real_distribution<double>(constants::APP_MIN_RANDOM_NUMBER,
                                                                           constants::APP_MAX_RANDOM_NUMBER);
-        distribution.reset();
+
         return static_cast<std::uint64_t>(distribution(*mtPtr));
     }
 
@@ -57,7 +59,7 @@ namespace yakbas::util {
         return boost::lexical_cast<std::string>((*uuidGenPtr)());
         */
 
-        return "user_" + std::to_string(Timer::GetCurrentTimeNanos());
+        return "id_" + std::to_string(Timer::GetCurrentTimeNanos());
     }
 
 }

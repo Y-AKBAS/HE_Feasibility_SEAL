@@ -9,18 +9,18 @@ namespace yakbas::sec {
             : m_sealInfoPtr(std::make_unique<SealInfo>(sealKeys)) {}
 
     std::unique_ptr<seal::Ciphertext>
-    SealOperations::Encrypt(const uint64_t &num, const seal::Encryptor &encryptor) const {
+    SealOperations::Encrypt(const uint64_t &num, const seal::Encryptor &encryptor) {
         const std::string hexString = seal::util::uint_to_hex_string(&num, std::size_t(1));
-        const auto plainTextToEncrypt = std::make_unique<seal::Plaintext>(hexString);
-        auto cipherText = std::make_unique<seal::Ciphertext>();
+        const auto plainTextToEncrypt = GetUnique<seal::Plaintext>(hexString);
+        auto cipherText = GetUnique<seal::Ciphertext>();
         encryptor.encrypt(*plainTextToEncrypt, *cipherText);
         return cipherText;
     }
 
     std::uint64_t SealOperations::Decrypt(const seal::Ciphertext &cipher,
-                                          seal::Decryptor &decryptor) const {
+                                          seal::Decryptor &decryptor) {
 
-        const auto decryptedPlaintext = std::make_unique<seal::Plaintext>();
+        const auto decryptedPlaintext = GetUnique<seal::Plaintext>();
         decryptor.decrypt(cipher, *decryptedPlaintext);
         const std::string hexString = decryptedPlaintext->to_string();
         std::uint64_t result{};
@@ -30,16 +30,23 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<std::string> SealOperations::GetEncryptedBuffer(const uint64_t &num,
-                                                                    const seal::Encryptor &encryptor) const {
+                                                                    const seal::Encryptor &encryptor) {
         const auto &stream = util::GetUniqueStream();
-        this->Encrypt(num, encryptor)->save(*stream);
+        SealOperations::Encrypt(num, encryptor)->save(*stream);
         return std::make_unique<std::string>(stream->str());
     }
 
     std::unique_ptr<seal::Ciphertext>
     SealOperations::GetCipherFromBuffer(std::stringstream &stream) const {
         auto cipher = util::GetUnique<seal::Ciphertext>();
-        cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, stream);
+        try {
+            std::cout << stream.str() << std::endl;
+            cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, stream);
+        }
+        catch (std::exception &e){
+            std::cout << e.what() << std::endl;
+            std::cout << stream.str() << std::endl;
+        }
         return cipher;
     }
 
@@ -53,15 +60,15 @@ namespace yakbas::sec {
         return m_sealInfoPtr;
     }
 
-    bool SealOperations::operator==(const SealOperations &rhs) const {
-        return this->m_sealInfoPtr->m_sealKeys == rhs.m_sealInfoPtr->m_sealKeys;
-    }
-
     std::unique_ptr<seal::PublicKey>
     SealOperations::GetPublicKeyFromBuffer(const std::unique_ptr<std::stringstream> &stream) const {
         auto keyPtr = GetUnique<seal::PublicKey>();
         keyPtr->load(*this->m_sealInfoPtr->m_sealContextPtr, *stream);
         return keyPtr;
+    }
+
+    bool SealOperations::operator==(const SealOperations &rhs) const {
+        return this->m_sealInfoPtr->m_sealKeys == rhs.m_sealInfoPtr->m_sealKeys;
     }
 
 } // yakbas

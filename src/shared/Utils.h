@@ -10,6 +10,7 @@
 #include <ostream>
 #include <sstream>
 #include <log4cplus/logger.h>
+#include <filesystem>
 
 
 namespace yakbas::util {
@@ -51,12 +52,17 @@ namespace yakbas::util {
     std::shared_ptr<std::stringstream> GetSharedStream();
 
     std::unique_ptr<std::stringstream> GetUniqueStream();
-    std::unique_ptr<std::stringstream> GetUniqueStream(const std::string &message);
 
-    std::ostream &operator<<(std::ostream &os, std::byte b);
+    std::unique_ptr<std::stringstream> GetUniqueStream(const std::string &message);
 
     std::uint64_t GetRandomNumber();
 
     std::string GetUUID();
+
+    using FilePtr = std::unique_ptr<FILE, decltype([](FILE *f) { fclose(f); })>;
+
+    [[nodiscard]] FilePtr fopen(const std::filesystem::path &path, std::string_view mode);
+
+    std::ostream &operator<<(std::ostream &os, std::byte b);
 
 }// yakbas

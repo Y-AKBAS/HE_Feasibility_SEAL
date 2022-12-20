@@ -1,4 +1,3 @@
-
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
@@ -14,6 +13,10 @@ message SearchRequest {
 }
 
 message SearchResponse {
+  repeated Journey journeys = 1;
+}
+
+message Journey {
   repeated Ride rides = 1;
 }
 
@@ -25,22 +28,22 @@ message Ride {
   string to = 5;
   google.protobuf.Timestamp startTime = 6;
   google.protobuf.Timestamp endTime = 7;
-  UnitPriceType unitPriceType = 8;
-  int32 unitPrice = 9;
-  int32 coefficient = 10;
+  uint64 coefficient = 8;
+  uint64 discountRate = 9;
 }
 
 message Transporter {
   string providerId = 1;
   TransporterType transporterType = 2;
-  int32 unitPrice = 3;
+  uint64 unitPrice = 3;
   UnitPriceType unitPriceType = 4;
-  int32 capacity = 5;
+  uint64 capacity = 5;
+  uint64 seatPrice = 6;
 }
 
 message InvoicingRequest {
   ProtoUser user = 1;
-  int32 price = 2;
+  uint64 price = 2;
 }
 
 message InvoicingResponse {
@@ -49,10 +52,10 @@ message InvoicingResponse {
 
 message ProtoUser {
   string id = 1;
-  optional string firstName = 2;
-  optional string lastName = 3;
-  optional string email = 4;
-  optional Address address = 5;
+  string firstName = 2;
+  string lastName = 3;
+  string email = 4;
+  Address address = 5;
 }
 
 message Address {
@@ -92,16 +95,16 @@ enum StatusCode {
 }
 
 enum BookingType{
-    RENTAL = 0;
-    RIDE = 1;
+  RENTAL = 0;
+  RIDE = 1;
 }
 
 enum InvoicingClerkType {
-    UNKNOWN = 0;
-    DEBIT = 1;
-    PAYPAL = 2;
-    VISA = 3;
-    MASTER = 4;
-    GIROPAY = 5;
-    KLARNA = 6;
+  UNKNOWN = 0;
+  DEBIT = 1;
+  PAYPAL = 2;
+  VISA = 3;
+  MASTER = 4;
+  GIROPAY = 5;
+  KLARNA = 6;
 }
