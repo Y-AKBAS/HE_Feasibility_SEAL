@@ -27,65 +27,26 @@ namespace yakbas::sec {
     const std::unique_ptr<log4cplus::Logger> MobilityProviderGenerator::m_logger =
             util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("Secret Mobility Provider Generator"));
 
-    communication::TransporterType MobilityProviderGenerator::GetTransporterType(int value) {
-        return communication::TransporterType_IsValid(value) ?
-               static_cast<communication::TransporterType>(value) :
-               communication::TransporterType::AUTO;
-    }
-
-    bool MobilityProviderGenerator::IsSeatPriceMeaningful(const communication::TransporterType type) {
-        return communication::TransporterType::REGIONAL_BAHN == type;
-    }
-
-    void MobilityProviderGenerator::GenerateRide(const communication::SearchRequest *request,
-                                                 communication::Ride *ridePtr) {
-
-        // optionals: seatPrice, discount
-        const auto providerId = GetUUID();
-        const auto randomNumber = GetRandomNumber();
-        const auto transporterType = GetTransporterType(static_cast<int>(randomNumber));
-        const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
-        std::unique_ptr<std::string> seatPriceBufferPtr{};
-
-        // set Timestamp
-        const auto timestampPtr = ridePtr->mutable_starttime();
-        timestampPtr->set_nanos(static_cast<int32_t>(Timer::GetCurrentTimeNanos()));
-
-        // set Transporter
-        const auto transporterPtr = ridePtr->mutable_transporter();
-        transporterPtr->set_providerid(providerId);
-        transporterPtr->set_unitprice(randomNumber);
-        transporterPtr->set_capacity(GetRandomNumber());
-        transporterPtr->set_transportertype(transporterType);
-        transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
-
-        // set seat price if it makes sense
-        if (isSeatPriceMeaningful) {
-            transporterPtr->set_seatprice(randomNumber);
+    grpc::Status MobilityProviderGenerator::GenerateSecretJourneys(const communication::sec::SearchRequest *request,
+                                                                   grpc::ServerWriter<communication::sec::Journey> *writer,
+                                                                   const seal::Encryptor &encryptor) {
+        try {
+            for (int i = 0; i < request->numberofjourneys(); ++i) {
+                const auto journeyPtr = GetUnique<communication::sec::Journey>();
+                GenerateSecretRides(request, encryptor, journeyPtr.get(), (i % 2) + 1);
+                writer->Write(*journeyPtr);
+            }
+        } catch (const std::exception &e) {
+            const std::string message = "Setting Journeys has failed...";
+            LOG4CPLUS_ERROR(*m_logger, message + "\n" + e.what());
+            return {grpc::StatusCode::INTERNAL, message};
         }
 
-        // set other infos
-        ridePtr->set_rideid(GetUUID());
-        ridePtr->set_providerid(providerId);
-        ridePtr->set_from(request->from());
-        ridePtr->set_to(request->to());
-        ridePtr->set_coefficient(randomNumber);
-        ridePtr->set_discountrate(randomNumber);
-    }
-
-    void MobilityProviderGenerator::GenerateRides(const communication::SearchRequest *request,
-                                                  communication::Journey *journeyPtr,
-                                                  const int numberOfRides) {
-
-        for (int i = 0; i < numberOfRides; ++i) {
-            communication::Ride *ridesPtr = journeyPtr->add_rides();
-            GenerateRide(request, ridesPtr);
-        }
+        return grpc::Status::OK;
     }
 
     grpc::Status MobilityProviderGenerator::GenerateJourneys(const communication::SearchRequest *request,
                                                              grpc::ServerWriter<communication::Journey> *writer) {
-
         try {
             for (int i = 0; i < request->numberofjourneys(); ++i) {
                 const auto journeyPtr = GetUnique<communication::Journey>();
@@ -99,6 +60,26 @@ namespace yakbas::sec {
         }
 
         return grpc::Status::OK;
+    }
+
+    void MobilityProviderGenerator::GenerateSecretRides(const communication::sec::SearchRequest *request,
+                                                        const seal::Encryptor &encryptor,
+                                                        communication::sec::Journey *journeyPtr, int numberOfRides) {
+
+        for (int i = 0; i < numberOfRides; ++i) {
+            communication::sec::Ride *ridesPtr = journeyPtr->add_rides();
+            GenerateSecretRide(request, encryptor, ridesPtr);
+        }
+    }
+
+    void MobilityProviderGenerator::GenerateRides(const communication::SearchRequest *request,
+                                                  communication::Journey *journeyPtr,
+                                                  const int numberOfRides) {
+
+        for (int i = 0; i < numberOfRides; ++i) {
+            communication::Ride *ridesPtr = journeyPtr->add_rides();
+            GenerateRide(request, ridesPtr);
+        }
     }
 
     void MobilityProviderGenerator::GenerateSecretRide(const communication::sec::SearchRequest *request,
@@ -130,7 +111,7 @@ namespace yakbas::sec {
         transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
 
         // set seat price if it makes sense
-        if (isSeatPriceMeaningful) {
+        if (isSeatPriceMeaningful && (randomNumber % 2) == 1) {
             const auto seatPricePtr = SealOperations::GetEncryptedBuffer(GetRandomNumber(), encryptor);
             transporterPtr->set_seatprice(*seatPricePtr);
         }
@@ -141,36 +122,59 @@ namespace yakbas::sec {
         ridePtr->set_from(request->from());
         ridePtr->set_to(request->to());
         ridePtr->set_coefficient(*coefficientPtr);
-        ridePtr->set_discountrate(*discountRatePtr);
-    }
 
-    void MobilityProviderGenerator::GenerateSecretRides(const communication::sec::SearchRequest *request,
-                                                        const seal::Encryptor &encryptor,
-                                                        communication::sec::Journey *journeyPtr, int numberOfRides) {
-
-        for (int i = 0; i < numberOfRides; ++i) {
-            communication::sec::Ride *ridesPtr = journeyPtr->add_rides();
-            GenerateSecretRide(request, encryptor, ridesPtr);
+        if ((randomNumber % 2) == 1) {
+            ridePtr->set_discountrate(*discountRatePtr);
         }
     }
 
-    grpc::Status MobilityProviderGenerator::GenerateSecretJourneys(const communication::sec::SearchRequest *request,
-                                                                   grpc::ServerWriter<communication::sec::Journey> *writer,
-                                                                   const seal::Encryptor &encryptor) {
+    void MobilityProviderGenerator::GenerateRide(const communication::SearchRequest *request,
+                                                 communication::Ride *ridePtr) {
 
-        try {
-            for (int i = 0; i < request->numberofjourneys() - 1; ++i) {
-                const auto journeyPtr = GetUnique<communication::sec::Journey>();
-                GenerateSecretRides(request, encryptor, journeyPtr.get(), (i % 2) + 1);
-                writer->Write(*journeyPtr);
-            }
-        } catch (const std::exception &e) {
-            const std::string message = "Setting Journeys has failed...";
-            LOG4CPLUS_ERROR(*m_logger, message + "\n" + e.what());
-            return {grpc::StatusCode::INTERNAL, message};
+        // optionals: seatPrice, discount
+        const auto providerId = GetUUID();
+        const auto randomNumber = GetRandomNumber();
+        const auto transporterType = GetTransporterType(static_cast<int>(randomNumber));
+        const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
+        std::unique_ptr<std::string> seatPriceBufferPtr{};
+
+        // set Timestamp
+        const auto timestampPtr = ridePtr->mutable_starttime();
+        timestampPtr->set_nanos(static_cast<int32_t>(Timer::GetCurrentTimeNanos()));
+
+        // set Transporter
+        const auto transporterPtr = ridePtr->mutable_transporter();
+        transporterPtr->set_providerid(providerId);
+        transporterPtr->set_unitprice(randomNumber);
+        transporterPtr->set_capacity(GetRandomNumber());
+        transporterPtr->set_transportertype(transporterType);
+        transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
+
+        // set seat price if it makes sense
+        if (isSeatPriceMeaningful && (randomNumber % 2) == 1) {
+            transporterPtr->set_seatprice(randomNumber);
         }
 
-        return grpc::Status::OK;
+        // set other infos
+        ridePtr->set_rideid(GetUUID());
+        ridePtr->set_providerid(providerId);
+        ridePtr->set_from(request->from());
+        ridePtr->set_to(request->to());
+        ridePtr->set_coefficient(randomNumber);
+
+        if ((randomNumber % 2) == 1) {
+            ridePtr->set_discountrate(randomNumber);
+        }
+    }
+
+    communication::TransporterType MobilityProviderGenerator::GetTransporterType(int value) {
+        return communication::TransporterType_IsValid(value) ?
+               static_cast<communication::TransporterType>(value) :
+               communication::TransporterType::AUTO;
+    }
+
+    bool MobilityProviderGenerator::IsSeatPriceMeaningful(const communication::TransporterType type) {
+        return communication::TransporterType::REGIONAL_BAHN == type;
     }
 
 } // yakbas
