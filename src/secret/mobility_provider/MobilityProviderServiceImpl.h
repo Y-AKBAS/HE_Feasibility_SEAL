@@ -15,8 +15,12 @@ namespace yakbas::sec {
         grpc::Status createInvoice(grpc::ServerContext *context, const communication::InvoicingRequest *request,
                                    communication::InvoicingResponse *response) override;
 
-        grpc::Status searchForRides(::grpc::ServerContext *context, const ::communication::sec::SearchRequest *request,
-                                    ::communication::sec::SearchResponse *response) override;
+        grpc::Status
+        SearchForSecretRides(grpc::ServerContext *context, const communication::sec::SearchRequest *request,
+                             grpc::ServerWriter<communication::sec::Journey> *writer) override;
+
+        grpc::Status SearchForRides(grpc::ServerContext *context, const communication::SearchRequest *request,
+                                    grpc::ServerWriter<communication::Journey> *writer) override;
 
     private:
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};

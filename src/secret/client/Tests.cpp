@@ -28,33 +28,32 @@ namespace yakbas::sec::test {
                 const auto clientManagerPtr = std::make_unique<ClientManager>();
                 CHECK(ClientManager::IsInitialized());
 
-                const auto searchResponsePtr = clientManagerPtr->DoSearchRequest("Leipzig", "Halle");
-                const auto journeys = searchResponsePtr->journeys();
+                const int numberOfJourneys = 12;
+                const auto journeysVecPtr = clientManagerPtr->DoSearchRequest("Leipzig", "Halle", numberOfJourneys);
 
-                CHECK(!journeys.empty());
+                CHECK(!journeysVecPtr->empty());
+                CHECK(journeysVecPtr->size() == numberOfJourneys);
 
-                for (const auto &journey: journeys) {
+                for (const auto &journeyPtr: *journeysVecPtr) {
 
-                    const auto &rides = journey.rides();
+                    const auto &rides = journeyPtr->rides();
                     CHECK(!rides.empty());
 
                     for (const auto &ride: rides) {
-                        CHECK(!ride.has_starttime());
+                        CHECK(ride.has_starttime());
                         CHECK(!ride.providerid().empty());
                         CHECK(!ride.from().empty());
                         CHECK(!ride.to().empty());
-                        CHECK(ride.coefficient() > constants::APP_MIN_RANDOM_NUMBER);
-                        CHECK(ride.coefficient() < constants::APP_MAX_RANDOM_NUMBER);
+                        CHECK(ride.coefficient() >= constants::APP_MIN_RANDOM_NUMBER);
+                        CHECK(ride.coefficient() <= constants::APP_MAX_RANDOM_NUMBER);
                         CHECK(!ride.transporter().providerid().empty());
-                        CHECK(ride.transporter().unitprice() > constants::APP_MIN_RANDOM_NUMBER);
-                        CHECK(ride.transporter().unitprice() < constants::APP_MAX_RANDOM_NUMBER);
+                        CHECK(ride.transporter().unitprice() >= constants::APP_MIN_RANDOM_NUMBER);
+                        CHECK(ride.transporter().unitprice() <= constants::APP_MAX_RANDOM_NUMBER);
                     }
                 }
             }
-
         }
     }
-
 }
 
 #endif

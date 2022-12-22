@@ -36,7 +36,7 @@ namespace yakbas::sec {
         const auto request = GetUnique<google::protobuf::Empty>();
         const auto response = GetUnique<communication::sec::PublicKey>();
 
-        invoiceClerkStubPtr->getPublicKey(clientContext.get(), *request, response.get());
+        invoiceClerkStubPtr->GetPublicKey(clientContext.get(), *request, response.get());
 
         auto invoiceClerkPublicKey = m_userPtr->GetCustomSealOperations()->GetPublicKeyFromBuffer(
                 GetUniqueStream(response->publickey()));
@@ -51,22 +51,45 @@ namespace yakbas::sec {
         return !m_publicKeyMap.empty() && !m_channelMap.empty();
     }
 
-    std::unique_ptr<communication::SearchResponse>
-    ClientManager::DoSearchRequest(const std::string &from, const std::string &to) {
+    std::unique_ptr<std::vector<std::unique_ptr<communication::sec::Journey>>>
+    ClientManager::DoSecretSearchRequest(const std::string &from, const std::string &to, const int numberOfJourneys) {
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
 
+        auto journeyVecPtr =
+                GetUnique<std::vector<std::unique_ptr<communication::sec::Journey>>>();
+
         const auto clientContext = GetUnique<grpc::ClientContext>();
         const auto request = GetUnique<communication::sec::SearchRequest>();
-        const auto response = GetUnique<communication::sec::SearchResponse>();
 
+        request->set_numberofjourneys(numberOfJourneys);
         request->set_to(to);
         request->set_from(from);
         request->set_publickey(m_userPtr->GetCustomSealOperations()->GetPublicKeyBuffer());
 
-        stubPtr->searchForRides(clientContext.get(), *request, response.get());
+        const auto readerPtr = stubPtr->SearchForSecretRides(clientContext.get(), *request);
 
-        return this->MapSecretToPublic(response->journeys());
+        bool isReadable;
+        do {
+            auto journeyPtr
+                    = GetUnique<communication::sec::Journey>();
+            isReadable = readerPtr->Read(journeyPtr.get());
+
+            if (isReadable) {
+                journeyVecPtr->push_back(std::move(journeyPtr));
+            }
+        } while (isReadable);
+
+        const grpc::Status &status = readerPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during DoSecretSearchRequest(). Error message: " + status.error_message());
+        }
+
+        return journeyVecPtr;
     }
 
     std::unique_ptr<communication::SearchResponse>
@@ -89,9 +112,9 @@ namespace yakbas::sec {
                 publicRidePtr->set_providerid(ride.providerid());
                 publicRidePtr->set_rideid(ride.rideid());
 
-               /* const uint64_t discountRate = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
-                        GetUniqueStream(ride.discountrate()));
-                publicRidePtr->set_discountrate(discountRate);*/
+                /* const uint64_t discountRate = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
+                         GetUniqueStream(ride.discountrate()));
+                 publicRidePtr->set_discountrate(discountRate);*/
 
                 const uint64_t coefficient = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
                         GetUniqueStream(ride.coefficient()));
@@ -108,9 +131,9 @@ namespace yakbas::sec {
                 transporterPtr->set_transportertype(ride.transporter().transportertype());
                 transporterPtr->set_capacity(ride.transporter().capacity());
 
-               /* const uint64_t seatPrice = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
-                        GetUniqueStream(ride.transporter().seatprice()));
-                transporterPtr->set_seatprice(seatPrice);*/
+                /* const uint64_t seatPrice = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
+                         GetUniqueStream(ride.transporter().seatprice()));
+                 transporterPtr->set_seatprice(seatPrice);*/
 
                 const uint64_t unitPrice = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
                         GetUniqueStream(ride.transporter().unitprice()));
@@ -122,6 +145,46 @@ namespace yakbas::sec {
         }
 
         return publicJourneysPtr;
+    }
+
+    std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
+    ClientManager::DoSearchRequest(const std::string &from, const std::string &to, int numberOfJourneys) {
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+
+        auto journeyVecPtr =
+                GetUnique<std::vector<std::unique_ptr<communication::Journey>>>();
+
+        const auto clientContext = GetUnique<grpc::ClientContext>();
+        const auto request = GetUnique<communication::SearchRequest>();
+
+        request->set_numberofjourneys(numberOfJourneys);
+        request->set_to(to);
+        request->set_from(from);
+
+        const auto readerPtr = stubPtr->SearchForRides(clientContext.get(), *request);
+
+        bool isReadable;
+        do {
+            auto journeyPtr
+                    = GetUnique<communication::Journey>();
+            isReadable = readerPtr->Read(journeyPtr.get());
+
+            if (isReadable) {
+                journeyVecPtr->push_back(std::move(journeyPtr));
+            }
+        } while (isReadable);
+
+        const grpc::Status &status = readerPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during DoSecretSearchRequest(). Error message: " + status.error_message());
+        }
+
+        return journeyVecPtr;
     }
 
 } // yakbas

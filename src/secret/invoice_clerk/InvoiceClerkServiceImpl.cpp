@@ -17,7 +17,7 @@ namespace yakbas::sec {
     }
 
     grpc::Status
-    InvoiceClerkServiceImpl::getPublicKey(grpc::ServerContext *context, const google::protobuf::Empty *request,
+    InvoiceClerkServiceImpl::GetPublicKey(grpc::ServerContext *context, const google::protobuf::Empty *request,
                                           communication::sec::PublicKey *response) {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Invoice Clerk Public Key requested ...");

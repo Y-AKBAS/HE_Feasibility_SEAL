@@ -30,11 +30,20 @@ namespace yakbas {
                 throw std::invalid_argument("Name Port Pair cannot be empty.");
             }
 
+            const static auto channelArgsPtr = []() -> decltype(auto) {
+                auto argsPtr = std::make_unique<grpc::ChannelArguments>();
+                constexpr int size = std::numeric_limits<int32_t>::max();
+                argsPtr->SetMaxReceiveMessageSize(size);
+                argsPtr->SetMaxSendMessageSize(size);
+                return argsPtr;
+            }();
+
             for (const auto &pair: namePortPair) {
                 m_channelMap.insert(
                         std::make_pair(pair.first,
-                                       grpc::CreateChannel(pair.second,
-                                                           grpc::InsecureChannelCredentials())));
+                                       grpc::CreateCustomChannel(pair.second,
+                                                                 grpc::InsecureChannelCredentials(),
+                                                                 *channelArgsPtr)));
             }
         }
     }

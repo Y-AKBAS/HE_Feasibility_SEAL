@@ -15,8 +15,11 @@ namespace yakbas::sec {
 
         void GetPublicKey() const override;
 
-        [[nodiscard]] std::unique_ptr<communication::SearchResponse>
-        DoSearchRequest(const std::string &from, const std::string &to);
+        [[nodiscard]] std::unique_ptr<std::vector<std::unique_ptr<communication::sec::Journey>>>
+        DoSecretSearchRequest(const std::string &from, const std::string &to, int numberOfJourneys = 10);
+
+        [[nodiscard]] std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
+        DoSearchRequest(const std::string &from, const std::string &to, int numberOfJourneys = 10);
 
         [[nodiscard]] std::unique_ptr<communication::SearchResponse>
         MapSecretToPublic(const google::protobuf::RepeatedPtrField<communication::sec::Journey> &journeysPtr);

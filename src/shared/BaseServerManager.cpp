@@ -20,6 +20,8 @@ namespace yakbas {
         std::unique_ptr<grpc::ServerBuilder> builder = std::make_unique<grpc::ServerBuilder>();
         builder->AddListeningPort(m_hostAndPort, grpc::InsecureServerCredentials());
         builder->RegisterService(m_serverImpl.get());
+        builder->SetMaxSendMessageSize(std::numeric_limits<int32_t>::max());
+        builder->SetMaxReceiveMessageSize(std::numeric_limits<int32_t>::max());
         m_server = builder->BuildAndStart();
         std::jthread worker(&grpc::Server::Wait, m_server.get());
         LOG4CPLUS_DEBUG(*m_logger, "Started server on host:port: " + m_hostAndPort);
