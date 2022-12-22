@@ -1,6 +1,8 @@
 
 #include "IApplication.h"
 #include <memory>
+#include <log4cplus/config.hxx>
+#include <log4cplus/configurator.h>
 #include "doctest/doctest.h"
 #include "ApplicationConstants.h"
 
@@ -23,5 +25,11 @@ namespace yakbas {
         }
 #endif
         return -1;
+    }
+
+    void IApplication::EnableLogging() {
+        log4cplus::initialize();
+        log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }

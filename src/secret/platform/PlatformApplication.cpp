@@ -17,11 +17,6 @@ namespace yakbas::sec {
         RunTests(argc, argv);
     }
 
-    void PlatformApplication::EnableLogging() {
-        log4cplus::initialize();
-        log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
-    }
-
     void PlatformApplication::StartServer() {
         const auto serverManager = GetUnique<PlatformServerManager>(
                 GetShared<PlatformServiceImpl>(),
