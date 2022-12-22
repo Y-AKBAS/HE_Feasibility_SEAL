@@ -36,7 +36,7 @@ namespace yakbas::sec {
         const auto request = GetUnique<google::protobuf::Empty>();
         const auto response = GetUnique<communication::sec::PublicKey>();
 
-        invoiceClerkStubPtr->getPublicKey(clientContext.get(), *request, response.get());
+        invoiceClerkStubPtr->GetPublicKey(clientContext.get(), *request, response.get());
 
         auto invoiceClerkPublicKey = m_userPtr->GetCustomSealOperations()->GetPublicKeyFromBuffer(
                 GetUniqueStream(response->publickey()));
@@ -51,77 +51,147 @@ namespace yakbas::sec {
         return !m_publicKeyMap.empty() && !m_channelMap.empty();
     }
 
-    std::unique_ptr<communication::SearchResponse>
-    ClientManager::DoSearchRequest(const std::string &from, const std::string &to) {
+    std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
+    ClientManager::DoSecretSearchRequest(const std::string &from, const std::string &to, const int numberOfJourneys) {
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
 
+        auto journeyVecPtr =
+                GetUnique<std::vector<std::unique_ptr<communication::Journey>>>();
+
         const auto clientContext = GetUnique<grpc::ClientContext>();
         const auto request = GetUnique<communication::sec::SearchRequest>();
-        const auto response = GetUnique<communication::sec::SearchResponse>();
 
+        request->set_numberofjourneys(numberOfJourneys);
         request->set_to(to);
         request->set_from(from);
         request->set_publickey(m_userPtr->GetCustomSealOperations()->GetPublicKeyBuffer());
 
-        stubPtr->searchForRides(clientContext.get(), *request, response.get());
+        const auto readerPtr = stubPtr->SearchForSecretRides(clientContext.get(), *request);
 
-        return this->MapSecretToPublic(response->journeys());
+        bool isReadable;
+        do {
+            auto journeyPtr
+                    = GetUnique<communication::sec::Journey>();
+            isReadable = readerPtr->Read(journeyPtr.get());
+
+            if (isReadable) {
+                auto publicJourneyPtr = MapSecretToPublic(*journeyPtr);
+                journeyVecPtr->push_back(std::move(publicJourneyPtr));
+            }
+        } while (isReadable);
+
+        const grpc::Status &status = readerPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during DoSecretSearchRequest(). Error message: " + status.error_message());
+        }
+
+        return journeyVecPtr;
     }
 
-    std::unique_ptr<communication::SearchResponse>
-    ClientManager::MapSecretToPublic(
-            const google::protobuf::RepeatedPtrField<communication::sec::Journey> &journeysPtr) {
+    std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
+    ClientManager::DoSearchRequest(const std::string &from, const std::string &to, int numberOfJourneys) {
 
-        auto publicJourneysPtr = GetUnique<communication::SearchResponse>();
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
 
-        for (const auto &journey: journeysPtr) {
+        auto journeyVecPtr =
+                GetUnique<std::vector<std::unique_ptr<communication::Journey>>>();
 
-            const auto &ridesPtr = journey.rides();
-            auto publicJourney = publicJourneysPtr->add_journeys();
+        const auto clientContext = GetUnique<grpc::ClientContext>();
+        const auto request = GetUnique<communication::SearchRequest>();
 
-            for (const auto &ride: ridesPtr) {
+        request->set_numberofjourneys(numberOfJourneys);
+        request->set_to(to);
+        request->set_from(from);
 
-                const auto publicRidePtr = publicJourney->add_rides();
+        const auto readerPtr = stubPtr->SearchForRides(clientContext.get(), *request);
 
-                publicRidePtr->set_from(ride.from());
-                publicRidePtr->set_to(ride.to());
-                publicRidePtr->set_providerid(ride.providerid());
-                publicRidePtr->set_rideid(ride.rideid());
+        bool isReadable;
+        do {
+            auto journeyPtr
+                    = GetUnique<communication::Journey>();
+            isReadable = readerPtr->Read(journeyPtr.get());
 
-               /* const uint64_t discountRate = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
-                        GetUniqueStream(ride.discountrate()));
-                publicRidePtr->set_discountrate(discountRate);*/
+            if (isReadable) {
+                journeyVecPtr->push_back(std::move(journeyPtr));
+            }
+        } while (isReadable);
 
+        const grpc::Status &status = readerPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during DoSecretSearchRequest(). Error message: " + status.error_message());
+        }
+
+        return journeyVecPtr;
+    }
+
+    std::unique_ptr<communication::Journey>
+    ClientManager::MapSecretToPublic(const communication::sec::Journey &secretJourney) {
+        auto publicJourneyPtr = GetUnique<communication::Journey>();
+
+        const auto &secretRides = secretJourney.rides();
+
+        for (const auto &secretRide: secretRides) {
+
+            communication::Ride *publicRidePtr = publicJourneyPtr->add_rides();
+
+            publicRidePtr->set_from(secretRide.from());
+            publicRidePtr->set_to(secretRide.to());
+            publicRidePtr->set_providerid(secretRide.providerid());
+            publicRidePtr->set_rideid(secretRide.rideid());
+
+            const auto &cipherCoefficient = secretRide.coefficient();
+            if (!cipherCoefficient.empty()) {
                 const uint64_t coefficient = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
-                        GetUniqueStream(ride.coefficient()));
+                        GetUniqueStream(cipherCoefficient));
                 publicRidePtr->set_coefficient(coefficient);
-                std::cout << "coefficient: " << coefficient << std::endl;
+            } else {
+                throw std::logic_error("Coefficient cannot be empty");
+            }
 
-                const auto timestampPtr = publicRidePtr->mutable_starttime();
-                timestampPtr->set_seconds(ride.starttime().seconds());
-                timestampPtr->set_nanos(ride.starttime().nanos());
+            const auto &cipherDiscountRate = secretRide.discountrate();
+            if (!cipherDiscountRate.empty()) {
+                const uint64_t discountRate = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
+                        GetUniqueStream(cipherDiscountRate));
+                publicRidePtr->set_discountrate(discountRate);
+            }
 
-                const auto transporterPtr = publicRidePtr->mutable_transporter();
-                transporterPtr->set_providerid(ride.transporter().providerid());
-                transporterPtr->set_unitpricetype(ride.transporter().unitpricetype());
-                transporterPtr->set_transportertype(ride.transporter().transportertype());
-                transporterPtr->set_capacity(ride.transporter().capacity());
+            const auto timestampPtr = publicRidePtr->mutable_starttime();
+            timestampPtr->set_seconds(secretRide.starttime().seconds());
+            timestampPtr->set_nanos(secretRide.starttime().nanos());
 
-               /* const uint64_t seatPrice = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
-                        GetUniqueStream(ride.transporter().seatprice()));
-                transporterPtr->set_seatprice(seatPrice);*/
+            const auto transporterPtr = publicRidePtr->mutable_transporter();
+            transporterPtr->set_providerid(secretRide.transporter().providerid());
+            transporterPtr->set_unitpricetype(secretRide.transporter().unitpricetype());
+            transporterPtr->set_transportertype(secretRide.transporter().transportertype());
+            transporterPtr->set_capacity(secretRide.transporter().capacity());
 
+            const auto &cipherUnitPrice = secretRide.transporter().unitprice();
+            if (!cipherUnitPrice.empty()) {
                 const uint64_t unitPrice = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
-                        GetUniqueStream(ride.transporter().unitprice()));
+                        GetUniqueStream(cipherUnitPrice));
                 transporterPtr->set_unitprice(unitPrice);
-                std::cout << "unitPrice: " << unitPrice << std::endl;
+            } else {
+                throw std::logic_error("UnitPrice cannot be empty");
+            }
 
-
+            const auto &cipherSeatPrice = secretRide.transporter().seatprice();
+            if (!cipherSeatPrice.empty()) {
+                const uint64_t seatPrice = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
+                        GetUniqueStream(cipherSeatPrice));
+                transporterPtr->set_seatprice(seatPrice);
             }
         }
 
-        return publicJourneysPtr;
+        return publicJourneyPtr;
     }
 
 } // yakbas

@@ -14,7 +14,7 @@ namespace yakbas::sec {
         grpc::Status createInvoice(::grpc::ServerContext *context, const ::communication::InvoicingRequest *request,
                                    ::communication::InvoicingResponse *response) override;
 
-        grpc::Status getPublicKey(grpc::ServerContext *context, const google::protobuf::Empty *request,
+        grpc::Status GetPublicKey(grpc::ServerContext *context, const google::protobuf::Empty *request,
                                   communication::sec::PublicKey *response) override;
 
     private:

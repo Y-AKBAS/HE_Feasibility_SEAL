@@ -1,12 +1,14 @@
 
 #include "SealOperations.h"
 #include "Utils.h"
+#include <log4cplus/loggingmacros.h>
 
 namespace yakbas::sec {
     using namespace yakbas::util;
 
     SealOperations::SealOperations(const SealKeys &sealKeys)
-            : m_sealInfoPtr(std::make_unique<SealInfo>(sealKeys)) {}
+            : m_sealInfoPtr(std::make_unique<SealInfo>(sealKeys)),
+              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))) {}
 
     std::unique_ptr<seal::Ciphertext>
     SealOperations::Encrypt(const uint64_t &num, const seal::Encryptor &encryptor) {
@@ -40,12 +42,11 @@ namespace yakbas::sec {
     SealOperations::GetCipherFromBuffer(std::stringstream &stream) const {
         auto cipher = util::GetUnique<seal::Ciphertext>();
         try {
-            std::cout << stream.str() << std::endl;
             cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, stream);
         }
-        catch (std::exception &e){
-            std::cout << e.what() << std::endl;
-            std::cout << stream.str() << std::endl;
+        catch (std::exception &e) {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error while GetCipherFromBuffer()... excp: " + std::string(e.what()));
         }
         return cipher;
     }

@@ -4,12 +4,13 @@
 #include <memory>
 #include "seal/seal.h"
 #include "SealInfo.h"
+#include <log4cplus/logger.h>
 
 namespace yakbas::sec {
 
     class SealOperations {
     public:
-        explicit SealOperations(const SealKeys &mSealKeys = {seal::scheme_type::bfv, 16384, 1024});
+        explicit SealOperations(const SealKeys &mSealKeys = {});
 
         [[nodiscard]] static std::unique_ptr<seal::Ciphertext> Encrypt(const std::uint64_t &num,
                                                                 const seal::Encryptor &encryptor) ;
@@ -33,7 +34,8 @@ namespace yakbas::sec {
         bool operator==(const SealOperations &rhs) const;
 
     private:
-        const std::unique_ptr<SealInfo> m_sealInfoPtr;
+        const std::unique_ptr<SealInfo> m_sealInfoPtr{nullptr};
+        const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
     };
 
 } // yakbas

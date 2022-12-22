@@ -9,8 +9,6 @@ namespace yakbas::pub {
 
         void Run(int argc, char **argv) override;
 
-        void EnableLogging() override;
-
         void StartServer() override;
 
 

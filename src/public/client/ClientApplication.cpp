@@ -17,11 +17,6 @@ namespace yakbas::pub {
         RunTests(argc, argv);
     }
 
-    void ClientApplication::EnableLogging() {
-        log4cplus::initialize();
-        log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
-    }
-
     void ClientApplication::StartServer() {
         const auto serverManager = GetUnique<ClientServerManager>(
                 GetShared<ClientServiceImpl>(),

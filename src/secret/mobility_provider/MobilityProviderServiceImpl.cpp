@@ -21,20 +21,26 @@ namespace yakbas::sec {
         return Service::createInvoice(context, request, response);
     }
 
-    grpc::Status MobilityProviderServiceImpl::searchForRides(grpc::ServerContext *context,
-                                                             const communication::sec::SearchRequest *request,
-                                                             communication::sec::SearchResponse *response) {
+    grpc::Status MobilityProviderServiceImpl::SearchForSecretRides(grpc::ServerContext *context,
+                                                                   const communication::sec::SearchRequest *request,
+                                                                   grpc::ServerWriter<communication::sec::Journey> *writer) {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Mobility Provider Service impl SearchForRides invoked...");
 
-        const int numberOfJourneys = 1;
         const auto stream = GetUniqueStream(request->publickey());
         const auto publicKeyPtr = m_customSealOperationsPtr->GetPublicKeyFromBuffer(stream);
         const auto newEncryptorPtr = CustomSealOperations::CreateNewEncryptor(*publicKeyPtr);
 
-        auto status = MobilityProviderGenerator::GenerateJourneys(request, &(*response), *newEncryptorPtr,
-                                                                  numberOfJourneys);
+        auto status = MobilityProviderGenerator::GenerateSecretJourneys(request, &(*writer), *newEncryptorPtr);
         return status;
+    }
+
+    grpc::Status MobilityProviderServiceImpl::SearchForRides(grpc::ServerContext *context,
+                                                             const communication::SearchRequest *request,
+                                                             grpc::ServerWriter<communication::Journey> *writer) {
+
+        LOG4CPLUS_DEBUG(*m_logger, "Secret Mobility Provider Service impl SearchForRides invoked...");
+        return MobilityProviderGenerator::GenerateJourneys(request, &(*writer));
     }
 
 } // yakbas

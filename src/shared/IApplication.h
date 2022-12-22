@@ -12,11 +12,11 @@ namespace yakbas {
     public:
         virtual ~IApplication() = default;
 
-        virtual void EnableLogging() = 0;
-
         virtual void StartServer() = 0;
 
         virtual void Run(int argc, char **argv) = 0;
+
+        virtual void EnableLogging();
 
         virtual int RunTests(int argc, char **argv);
     };
