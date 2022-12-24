@@ -85,4 +85,114 @@ namespace yakbas::sec {
         return status;
     }
 
+    grpc::Status
+    PlatformServiceImpl::Book(grpc::ServerContext *context, const communication::sec::BookingRequest *request,
+                              communication::sec::BookingResponse *response) {
+
+        const auto &unitPrice = request->unitprice();
+        auto unitPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(unitPrice));
+
+        const auto &coefficient = request->coefficient();
+        auto coefficientCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(coefficient));
+
+        auto totalCipherPtr = GetUnique<seal::Ciphertext>();
+        const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
+        evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
+                               *totalCipherPtr);
+
+        m_customSealOperationsPtr->Relinearize(*totalCipherPtr);
+
+        const auto &discount = request->discount();
+        if (!discount.empty()) {
+            auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
+            evaluatorPtr->sub_inplace(*totalCipherPtr, *discountCipherPtr);
+        }
+
+        const auto &seatPrice = request->seatprice();
+        if (!seatPrice.empty()) {
+            auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
+            evaluatorPtr->add_inplace(*totalCipherPtr, *seatPriceCipherPtr);
+        }
+
+        m_customSealOperationsPtr->Relinearize(*totalCipherPtr);
+        m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+
+        return grpc::Status::OK;
+    }
+
+    grpc::Status PlatformServiceImpl::Book(grpc::ServerContext *context,
+                                           grpc::ServerReader<communication::sec::BookingRequest> *reader,
+                                           communication::sec::BookingResponse *response) {
+
+        response->set_journey_id(GetUUID());
+        const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
+        auto rideIdSeatNumberMap = response->mutable_rideidseatnumbermap();
+
+        std::vector<std::unique_ptr<seal::Ciphertext>> requestTotalCiphers{};
+        bool isReadable;
+        do {
+            const auto bookingRequestPtr = GetUnique<communication::sec::BookingRequest>();
+            isReadable = reader->Read(bookingRequestPtr.get());
+            if (isReadable) {
+                const static bool isSet = [&bookingRequestPtr, &response]() -> bool {
+                    response->set_invoicingclerktype(bookingRequestPtr->invoicingclerktype());
+                    response->set_bookingtype(bookingRequestPtr->bookingtype());
+                    return true;
+                }();
+                auto requestTotalPtr = GetRequestTotalAndInsertSeat(*bookingRequestPtr, rideIdSeatNumberMap);
+                requestTotalCiphers.push_back(std::move(requestTotalPtr));
+            }
+        } while (isReadable);
+
+        if (requestTotalCiphers.size() > 1) {
+            for (int i = 1; i < requestTotalCiphers.size(); ++i) {
+                auto newCipherPtr = GetUnique<seal::Ciphertext>();
+                evaluatorPtr->add(*requestTotalCiphers.at(0), *requestTotalCiphers.at(i), *newCipherPtr);
+                requestTotalCiphers.at(0) = std::move(newCipherPtr);
+            }
+        }
+
+        //m_customSealOperationsPtr->SwitchMode(*firstTotalCipherPtr);
+        const auto &buffer = CustomSealOperations::GetBufferFromCipher(*requestTotalCiphers.at(0));
+        response->set_total(buffer);
+
+        return grpc::Status::OK;
+    }
+
+    std::unique_ptr<seal::Ciphertext>
+    PlatformServiceImpl::GetRequestTotalAndInsertSeat(const communication::sec::BookingRequest &request,
+                                                      google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const {
+
+        const auto &unitPrice = request.unitprice();
+        auto unitPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(unitPrice));
+
+        const auto &coefficient = request.coefficient();
+        auto coefficientCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(coefficient));
+
+        auto totalCipherPtr = GetUnique<seal::Ciphertext>();
+        const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
+        evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
+                               *totalCipherPtr);
+
+        //m_customSealOperationsPtr->Relinearize(*totalCipherPtr);
+
+        const auto &discount = request.discount();
+        if (!discount.empty()) {
+            auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
+            evaluatorPtr->sub_inplace(*totalCipherPtr, *discountCipherPtr);
+        }
+
+        const auto &seatPrice = request.seatprice();
+        if (!seatPrice.empty()) {
+            auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
+            evaluatorPtr->add_inplace(*totalCipherPtr, *seatPriceCipherPtr);
+            rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
+        }
+
+        //m_customSealOperationsPtr->Relinearize(*totalCipherPtr);
+        //m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+
+        return totalCipherPtr;
+    }
+
 } // yakbas

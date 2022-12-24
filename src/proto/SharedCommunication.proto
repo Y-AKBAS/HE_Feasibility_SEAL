@@ -30,7 +30,7 @@ message Ride {
   google.protobuf.Timestamp startTime = 6;
   google.protobuf.Timestamp endTime = 7;
   uint64 coefficient = 8;
-  uint64 discountRate = 9;
+  uint64 discount = 9;
 }
 
 message Transporter {
@@ -40,6 +40,14 @@ message Transporter {
   UnitPriceType unitPriceType = 4;
   uint64 capacity = 5;
   uint64 seatPrice = 6;
+}
+
+message BookingResponse {
+  string journey_id = 1;
+  map<string, int32> rideIdSeatNumberMap = 2;
+  BookingType bookingType = 3;
+  InvoicingClerkType invoicingClerkType = 4;
+  uint64 total = 5;
 }
 
 message InvoicingRequest {

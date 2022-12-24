@@ -36,7 +36,7 @@ namespace yakbas::sec {
 
         std::unique_ptr<seal::EncryptionParameters> m_encryptionParamsPtr;
         std::unique_ptr<const seal::SEALContext> m_sealContextPtr;
-        std::unique_ptr<const seal::KeyGenerator> m_keyGeneratorPtr;
+        std::unique_ptr<seal::KeyGenerator> m_keyGeneratorPtr;
         std::unique_ptr<const seal::Evaluator> m_evaluatorPtr;
         std::unique_ptr<const std::vector<seal::Modulus>> m_coefficientModulusPtr;
         const SealKeys m_sealKeys;

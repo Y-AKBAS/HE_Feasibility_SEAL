@@ -49,6 +49,13 @@ namespace yakbas::util {
         return ptr;
     }
 
+    template<typename... Ts>
+    struct LambdaOverloader : Ts... {
+        using Ts::operator()...;
+
+        LambdaOverloader(Ts...ts) {}
+    };
+
     std::shared_ptr<std::stringstream> GetSharedStream();
 
     std::unique_ptr<std::stringstream> GetUniqueStream();

@@ -35,6 +35,17 @@ namespace yakbas::sec {
 
         [[nodiscard]] const SealOperations *GetSealOperations() const;
 
+        [[nodiscard]] const std::unique_ptr<seal::Evaluator> &GetEvaluatorPtr() const;
+
+
+        const std::unique_ptr<seal::Decryptor> &GetDecryptorPtr() const;
+
+        void Relinearize(seal::Ciphertext &ciphertext);
+
+        void SwitchMode(seal::Ciphertext &ciphertext);
+
+        [[nodiscard]] static std::string GetBufferFromCipher(seal::Ciphertext &ciphertext);
+
     private:
 
         [[nodiscard]] std::unique_ptr<std::stringstream> PublicKeyToBuffer() const;
@@ -44,6 +55,8 @@ namespace yakbas::sec {
         std::unique_ptr<seal::SecretKey> m_secretKeyPtr{nullptr};
         std::unique_ptr<seal::Encryptor> m_encryptorPtr{nullptr};
         std::unique_ptr<seal::Decryptor> m_decryptorPtr{nullptr};
+        std::unique_ptr<seal::Evaluator> m_evaluatorPtr{nullptr};
+        std::unique_ptr<seal::RelinKeys> m_relinKeysPtr{nullptr};
         std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
         std::string m_publicKeyBuffer{};
     };
