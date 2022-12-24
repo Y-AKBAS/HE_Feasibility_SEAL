@@ -16,13 +16,22 @@ namespace yakbas::sec {
         void GetPublicKey() const override;
 
         [[nodiscard]] std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
-        DoSecretSearchRequest(const std::string &from, const std::string &to, int numberOfJourneys = 10);
+        SearchSecretly(const std::string &from, const std::string &to, int numberOfJourneys = 10);
 
         [[nodiscard]] std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
-        DoSearchRequest(const std::string &from, const std::string &to, int numberOfJourneys = 10);
+        Search(const std::string &from, const std::string &to, int numberOfJourneys = 10);
+
+        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
+        BookSecretly(const communication::Journey &journey);
+
+        [[nodiscard]] std::unique_ptr<communication::BookingResponse>
+        BookSecretlyAndDecrypt(const communication::Journey &journey);
 
         [[nodiscard]] std::unique_ptr<communication::Journey>
         MapSecretToPublic(const communication::sec::Journey &secretJourney);
+
+        [[nodiscard]] std::unique_ptr<communication::BookingResponse>
+        MapSecretToPublic(const communication::sec::BookingResponse &bookingResponse);
 
         static bool IsInitialized();
 

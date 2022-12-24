@@ -96,7 +96,7 @@ namespace yakbas::sec {
         //ciphers
         auto unitPricePtr = SealOperations::GetEncryptedBuffer(randomNumber, encryptor);
         const auto coefficientPtr = SealOperations::GetEncryptedBuffer(randomNumber, encryptor);
-        const auto discountRatePtr = SealOperations::GetEncryptedBuffer(randomNumber, encryptor);
+        const auto discountPtr = SealOperations::GetEncryptedBuffer(randomNumber, encryptor);
 
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
@@ -124,7 +124,7 @@ namespace yakbas::sec {
         ridePtr->set_coefficient(*coefficientPtr);
 
         if ((randomNumber % 2) == 1) {
-            ridePtr->set_discountrate(*discountRatePtr);
+            ridePtr->set_discount(*discountPtr);
         }
     }
 
@@ -163,7 +163,7 @@ namespace yakbas::sec {
         ridePtr->set_coefficient(randomNumber);
 
         if ((randomNumber % 2) == 1) {
-            ridePtr->set_discountrate(randomNumber);
+            ridePtr->set_discount(randomNumber);
         }
     }
 

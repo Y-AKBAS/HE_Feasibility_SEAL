@@ -16,6 +16,6 @@ message BookingRequest {
   UnitPriceType unitPriceType = 5;
   int32 unitPrice = 6;
   int32 coefficient = 7;
-  int32 discountRate = 8;
+  int32 discount = 8;
   int32 seatPrice = 9;
 }

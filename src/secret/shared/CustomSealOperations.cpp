@@ -25,6 +25,13 @@ namespace yakbas::sec {
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
                 *m_secretKeyPtr);
 
+        m_evaluatorPtr = GetUnique<seal::Evaluator>(
+                *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr
+        );
+
+        m_relinKeysPtr = GetUnique<seal::RelinKeys>();
+        m_sealOperations->GetSealInfoPtr()->m_keyGeneratorPtr->create_relin_keys(*m_relinKeysPtr);
+
         m_publicKeyBuffer = this->PublicKeyToBuffer()->str();
     }
 
@@ -101,6 +108,28 @@ namespace yakbas::sec {
 
     const std::string &CustomSealOperations::GetPublicKeyBuffer() const {
         return m_publicKeyBuffer;
+    }
+
+    const std::unique_ptr<seal::Evaluator> &CustomSealOperations::GetEvaluatorPtr() const {
+        return m_evaluatorPtr;
+    }
+
+    void CustomSealOperations::Relinearize(seal::Ciphertext &ciphertext) {
+        m_evaluatorPtr->relinearize_inplace(ciphertext, *m_relinKeysPtr);
+    }
+
+    void CustomSealOperations::SwitchMode(seal::Ciphertext &ciphertext) {
+        m_evaluatorPtr->mod_switch_to_next_inplace(ciphertext);
+    }
+
+    std::string CustomSealOperations::GetBufferFromCipher(seal::Ciphertext &ciphertext) {
+        const auto stream = GetUniqueStream();
+        ciphertext.save(*stream);
+        return stream->str();
+    }
+
+    const std::unique_ptr<seal::Decryptor> &CustomSealOperations::GetDecryptorPtr() const {
+        return m_decryptorPtr;
     }
 
 } // yakbas

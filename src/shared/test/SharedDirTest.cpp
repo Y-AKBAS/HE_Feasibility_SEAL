@@ -136,6 +136,23 @@ namespace yakbas::test {
                 CHECK(timersMillis == millis);
             }
 
+            SUBCASE("LambdaOverloader Test") {
+
+                const int intValue = 22;
+                const float floatValue = 22.5f;
+                const double doubleValue = 22.5;
+
+                const LambdaOverloader overloader = {
+                        [](int value) -> decltype(auto) { return value; },
+                        [](float value) -> decltype(auto) { return value; },
+                        [](double value) -> decltype(auto) { return value; }
+                };
+
+                CHECK(overloader(intValue) == intValue);
+                CHECK(overloader(floatValue) == floatValue);
+                CHECK(overloader(doubleValue) == doubleValue);
+            }
+
             ::log4cplus::deinitialize();
         }
     }

@@ -52,7 +52,7 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
-    ClientManager::DoSecretSearchRequest(const std::string &from, const std::string &to, const int numberOfJourneys) {
+    ClientManager::SearchSecretly(const std::string &from, const std::string &to, int numberOfJourneys) {
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
 
@@ -87,14 +87,14 @@ namespace yakbas::sec {
             LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during DoSecretSearchRequest(). Error message: " + status.error_message());
+                            "Error occurred during SearchSecretly(). Error message: " + status.error_message());
         }
 
         return journeyVecPtr;
     }
 
     std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
-    ClientManager::DoSearchRequest(const std::string &from, const std::string &to, int numberOfJourneys) {
+    ClientManager::Search(const std::string &from, const std::string &to, int numberOfJourneys) {
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
 
@@ -127,16 +127,76 @@ namespace yakbas::sec {
             LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during DoSecretSearchRequest(). Error message: " + status.error_message());
+                            "Error occurred during SearchSecretly(). Error message: " + status.error_message());
         }
 
         return journeyVecPtr;
     }
 
+    std::unique_ptr<communication::sec::BookingResponse>
+    ClientManager::BookSecretly(const communication::Journey &journey) {
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::sec::BookingResponse>();
+        const auto clientWriterPtr = stubPtr->Book(clientContextPtr.get(), responsePtr.get());
+
+        const auto &rides = journey.rides();
+
+        for (const auto &ride: rides) {
+
+            const auto requestPtr = GetUnique<communication::sec::BookingRequest>();
+
+            int bookingType = static_cast<int>(GetRandomNumber()) % (communication::BookingType_ARRAYSIZE - 1);
+            requestPtr->set_bookingtype(static_cast<communication::BookingType>(bookingType));
+
+            const auto coefficientBuffer = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(ride.coefficient());
+            requestPtr->set_coefficient(*coefficientBuffer);
+
+            const auto unitPriceBuffer = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(
+                    ride.transporter().unitprice());
+            requestPtr->set_unitprice(*unitPriceBuffer);
+
+            const auto discount = ride.discount();
+            if (discount > 0) {
+                const auto discountBuffer = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(discount);
+                requestPtr->set_discount(*discountBuffer);
+            }
+
+            const auto seatPrice = ride.transporter().seatprice();
+            if (seatPrice > 0) {
+                const auto seatPriceBuffer = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(seatPrice);
+                requestPtr->set_seatprice(*seatPriceBuffer);
+            }
+
+            if (!clientWriterPtr->Write(*requestPtr)) {
+                throw std::bad_function_call();
+            }
+        }
+
+        clientWriterPtr->WritesDone();
+        const auto &status = clientWriterPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Sent BookingRequests successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during Sending BookingRequests. Error message: " + status.error_message());
+        }
+
+        return responsePtr;
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSecretlyAndDecrypt(const communication::Journey &journey) {
+        const auto secretBookingResponsePtr = this->BookSecretly(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
     std::unique_ptr<communication::Journey>
     ClientManager::MapSecretToPublic(const communication::sec::Journey &secretJourney) {
-        auto publicJourneyPtr = GetUnique<communication::Journey>();
 
+        auto publicJourneyPtr = GetUnique<communication::Journey>();
         const auto &secretRides = secretJourney.rides();
 
         for (const auto &secretRide: secretRides) {
@@ -157,11 +217,11 @@ namespace yakbas::sec {
                 throw std::logic_error("Coefficient cannot be empty");
             }
 
-            const auto &cipherDiscountRate = secretRide.discountrate();
-            if (!cipherDiscountRate.empty()) {
-                const uint64_t discountRate = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
-                        GetUniqueStream(cipherDiscountRate));
-                publicRidePtr->set_discountrate(discountRate);
+            const auto &cipherDiscount = secretRide.discount();
+            if (!cipherDiscount.empty()) {
+                const uint64_t discount = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
+                        GetUniqueStream(cipherDiscount));
+                publicRidePtr->set_discount(discount);
             }
 
             const auto timestampPtr = publicRidePtr->mutable_starttime();
@@ -192,6 +252,39 @@ namespace yakbas::sec {
         }
 
         return publicJourneyPtr;
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::MapSecretToPublic(const communication::sec::BookingResponse &bookingResponse) {
+
+        auto publicResponsePtr = GetUnique<communication::BookingResponse>();
+
+        publicResponsePtr->set_bookingtype(bookingResponse.bookingtype());
+        publicResponsePtr->set_invoicingclerktype(bookingResponse.invoicingclerktype());
+        publicResponsePtr->set_journey_id(bookingResponse.journey_id());
+
+        auto rideIdSeatNumberMapPtr = publicResponsePtr->mutable_rideidseatnumbermap();
+        for (const auto &pair: bookingResponse.rideidseatnumbermap()) {
+            rideIdSeatNumberMapPtr->emplace(pair.first, pair.second);
+        }
+
+        try {
+            const auto &cipherPtr = m_userPtr->GetCustomSealOperations()->GetCipherFromBuffer(
+                    GetUniqueStream(bookingResponse.total()));
+            const int noiseBudget = m_userPtr->GetCustomSealOperations()->GetDecryptorPtr()->invariant_noise_budget(
+                    *cipherPtr);
+
+            if (noiseBudget == 0) {
+                throw std::runtime_error("Noise Budget cannot be zero");
+            }
+
+            const auto total = m_userPtr->GetCustomSealOperations()->Decrypt(*cipherPtr);
+            publicResponsePtr->set_total(total);
+        } catch (const std::exception &e) {
+            LOG4CPLUS_ERROR(*m_logger, "Error occurred during decryption.\nError Message: " + std::string(e.what()));
+        }
+
+        return publicResponsePtr;
     }
 
 } // yakbas

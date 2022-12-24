@@ -12,6 +12,7 @@
 #include <memory>
 #include <log4cplus/configurator.h>
 #include <log4cplus/loggingmacros.h>
+#include "ApplicationConstants.h"
 
 namespace yakbas::sec::test {
 
@@ -38,7 +39,7 @@ namespace yakbas::sec::test {
             SUBCASE("Encryption Test") {
                 const auto customSealOperations = util::GetUnique<CustomSealOperations>();
                 std::uint64_t num = util::GetRandomNumber();
-                CHECK(num < 15);
+                CHECK(num <= constants::APP_MAX_RANDOM_NUMBER);
 
                 const auto cipherTextPtr = customSealOperations->Encrypt(num);
                 CHECK(num == customSealOperations->Decrypt(*cipherTextPtr));

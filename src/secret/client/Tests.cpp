@@ -9,14 +9,18 @@
 #include <log4cplus/configurator.h>
 #include <log4cplus/loggingmacros.h>
 #include "ApplicationConstants.h"
+#include "Timer.h"
 
 namespace yakbas::sec::test {
 
-    void CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys);
-
     TEST_SUITE("Secret Client Test Suite") {
 
-        const static auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
+        static void
+        CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys);
+
+        static std::uint64_t findTotal(communication::Journey &journey);
+
+        const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
 
         TEST_CASE("Client Manager Initialization Test") {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
@@ -29,7 +33,7 @@ namespace yakbas::sec::test {
             CHECK(ClientManager::IsInitialized());
 
             const int numberOfJourneys = 12;
-            const auto journeysVecPtr = clientManagerPtr->DoSearchRequest("Leipzig", "Halle", numberOfJourneys);
+            const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
             CheckJourneys(*journeysVecPtr, numberOfJourneys);
         }
 
@@ -37,38 +41,72 @@ namespace yakbas::sec::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             CHECK(ClientManager::IsInitialized());
 
-            const int numberOfJourneys = 12;
-            const auto journeysVecPtr = clientManagerPtr->DoSecretSearchRequest("Leipzig", "Halle",
-                                                                                numberOfJourneys);
+            const int numberOfJourneys = 11;
+            const auto journeysVecPtr = clientManagerPtr->SearchSecretly("Leipzig", "Halle",
+                                                                         numberOfJourneys);
             CheckJourneys(*journeysVecPtr, numberOfJourneys);
         }
-    }
 
+        TEST_CASE("Client Manager Secret Booking Request Test") {
 
-    void CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys) {
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            CHECK(ClientManager::IsInitialized());
+            Timer timer;
+            const int numberOfJourneys = 12;
+            const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
-        CHECK(!journeys.empty());
-        CHECK(journeys.size() == numberOfJourneys);
+            const auto index = util::GetRandomNumber() % numberOfJourneys;
+            const auto &journeyPtr = journeysVecPtr->at(index);
 
-        for (const auto &journey: journeys) {
+            std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
 
-            const auto &rides = journey->rides();
+            const auto bookingResponsePtr = clientManagerPtr->BookSecretlyAndDecrypt(*journeyPtr);
+
+            CHECK(bookingResponsePtr->total() == totalBeforeSent);
+            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "Passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
+        }
+
+        void CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys) {
+
+            CHECK(!journeys.empty());
+            CHECK(journeys.size() == numberOfJourneys);
+
+            for (const auto &journey: journeys) {
+
+                const auto &rides = journey->rides();
+                CHECK(!rides.empty());
+
+                for (const auto &ride: rides) {
+                    CHECK(ride.has_starttime());
+                    CHECK(!ride.providerid().empty());
+                    CHECK(!ride.from().empty());
+                    CHECK(!ride.to().empty());
+                    CHECK(ride.coefficient() >= constants::APP_MIN_RANDOM_NUMBER);
+                    CHECK(ride.coefficient() <= constants::APP_MAX_RANDOM_NUMBER);
+                    CHECK(!ride.transporter().providerid().empty());
+                    CHECK(ride.transporter().unitprice() >= constants::APP_MIN_RANDOM_NUMBER);
+                    CHECK(ride.transporter().unitprice() <= constants::APP_MAX_RANDOM_NUMBER);
+                }
+            }
+        }
+
+        static std::uint64_t findTotal(communication::Journey &journey) {
+
+            std::uint64_t total = 0;
+            const auto &rides = journey.rides();
             CHECK(!rides.empty());
 
             for (const auto &ride: rides) {
-                CHECK(ride.has_starttime());
-                CHECK(!ride.providerid().empty());
-                CHECK(!ride.from().empty());
-                CHECK(!ride.to().empty());
-                CHECK(ride.coefficient() >= constants::APP_MIN_RANDOM_NUMBER);
-                CHECK(ride.coefficient() <= constants::APP_MAX_RANDOM_NUMBER);
-                CHECK(!ride.transporter().providerid().empty());
-                CHECK(ride.transporter().unitprice() >= constants::APP_MIN_RANDOM_NUMBER);
-                CHECK(ride.transporter().unitprice() <= constants::APP_MAX_RANDOM_NUMBER);
+                total += ride.coefficient() * ride.transporter().unitprice();
+                total += ride.transporter().seatprice();
+                total -= ride.discount();
             }
+
+            return total;
         }
     }
-
 }
 
 #endif
