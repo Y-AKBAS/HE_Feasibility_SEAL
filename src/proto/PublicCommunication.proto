@@ -6,6 +6,7 @@ package communication.pub;
 
 service PublicCommunicationService {
   rpc CreateInvoice(InvoicingRequest) returns (InvoicingResponse);
+  rpc SearchForRides(communication.SearchRequest) returns (stream communication.Journey);
 }
 
 message BookingRequest {

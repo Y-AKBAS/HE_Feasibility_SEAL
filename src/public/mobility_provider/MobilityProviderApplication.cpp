@@ -19,9 +19,8 @@ namespace yakbas::pub {
 
     void MobilityProviderApplication::StartServer() {
         const auto serverManager = GetUnique<MobilityProviderServerManager>(
-                GetShared<
-                        MobilityProviderServiceImpl>(),
-                PUBLIC_INVOICE_CLERK_SERVER_PORT,
+                GetShared<MobilityProviderServiceImpl>(),
+                PUBLIC_MOBILITY_PROVIDER_SERVER_PORT,
                 "Public Mobility Provider");
 
         serverManager->Init();

@@ -16,7 +16,7 @@ namespace yakbas::sec {
     void ClientApplication::Run(int argc, char **argv) {
         EnableLogging();
         RunTests(argc, argv);
-        std::jthread serverKeeper(&ClientApplication::StartServer, this);
+        this->StartServer();
     }
 
     void ClientApplication::StartServer() {

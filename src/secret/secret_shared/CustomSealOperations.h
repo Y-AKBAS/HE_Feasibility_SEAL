@@ -38,7 +38,7 @@ namespace yakbas::sec {
         [[nodiscard]] const std::unique_ptr<seal::Evaluator> &GetEvaluatorPtr() const;
 
 
-        const std::unique_ptr<seal::Decryptor> &GetDecryptorPtr() const;
+        [[nodiscard]] const std::unique_ptr<seal::Decryptor> &GetDecryptorPtr() const;
 
         void Relinearize(seal::Ciphertext &ciphertext);
 

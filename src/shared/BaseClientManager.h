@@ -15,8 +15,8 @@ namespace yakbas {
 
     protected:
         static std::map<std::string, std::shared_ptr<grpc::Channel>> m_channelMap;
+
         static void CreateChannels(const std::map<std::string, std::string> &namePortPair);
-        virtual void GetPublicKey() const = 0;
 
     public:
         static void AddChannel(const std::pair<std::string, std::shared_ptr<grpc::Channel>> &pair);

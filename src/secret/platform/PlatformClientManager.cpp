@@ -5,7 +5,8 @@
 
 namespace yakbas::sec {
     PlatformClientManager::PlatformClientManager()
-            : m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("Platform Client Manager"))) {
+            : m_logger(
+            std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("Secret Platform Client Manager"))) {
 
         std::call_once(m_isInitialized, [this]() {
             LOG4CPLUS_DEBUG(*m_logger, "Secret Platform Client Manager is being initialized...");
@@ -17,6 +18,8 @@ namespace yakbas::sec {
     }
 
     PlatformClientManager::~PlatformClientManager() = default;
+
+    std::once_flag PlatformClientManager::m_isInitialized{};
 
     bool PlatformClientManager::IsInitialized() {
         return !m_channelMap.empty();

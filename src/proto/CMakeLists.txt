@@ -1,7 +1,7 @@
 
 include(ProtoHandler)
 
-# create shared proto
+# create secret_shared proto
 get_filename_component(PROTO_FILE_ABSOLUTE_PATH "SharedCommunication.proto" ABSOLUTE)
 
 GENERATE_PROTO_FILES(SHARED_PROTO_FILES
