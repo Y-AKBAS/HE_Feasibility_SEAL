@@ -36,8 +36,6 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         MapSecretToPublic(const communication::sec::BookingResponse &bookingResponse);
 
-        void MapUser(communication::ProtoUser &user) const;
-
         static bool IsInitialized();
 
     private:

@@ -52,7 +52,7 @@ namespace yakbas::sec::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 10;
+            const int numberOfJourneys = 20;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -90,7 +90,6 @@ namespace yakbas::sec::test {
             long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Payment Request passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
-
         }
 
         void CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys) {

@@ -128,7 +128,7 @@ namespace yakbas::sec {
             LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during SearchSecretly(). Error message: " + status.error_message());
+                            "Error occurred during Search(). Error message: " + status.error_message());
         }
 
         return journeyVecPtr;
@@ -204,7 +204,7 @@ namespace yakbas::sec {
         const auto invoicingRequestPtr = GetUnique<communication::InvoicingRequest>();
         invoicingRequestPtr->set_price(bookingResponse.total());
         const auto protoUserPtr = invoicingRequestPtr->mutable_user();
-        this->MapUser(*protoUserPtr);
+        m_userPtr->ToProto(protoUserPtr);
 
         const grpc::Status &status = stubPtr->CreateInvoice(clientContextPtr.get(), *invoicingRequestPtr,
                                                             invoicingResponsePtr.get());
@@ -311,22 +311,6 @@ namespace yakbas::sec {
         }
 
         return publicResponsePtr;
-    }
-
-    void ClientManager::MapUser(communication::ProtoUser &user) const {
-        user.set_email(m_userPtr->GetEmail());
-        user.set_lastname(m_userPtr->GetLastName());
-        user.set_firstname(m_userPtr->GetFirstName());
-        user.set_id(m_userPtr->GetId());
-
-        const auto addressPtr = user.mutable_address();
-        const auto &userAddressPtr = m_userPtr->GetAddressPtr();
-
-        addressPtr->set_country(userAddressPtr->m_country);
-        addressPtr->set_postalcode(userAddressPtr->m_postalCode);
-        addressPtr->set_housenumber(userAddressPtr->m_houseNumber);
-        addressPtr->set_city(userAddressPtr->m_city);
-        addressPtr->set_street(userAddressPtr->m_street);
     }
 
 } // yakbas

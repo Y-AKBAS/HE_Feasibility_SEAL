@@ -18,8 +18,8 @@ namespace yakbas::sec {
         void GetPublicKey() const override;
 
     private:
-        std::once_flag m_isInitialized;
-        std::unique_ptr<log4cplus::Logger> m_logger;
+        static std::once_flag m_isInitialized;
+        const std::unique_ptr<const log4cplus::Logger> m_logger;
     };
 
 } // yakbas

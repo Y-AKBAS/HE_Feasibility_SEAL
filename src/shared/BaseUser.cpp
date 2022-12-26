@@ -36,23 +36,19 @@ namespace yakbas {
         return m_addressPtr;
     }
 
-    std::unique_ptr<communication::ProtoUser> BaseUser::ToProto() const {
+    void BaseUser::ToProto(communication::ProtoUser *protoUserPtr) const {
 
-        auto protoUserPtr = std::make_unique<communication::ProtoUser>();
         protoUserPtr->set_id(this->m_id);
         protoUserPtr->set_firstname(this->m_firstName);
         protoUserPtr->set_lastname(this->m_lastName);
         protoUserPtr->set_email(this->m_email);
 
-        auto addressPtr = std::make_unique<communication::Address>();
+        auto addressPtr = protoUserPtr->mutable_address();
         addressPtr->set_street(this->m_addressPtr->m_street);
         addressPtr->set_housenumber(this->m_addressPtr->m_houseNumber);
         addressPtr->set_postalcode(this->m_addressPtr->m_postalCode);
         addressPtr->set_city(this->m_addressPtr->m_city);
         addressPtr->set_country(this->m_addressPtr->m_country);
-
-        protoUserPtr->set_allocated_address(addressPtr.get());
-        return protoUserPtr;
     }
 
     BaseUser::Address::Address(std::string street, std::string houseNumber, std::string postalCode,

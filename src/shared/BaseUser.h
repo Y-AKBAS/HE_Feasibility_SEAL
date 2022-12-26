@@ -26,7 +26,7 @@ namespace yakbas {
 
         [[nodiscard]] const std::unique_ptr<Address> &GetAddressPtr() const;
 
-        [[nodiscard]] std::unique_ptr<communication::ProtoUser> ToProto() const;
+        void ToProto(communication::ProtoUser *protoUserPtr) const;
 
     protected:
         const std::string m_id{};
