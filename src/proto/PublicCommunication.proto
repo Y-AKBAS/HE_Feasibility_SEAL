@@ -5,7 +5,7 @@ import "google/protobuf/timestamp.proto";
 package communication.pub;
 
 service PublicCommunicationService {
-  rpc createInvoice(InvoicingRequest) returns (InvoicingResponse);
+  rpc CreateInvoice(InvoicingRequest) returns (InvoicingResponse);
 }
 
 message BookingRequest {

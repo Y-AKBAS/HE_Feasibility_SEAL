@@ -13,9 +13,6 @@ namespace yakbas::sec {
     public:
         explicit PlatformServiceImpl(const SealKeys &sealKeys = {});
 
-        grpc::Status createInvoice(grpc::ServerContext *context, const communication::InvoicingRequest *request,
-                                   communication::InvoicingResponse *response) override;
-
         grpc::Status
         SearchForSecretRides(grpc::ServerContext *context, const communication::sec::SearchRequest *request,
                              grpc::ServerWriter<communication::sec::Journey> *writer) override;
@@ -23,12 +20,12 @@ namespace yakbas::sec {
         grpc::Status SearchForRides(grpc::ServerContext *context, const communication::SearchRequest *request,
                                     grpc::ServerWriter<communication::Journey> *writer) override;
 
-        grpc::Status Book(grpc::ServerContext *context, const communication::sec::BookingRequest *request,
-                          communication::sec::BookingResponse *response);
-
         grpc::Status
         Book(grpc::ServerContext *context, grpc::ServerReader<communication::sec::BookingRequest> *reader,
              communication::sec::BookingResponse *response) override;
+
+        grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
+                                     communication::InvoicingResponse *response) override;
 
     private:
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};
@@ -37,7 +34,7 @@ namespace yakbas::sec {
 
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
         GetRequestTotalAndInsertSeat(const communication::sec::BookingRequest &request,
-                                     google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const ;
+                                     google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const;
     };
 
 }// yakbas

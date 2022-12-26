@@ -10,8 +10,6 @@ namespace yakbas::sec {
     public:
         ClientServiceImpl();
 
-        grpc::Status createInvoice(::grpc::ServerContext *context, const ::communication::InvoicingRequest *request,
-                                   ::communication::InvoicingResponse *response) override;
     };
 
 }// yakbas

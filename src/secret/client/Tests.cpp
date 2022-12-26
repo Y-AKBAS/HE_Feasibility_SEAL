@@ -41,7 +41,7 @@ namespace yakbas::sec::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             CHECK(ClientManager::IsInitialized());
 
-            const int numberOfJourneys = 11;
+            const int numberOfJourneys = 5;
             const auto journeysVecPtr = clientManagerPtr->SearchSecretly("Leipzig", "Halle",
                                                                          numberOfJourneys);
             CheckJourneys(*journeysVecPtr, numberOfJourneys);
@@ -52,20 +52,45 @@ namespace yakbas::sec::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 12;
+            const int numberOfJourneys = 10;
+            const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
+
+            for (int i = 0; i < numberOfJourneys; ++i) {
+
+                const auto &journeyPtr = journeysVecPtr->at(i);
+                std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
+
+                const auto bookingResponsePtr = clientManagerPtr->BookSecretlyAndDecrypt(*journeyPtr);
+
+                CHECK(bookingResponsePtr->total() == totalBeforeSent);
+            }
+            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "Secret Booking passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
+        }
+
+        TEST_CASE("Client Manager Payment Request Test") {
+
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            CHECK(ClientManager::IsInitialized());
+            Timer timer;
+            const int numberOfJourneys = 6;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             const auto index = util::GetRandomNumber() % numberOfJourneys;
             const auto &journeyPtr = journeysVecPtr->at(index);
 
             std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
-
             const auto bookingResponsePtr = clientManagerPtr->BookSecretlyAndDecrypt(*journeyPtr);
-
             CHECK(bookingResponsePtr->total() == totalBeforeSent);
+
+            const auto invoicingResponsePtr = clientManagerPtr->Pay(*bookingResponsePtr);
+            CHECK(invoicingResponsePtr->status() == communication::StatusCode::SUCCESSFUL);
+
             long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
-                           "Passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
+                           "Payment Request passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
+
         }
 
         void CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys) {

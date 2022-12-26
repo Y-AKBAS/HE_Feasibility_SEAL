@@ -15,8 +15,8 @@ namespace yakbas::sec {
 
     void ClientApplication::Run(int argc, char **argv) {
         EnableLogging();
-        const auto worker = GetUnique<std::jthread>(&ClientApplication::StartServer, this);
         RunTests(argc, argv);
+        std::jthread serverKeeper(&ClientApplication::StartServer, this);
     }
 
     void ClientApplication::StartServer() {

@@ -14,7 +14,7 @@ namespace yakbas {
         context->setOption(constants::DOCKTEST_ABORT_AFTER.first,
                            constants::DOCKTEST_ABORT_AFTER.second);
         context->setOption(constants::DOCKTEST_NO_RUN.first,
-                           constants::DOCKTEST_NO_RUN.second); // Will prevent running tests
+                           constants::DOCKTEST_NO_RUN.second); // Will prevent running tests in case
         context->setOption(constants::DOCKTEST_NO_BREAKS.first,
                            constants::DOCKTEST_NO_BREAKS.second);
         context->applyCommandLine(argc, argv);
@@ -30,6 +30,6 @@ namespace yakbas {
     void IApplication::EnableLogging() {
         log4cplus::initialize();
         log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

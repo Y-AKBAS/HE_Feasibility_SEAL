@@ -1,5 +1,7 @@
 
 #include <log4cplus/loggingmacros.h>
+
+#include <utility>
 #include "PlatformServiceImpl.h"
 #include "ApplicationConstants.h"
 #include "Utils.h"
@@ -12,14 +14,6 @@ namespace yakbas::sec {
               m_platformClientManager(std::make_unique<PlatformClientManager>()),
               m_logger(std::make_unique<log4cplus::Logger>(
                       log4cplus::Logger::getInstance("Secret Platform Service Impl"))) {}
-
-    grpc::Status PlatformServiceImpl::createInvoice(grpc::ServerContext *context,
-                                                    const communication::InvoicingRequest *request,
-                                                    communication::InvoicingResponse *response) {
-
-        // Implementation comes here
-        return Service::createInvoice(context, request, response);
-    }
 
     grpc::Status PlatformServiceImpl::SearchForSecretRides(grpc::ServerContext *context,
                                                            const communication::sec::SearchRequest *request,
@@ -50,13 +44,11 @@ namespace yakbas::sec {
         }
 
         return status;
-
     }
 
     grpc::Status PlatformServiceImpl::SearchForRides(grpc::ServerContext *context,
                                                      const communication::SearchRequest *request,
                                                      grpc::ServerWriter<communication::Journey> *writer) {
-
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Platform Service impl SearchForRides invoked...");
 
@@ -83,41 +75,6 @@ namespace yakbas::sec {
         }
 
         return status;
-    }
-
-    grpc::Status
-    PlatformServiceImpl::Book(grpc::ServerContext *context, const communication::sec::BookingRequest *request,
-                              communication::sec::BookingResponse *response) {
-
-        const auto &unitPrice = request->unitprice();
-        auto unitPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(unitPrice));
-
-        const auto &coefficient = request->coefficient();
-        auto coefficientCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(coefficient));
-
-        auto totalCipherPtr = GetUnique<seal::Ciphertext>();
-        const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
-        evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
-                               *totalCipherPtr);
-
-        m_customSealOperationsPtr->Relinearize(*totalCipherPtr);
-
-        const auto &discount = request->discount();
-        if (!discount.empty()) {
-            auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
-            evaluatorPtr->sub_inplace(*totalCipherPtr, *discountCipherPtr);
-        }
-
-        const auto &seatPrice = request->seatprice();
-        if (!seatPrice.empty()) {
-            auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
-            evaluatorPtr->add_inplace(*totalCipherPtr, *seatPriceCipherPtr);
-        }
-
-        m_customSealOperationsPtr->Relinearize(*totalCipherPtr);
-        m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
-
-        return grpc::Status::OK;
     }
 
     grpc::Status PlatformServiceImpl::Book(grpc::ServerContext *context,
@@ -152,11 +109,28 @@ namespace yakbas::sec {
             }
         }
 
-        //m_customSealOperationsPtr->SwitchMode(*firstTotalCipherPtr);
-        const auto &buffer = CustomSealOperations::GetBufferFromCipher(*requestTotalCiphers.at(0));
+        std::unique_ptr<seal::Ciphertext> &totalCipherPtr = requestTotalCiphers.at(0);
+        m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+        const auto buffer = CustomSealOperations::GetBufferFromCipher(*totalCipherPtr);
         response->set_total(buffer);
 
         return grpc::Status::OK;
+    }
+
+    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
+                                                      const communication::InvoicingReport *request,
+                                                      communication::InvoicingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL);
+        grpc::ClientContext clientContext;
+        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            throw std::runtime_error("Reporting invoice failed in Secret Platform");
+        }
+
+        response->set_status(communication::StatusCode::SUCCESSFUL);
+        return status;
     }
 
     std::unique_ptr<seal::Ciphertext>
@@ -174,23 +148,24 @@ namespace yakbas::sec {
         evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
                                *totalCipherPtr);
 
-        //m_customSealOperationsPtr->Relinearize(*totalCipherPtr);
-
         const auto &discount = request.discount();
         if (!discount.empty()) {
+            auto newCipherPtr = GetUnique<seal::Ciphertext>();
             auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
-            evaluatorPtr->sub_inplace(*totalCipherPtr, *discountCipherPtr);
+            evaluatorPtr->sub(*totalCipherPtr, *discountCipherPtr, *newCipherPtr);
+            totalCipherPtr = std::move(newCipherPtr);
         }
 
         const auto &seatPrice = request.seatprice();
         if (!seatPrice.empty()) {
+            auto newCipherPtr = GetUnique<seal::Ciphertext>();
             auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
-            evaluatorPtr->add_inplace(*totalCipherPtr, *seatPriceCipherPtr);
+            evaluatorPtr->add(*totalCipherPtr, *seatPriceCipherPtr, *newCipherPtr);
+            totalCipherPtr = std::move(newCipherPtr);
             rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
         }
 
-        //m_customSealOperationsPtr->Relinearize(*totalCipherPtr);
-        //m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+        m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
 
         return totalCipherPtr;
     }

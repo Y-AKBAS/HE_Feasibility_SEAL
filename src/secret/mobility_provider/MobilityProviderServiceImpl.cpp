@@ -12,15 +12,6 @@ namespace yakbas::sec {
               m_logger(std::make_unique<log4cplus::Logger>(
                       log4cplus::Logger::getInstance("Secret Mobility Provider Service Impl"))) {}
 
-
-    grpc::Status MobilityProviderServiceImpl::createInvoice(grpc::ServerContext *context,
-                                                            const communication::InvoicingRequest *request,
-                                                            communication::InvoicingResponse *response) {
-
-        // Implementation comes here
-        return Service::createInvoice(context, request, response);
-    }
-
     grpc::Status MobilityProviderServiceImpl::SearchForSecretRides(grpc::ServerContext *context,
                                                                    const communication::sec::SearchRequest *request,
                                                                    grpc::ServerWriter<communication::sec::Journey> *writer) {
@@ -41,6 +32,15 @@ namespace yakbas::sec {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Mobility Provider Service impl SearchForRides invoked...");
         return MobilityProviderGenerator::GenerateJourneys(request, &(*writer));
+    }
+
+    grpc::Status MobilityProviderServiceImpl::ReportInvoicing(grpc::ServerContext *context,
+                                                              const communication::InvoicingReport *request,
+                                                              communication::InvoicingResponse *response) {
+
+        // Normally the other information should be written to the db :)
+        response->set_status(communication::StatusCode::SUCCESSFUL);
+        return grpc::Status::OK;
     }
 
 } // yakbas

@@ -4,11 +4,11 @@
 namespace yakbas::pub {
     MobilityProviderServiceImpl::MobilityProviderServiceImpl() = default;
 
-    grpc::Status MobilityProviderServiceImpl::createInvoice(grpc::ServerContext *context,
-                                                        const communication::InvoicingRequest *request,
-                                                        communication::InvoicingResponse *response) {
+    grpc::Status MobilityProviderServiceImpl::CreateInvoice(grpc::ServerContext *context,
+                                                            const communication::InvoicingRequest *request,
+                                                            communication::InvoicingResponse *response) {
 
         // Implementation comes here
-        return Service::createInvoice(context, request, response);
+        return Service::CreateInvoice(context, request, response);
     }
 } // yakbas
