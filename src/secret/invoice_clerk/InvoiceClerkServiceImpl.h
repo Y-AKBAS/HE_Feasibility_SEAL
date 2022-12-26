@@ -11,11 +11,11 @@ namespace yakbas::sec {
     public:
         explicit InvoiceClerkServiceImpl(const SealKeys &sealKeys = {});
 
-        grpc::Status createInvoice(::grpc::ServerContext *context, const ::communication::InvoicingRequest *request,
-                                   ::communication::InvoicingResponse *response) override;
-
         grpc::Status GetPublicKey(grpc::ServerContext *context, const google::protobuf::Empty *request,
                                   communication::sec::PublicKey *response) override;
+
+        grpc::Status CreateInvoice(grpc::ServerContext *context, const communication::InvoicingRequest *request,
+                                   communication::InvoicingResponse *response) override;
 
     private:
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};

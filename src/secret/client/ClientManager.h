@@ -27,19 +27,25 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookSecretlyAndDecrypt(const communication::Journey &journey);
 
+        [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
+        Pay(const communication::BookingResponse &bookingResponse);
+
         [[nodiscard]] std::unique_ptr<communication::Journey>
         MapSecretToPublic(const communication::sec::Journey &secretJourney);
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         MapSecretToPublic(const communication::sec::BookingResponse &bookingResponse);
 
+        void MapUser(communication::ProtoUser &user) const;
+
         static bool IsInitialized();
 
     private:
         const std::unique_ptr<SecretUser> m_userPtr{nullptr};
-        std::once_flag m_isInitialized;
         std::unique_ptr<log4cplus::Logger> m_logger;
+
         static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
+        static std::once_flag m_isInitialized;
     };
 
 } // yakbas

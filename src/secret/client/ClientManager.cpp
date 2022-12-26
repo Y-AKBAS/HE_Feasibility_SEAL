@@ -26,6 +26,7 @@ namespace yakbas::sec {
     }
 
     std::map<std::string, const std::shared_ptr<seal::PublicKey>> ClientManager::m_publicKeyMap{};
+    std::once_flag ClientManager::m_isInitialized{};
 
     void ClientManager::GetPublicKey() const {
 
@@ -193,6 +194,31 @@ namespace yakbas::sec {
         return this->MapSecretToPublic(*secretBookingResponsePtr);
     }
 
+    std::unique_ptr<communication::InvoicingResponse>
+    ClientManager::Pay(const communication::BookingResponse &bookingResponse) {
+
+        const auto stubPtr = this->GetStub(constants::INVOICE_CLERK_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto invoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
+
+        const auto invoicingRequestPtr = GetUnique<communication::InvoicingRequest>();
+        invoicingRequestPtr->set_price(bookingResponse.total());
+        const auto protoUserPtr = invoicingRequestPtr->mutable_user();
+        this->MapUser(*protoUserPtr);
+
+        const grpc::Status &status = stubPtr->CreateInvoice(clientContextPtr.get(), *invoicingRequestPtr,
+                                                            invoicingResponsePtr.get());
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Sent InvoicingRequest successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during creating InvoicingRequest. Error message: " +
+                            status.error_message());
+        }
+
+        return invoicingResponsePtr;
+    }
+
     std::unique_ptr<communication::Journey>
     ClientManager::MapSecretToPublic(const communication::sec::Journey &secretJourney) {
 
@@ -285,6 +311,22 @@ namespace yakbas::sec {
         }
 
         return publicResponsePtr;
+    }
+
+    void ClientManager::MapUser(communication::ProtoUser &user) const {
+        user.set_email(m_userPtr->GetEmail());
+        user.set_lastname(m_userPtr->GetLastName());
+        user.set_firstname(m_userPtr->GetFirstName());
+        user.set_id(m_userPtr->GetId());
+
+        const auto addressPtr = user.mutable_address();
+        const auto &userAddressPtr = m_userPtr->GetAddressPtr();
+
+        addressPtr->set_country(userAddressPtr->m_country);
+        addressPtr->set_postalcode(userAddressPtr->m_postalCode);
+        addressPtr->set_housenumber(userAddressPtr->m_houseNumber);
+        addressPtr->set_city(userAddressPtr->m_city);
+        addressPtr->set_street(userAddressPtr->m_street);
     }
 
 } // yakbas

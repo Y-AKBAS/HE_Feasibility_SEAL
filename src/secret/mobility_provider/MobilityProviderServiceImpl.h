@@ -12,15 +12,15 @@ namespace yakbas::sec {
     public:
         explicit MobilityProviderServiceImpl(const SealKeys &sealKeys = {});
 
-        grpc::Status createInvoice(grpc::ServerContext *context, const communication::InvoicingRequest *request,
-                                   communication::InvoicingResponse *response) override;
-
         grpc::Status
         SearchForSecretRides(grpc::ServerContext *context, const communication::sec::SearchRequest *request,
                              grpc::ServerWriter<communication::sec::Journey> *writer) override;
 
         grpc::Status SearchForRides(grpc::ServerContext *context, const communication::SearchRequest *request,
                                     grpc::ServerWriter<communication::Journey> *writer) override;
+
+        grpc::Status ReportInvoicing(::grpc::ServerContext *context, const ::communication::InvoicingReport *request,
+                                     ::communication::InvoicingResponse *response) override;
 
     private:
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};
