@@ -30,6 +30,10 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse);
 
+        [[nodiscard]] communication::StatusCode
+        ReportInvoicing(const communication::InvoicingResponse &invoicingResponse,
+                        const communication::BookingResponse &bookingResponse) const;
+
         [[nodiscard]] std::unique_ptr<communication::Journey>
         MapSecretToPublic(const communication::sec::Journey &secretJourney);
 
@@ -44,6 +48,10 @@ namespace yakbas::sec {
 
         static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
         static std::once_flag m_isInitialized;
+
+        static void MapRideAndSeatNumberMap(google::protobuf::Map<std::string, int32_t> &targetMap,
+                                            const google::protobuf::Map<std::string, int32_t> *sourceMapPtr);
+
     };
 
 } // yakbas

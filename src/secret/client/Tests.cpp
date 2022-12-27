@@ -87,6 +87,9 @@ namespace yakbas::sec::test {
             const auto invoicingResponsePtr = clientManagerPtr->Pay(*bookingResponsePtr);
             CHECK(invoicingResponsePtr->status() == communication::StatusCode::SUCCESSFUL);
 
+            const auto reportInvoicingCode = clientManagerPtr->ReportInvoicing(*invoicingResponsePtr,
+                                                                               *bookingResponsePtr);
+            CHECK(reportInvoicingCode == communication::StatusCode::SUCCESSFUL);
             long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Payment Request passed time in millis: " + std::to_string(passedTimeInMillisWithStop));

@@ -8,6 +8,7 @@ service PublicCommunicationService {
   rpc CreateInvoice(InvoicingRequest) returns (InvoicingResponse);
   rpc SearchForRides(communication.SearchRequest) returns (stream communication.Journey);
   rpc Book(stream BookingRequest) returns (communication.BookingResponse);
+  rpc ReportInvoicing(InvoicingReport) returns (InvoicingResponse);
 }
 
 message BookingRequest {

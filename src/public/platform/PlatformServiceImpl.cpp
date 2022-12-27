@@ -98,5 +98,22 @@ namespace yakbas::pub {
         return requestTotal;
     }
 
+    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
+                                                      const communication::InvoicingReport *request,
+                                                      communication::InvoicingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL);
+        grpc::ClientContext clientContext;
+        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            throw std::runtime_error("Reporting public invoice failed in Secret Platform");
+        }
+
+        response->set_status(communication::StatusCode::SUCCESSFUL);
+        return status;
+
+    }
+
 
 } // yakbas

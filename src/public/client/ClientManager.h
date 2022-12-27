@@ -20,6 +20,13 @@ namespace yakbas::pub {
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         Book(const communication::Journey &journey);
 
+        [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
+        Pay(const communication::BookingResponse &bookingResponse);
+
+        [[nodiscard]] communication::StatusCode
+        ReportInvoicing(const communication::InvoicingResponse &invoicingResponse,
+                        const communication::BookingResponse &bookingResponse) const;
+
         static bool IsInitialized();
 
     private:
@@ -27,6 +34,9 @@ namespace yakbas::pub {
         std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
 
         static std::once_flag m_isInitialized;
+
+        static void MapRideAndSeatNumberMap(google::protobuf::Map<std::string, int32_t> &targetMap,
+                                            const google::protobuf::Map<std::string, int32_t> *sourceMapPtr);
     };
 
 } // yakbas
