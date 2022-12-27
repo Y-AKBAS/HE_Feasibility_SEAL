@@ -13,15 +13,15 @@ namespace yakbas::sec {
 
     void MobilityProviderApplication::Run(int argc, char **argv) {
         EnableLogging();
-        const auto worker = GetUnique<std::jthread>(&MobilityProviderApplication::StartServer, this);
         RunTests(argc, argv);
+        this->StartServer();
     }
 
     void MobilityProviderApplication::StartServer() {
         const auto serverManager = GetUnique<MobilityProviderServerManager>(
                 GetShared<MobilityProviderServiceImpl>(),
                 SECRET_MOBILITY_PROVIDER_SERVER_PORT,
-                "Secret Mobility Provider");
+                "Secret Mobility Provider Server Manager");
 
         serverManager->Init();
     }

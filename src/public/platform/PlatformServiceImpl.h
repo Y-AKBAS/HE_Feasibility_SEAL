@@ -12,15 +12,24 @@ namespace yakbas::pub {
     public:
         PlatformServiceImpl();
 
-        grpc::Status CreateInvoice(::grpc::ServerContext *context, const ::communication::InvoicingRequest *request,
-                                   ::communication::InvoicingResponse *response) override;
+        grpc::Status CreateInvoice(grpc::ServerContext *context, const communication::InvoicingRequest *request,
+                                   communication::InvoicingResponse *response) override;
 
-        grpc::Status SearchForRides(::grpc::ServerContext *context, const ::communication::SearchRequest *request,
-                                    ::grpc::ServerWriter<::communication::Journey> *writer) override;
+        grpc::Status SearchForRides(grpc::ServerContext *context, const communication::SearchRequest *request,
+                                    grpc::ServerWriter<communication::Journey> *writer) override;
+
+        grpc::Status
+        Book(::grpc::ServerContext *context, ::grpc::ServerReader<::communication::pub::BookingRequest> *reader,
+             ::communication::BookingResponse *response) override;
 
     private:
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
         const std::unique_ptr<PlatformClientManager> m_platformClientManager{nullptr};
+
+        [[nodiscard]] static std::uint64_t
+        GetRequestTotalAndInsertSeat(const communication::pub::BookingRequest &request,
+                                     google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap);
+
     };
 
 

@@ -17,6 +17,9 @@ namespace yakbas::pub {
         [[nodiscard]] std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
         Search(const std::string &from, const std::string &to, int numberOfJourneys);
 
+        [[nodiscard]] std::unique_ptr<communication::BookingResponse>
+        Book(const communication::Journey &journey);
+
         static bool IsInitialized();
 
     private:

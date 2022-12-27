@@ -13,7 +13,7 @@
 
 namespace yakbas::pub::test {
 
-    TEST_SUITE("Secret Client Test Suite") {
+    TEST_SUITE("Public Client Test Suite") {
 
         static void
         CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys);
@@ -37,7 +37,32 @@ namespace yakbas::pub::test {
             CheckJourneys(*journeysVecPtr, numberOfJourneys);
             long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
-                           "Public Search Request passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
+                           "Public Search Request passed time in millis: " +
+                           std::to_string(passedTimeInMillisWithStop));
+        }
+
+        TEST_CASE("Client Manager Public Booking Request Test") {
+
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            CHECK(ClientManager::IsInitialized());
+            Timer timer;
+            const int numberOfJourneys = 20;
+            const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
+
+            for (int i = 0; i < numberOfJourneys; ++i) {
+
+                const auto &journeyPtr = journeysVecPtr->at(i);
+                std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
+
+                const auto bookingResponsePtr = clientManagerPtr->Book(*journeyPtr);
+
+                CHECK(bookingResponsePtr->total() == totalBeforeSent);
+            }
+            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "Public Booking passed time in millis for " + std::to_string(numberOfJourneys) +
+                           " journeys: " +
+                           std::to_string(passedTimeInMillisWithStop));
         }
 
         void CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys) {

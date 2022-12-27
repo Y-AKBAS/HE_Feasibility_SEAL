@@ -23,7 +23,7 @@ namespace yakbas::sec {
         const auto serverManager = GetUnique<ClientServerManager>(
                 GetShared<ClientServiceImpl>(),
                 SECRET_CLIENT_SERVER_PORT,
-                "Secret Client");
+                "Secret Client Server Manager");
 
         serverManager->Init();
     }

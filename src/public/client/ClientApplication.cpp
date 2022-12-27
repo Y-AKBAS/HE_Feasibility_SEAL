@@ -21,7 +21,7 @@ namespace yakbas::pub {
         const auto serverManager = GetUnique<ClientServerManager>(
                 GetShared<ClientServiceImpl>(),
                 PUBLIC_CLIENT_SERVER_PORT,
-                "Public Client");
+                "Public Client Server Manager");
 
         serverManager->Init();
     }

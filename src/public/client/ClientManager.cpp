@@ -68,4 +68,53 @@ namespace yakbas::pub {
         return journeyVecPtr;
     }
 
-} // pub
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::Book(const communication::Journey &journey) {
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::BookingResponse>();
+        const auto clientWriterPtr = stubPtr->Book(clientContextPtr.get(), responsePtr.get());
+
+        const auto &rides = journey.rides();
+
+        for (const auto &ride: rides) {
+
+            const auto requestPtr = GetUnique<communication::pub::BookingRequest>();
+
+            int bookingType = static_cast<int>(GetRandomNumber()) % (communication::BookingType_ARRAYSIZE - 1);
+            requestPtr->set_bookingtype(static_cast<communication::BookingType>(bookingType));
+
+            requestPtr->set_coefficient(ride.coefficient());
+            requestPtr->set_unitprice(ride.transporter().unitprice());
+
+            const auto discount = ride.discount();
+            if (discount > 0) {
+                requestPtr->set_discount(discount);
+            }
+
+            const auto seatPrice = ride.transporter().seatprice();
+            if (seatPrice > 0) {
+                requestPtr->set_seatprice(seatPrice);
+            }
+
+            if (!clientWriterPtr->Write(*requestPtr)) {
+                throw std::bad_function_call();
+            }
+        }
+
+        clientWriterPtr->WritesDone();
+        const auto &status = clientWriterPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Sent Public BookingRequests successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during Sending Public BookingRequests. Error message: " +
+                            status.error_message());
+        }
+
+        return responsePtr;
+    }
+
+} // yakbas

@@ -21,7 +21,7 @@ namespace yakbas::pub {
         const auto serverManager = GetUnique<PlatformServerManager>(
                 GetShared<PlatformServiceImpl>(),
                 PUBLIC_PLATFORM_SERVER_PORT,
-                "Public Platform");
+                "Public Platform Server Manager");
 
         serverManager->Init();
     }
