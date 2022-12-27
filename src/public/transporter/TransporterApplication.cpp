@@ -14,15 +14,15 @@ namespace yakbas::pub {
 
     void TransporterApplication::Run(int argc, char **argv) {
         EnableLogging();
-        const auto worker = GetUnique<std::jthread>(&TransporterApplication::StartServer, this);
         RunTests(argc, argv);
+        this->StartServer();
     }
 
     void TransporterApplication::StartServer() {
         const auto serverManager = GetUnique<TransporterServerManager>(
                 GetShared<TransporterServiceImpl>(),
                 PUBLIC_TRANSPORTER_SERVER_PORT,
-                "Public Transporter");
+                "Public Transporter Server Manager");
 
         serverManager->Init();
     }

@@ -14,15 +14,15 @@ namespace yakbas::sec {
 
     void TransporterApplication::Run(int argc, char **argv) {
         EnableLogging();
-        const auto worker = GetUnique<std::jthread>(&TransporterApplication::StartServer, this);
         RunTests(argc, argv);
+        this->StartServer();
     }
 
     void TransporterApplication::StartServer() {
         const auto serverManager = GetUnique<TransporterServerManager>(
                 GetShared<TransporterServiceImpl>(),
                 SECRET_TRANSPORTER_SERVER_PORT,
-                "Secret Transporter");
+                "Secret Transporter Server Manager");
 
         serverManager->Init();
     }

@@ -13,15 +13,15 @@ namespace yakbas::sec {
 
     void InvoiceClerkApplication::Run(int argc, char **argv) {
         EnableLogging();
-        const auto worker = GetUnique<std::jthread>(&InvoiceClerkApplication::StartServer, this);
         RunTests(argc, argv);
+        this->StartServer();
     }
 
     void InvoiceClerkApplication::StartServer() {
         const auto serverManager = GetUnique<InvoiceClerkServerManager>(
                 GetShared<InvoiceClerkServiceImpl>(),
                 SECRET_INVOICE_CLERK_SERVER_PORT,
-                "Secret Invoice Clerk");
+                "Secret Invoice Clerk Server Manager");
 
         serverManager->Init();
     }

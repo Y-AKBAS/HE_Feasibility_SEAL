@@ -13,8 +13,8 @@ namespace yakbas::sec {
 
     void PlatformApplication::Run(int argc, char **argv) {
         EnableLogging();
-        const auto worker = GetUnique<std::jthread>(&PlatformApplication::StartServer, this);
         RunTests(argc, argv);
+        this->StartServer();
     }
 
     void PlatformApplication::StartServer() {
