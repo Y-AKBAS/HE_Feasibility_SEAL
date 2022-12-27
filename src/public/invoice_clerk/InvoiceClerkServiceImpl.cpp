@@ -8,7 +8,10 @@ namespace yakbas::pub {
                                                         const communication::InvoicingRequest *request,
                                                         communication::InvoicingResponse *response) {
 
-        // Implementation comes here
-        return Service::CreateInvoice(context, request, response);
+        // Normally the invoice should be created here :)
+
+        response->set_status(communication::StatusCode::SUCCESSFUL);
+        return grpc::Status::OK;
     }
+
 } // yakbas

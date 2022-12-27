@@ -4,7 +4,7 @@
 
 namespace yakbas::pub {
 
-    class PublicUser : BaseUser {
+    class PublicUser : public BaseUser {
     public:
         PublicUser(const std::string &id, const std::string &firstName,
                    const std::string &lastName, const std::string &email,

@@ -126,7 +126,7 @@ namespace yakbas::sec {
         const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
 
         if (!status.ok()) {
-            throw std::runtime_error("Reporting invoice failed in Secret Platform");
+            throw std::runtime_error("Reporting secret invoice failed in Secret Platform");
         }
 
         response->set_status(communication::StatusCode::SUCCESSFUL);

@@ -65,6 +65,32 @@ namespace yakbas::pub::test {
                            std::to_string(passedTimeInMillisWithStop));
         }
 
+        TEST_CASE("Client Manager Payment Request Test") {
+
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            CHECK(ClientManager::IsInitialized());
+            Timer timer;
+            const int numberOfJourneys = 6;
+            const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
+
+            const auto index = util::GetRandomNumber() % numberOfJourneys;
+            const auto &journeyPtr = journeysVecPtr->at(index);
+
+            std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
+            const auto bookingResponsePtr = clientManagerPtr->Book(*journeyPtr);
+            CHECK(bookingResponsePtr->total() == totalBeforeSent);
+
+            const auto invoicingResponsePtr = clientManagerPtr->Pay(*bookingResponsePtr);
+            CHECK(invoicingResponsePtr->status() == communication::StatusCode::SUCCESSFUL);
+
+            const auto reportInvoicingCode = clientManagerPtr->ReportInvoicing(*invoicingResponsePtr,
+                                                                               *bookingResponsePtr);
+            CHECK(reportInvoicingCode == communication::StatusCode::SUCCESSFUL);
+            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "Payment Request passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
+        }
+
         void CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys) {
 
             CHECK(!journeys.empty());

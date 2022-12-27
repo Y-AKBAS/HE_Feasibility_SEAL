@@ -22,6 +22,9 @@ namespace yakbas::pub {
         Book(::grpc::ServerContext *context, ::grpc::ServerReader<::communication::pub::BookingRequest> *reader,
              ::communication::BookingResponse *response) override;
 
+        grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
+                                     communication::InvoicingResponse *response) override;
+
     private:
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
         const std::unique_ptr<PlatformClientManager> m_platformClientManager{nullptr};

@@ -117,4 +117,56 @@ namespace yakbas::pub {
         return responsePtr;
     }
 
+    std::unique_ptr<communication::InvoicingResponse>
+    ClientManager::Pay(const communication::BookingResponse &bookingResponse) {
+
+        const auto stubPtr = this->GetStub(constants::INVOICE_CLERK_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto invoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
+
+        const auto invoicingRequestPtr = GetUnique<communication::InvoicingRequest>();
+        invoicingRequestPtr->set_price(bookingResponse.total());
+        const auto protoUserPtr = invoicingRequestPtr->mutable_user();
+        m_userPtr->ToProto(protoUserPtr);
+
+        const grpc::Status &status = stubPtr->CreateInvoice(clientContextPtr.get(), *invoicingRequestPtr,
+                                                            invoicingResponsePtr.get());
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Sent InvoicingRequest successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during creating InvoicingRequest. Error message: " +
+                            status.error_message());
+        }
+
+        return invoicingResponsePtr;
+    }
+
+    communication::StatusCode
+    ClientManager::ReportInvoicing(const communication::InvoicingResponse &invoicingResponse,
+                                   const communication::BookingResponse &bookingResponse) const {
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto invoicingReport = GetUnique<communication::InvoicingReport>();
+
+        invoicingReport->set_bookingtype(bookingResponse.bookingtype());
+        invoicingReport->set_userid(m_userPtr->GetId());
+        invoicingReport->set_journeyid(bookingResponse.journey_id());
+
+        auto rideAndSeatNumberMapPtr = invoicingReport->mutable_rideidseatnumbermap();
+        MapRideAndSeatNumberMap(*rideAndSeatNumberMapPtr, &bookingResponse.rideidseatnumbermap());
+
+        auto newInvoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
+        stubPtr->ReportInvoicing(clientContextPtr.get(), *invoicingReport, newInvoicingResponsePtr.get());
+        return newInvoicingResponsePtr->status();
+    }
+
+    void ClientManager::MapRideAndSeatNumberMap(google::protobuf::Map<std::string, int32_t> &targetMap,
+                                                const google::protobuf::Map<std::string, int32_t> *sourceMapPtr) {
+        for (const auto &pair: *sourceMapPtr) {
+            targetMap.insert(pair);
+        }
+    }
+
 } // yakbas

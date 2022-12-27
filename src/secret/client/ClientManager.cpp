@@ -219,6 +219,26 @@ namespace yakbas::sec {
         return invoicingResponsePtr;
     }
 
+    communication::StatusCode
+    ClientManager::ReportInvoicing(const communication::InvoicingResponse &invoicingResponse,
+                                   const communication::BookingResponse &bookingResponse) const {
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto invoicingReport = GetUnique<communication::InvoicingReport>();
+
+        invoicingReport->set_bookingtype(bookingResponse.bookingtype());
+        invoicingReport->set_userid(m_userPtr->GetId());
+        invoicingReport->set_journeyid(bookingResponse.journey_id());
+
+        auto rideAndSeatNumberMapPtr = invoicingReport->mutable_rideidseatnumbermap();
+        MapRideAndSeatNumberMap(*rideAndSeatNumberMapPtr, &bookingResponse.rideidseatnumbermap());
+
+        auto newInvoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
+        stubPtr->ReportInvoicing(clientContextPtr.get(), *invoicingReport, newInvoicingResponsePtr.get());
+        return newInvoicingResponsePtr->status();
+    }
+
     std::unique_ptr<communication::Journey>
     ClientManager::MapSecretToPublic(const communication::sec::Journey &secretJourney) {
 
@@ -311,6 +331,13 @@ namespace yakbas::sec {
         }
 
         return publicResponsePtr;
+    }
+
+    void ClientManager::MapRideAndSeatNumberMap(google::protobuf::Map<std::string, int32_t> &targetMap,
+                                                const google::protobuf::Map<std::string, int32_t> *sourceMapPtr) {
+        for (const auto &pair: *sourceMapPtr) {
+            targetMap.insert(pair);
+        }
     }
 
 } // yakbas
