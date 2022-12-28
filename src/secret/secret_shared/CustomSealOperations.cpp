@@ -54,7 +54,7 @@ namespace yakbas::sec {
             return *(*it);
         }
 
-        LOG4CPLUS_DEBUG(*logger, "Creating new with params: \n" + sealKeys.ToString());
+        LOG4CPLUS_DEBUG(*logger, "Creating new SealKeys with params: " + sealKeys.ToString());
         const auto newOperationsPtr = new SealOperations(sealKeys);
         operations.push_back(newOperationsPtr);
         return *newOperationsPtr;

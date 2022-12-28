@@ -37,7 +37,7 @@ namespace yakbas::sec {
         }
 
         const auto stream = std::make_unique<std::ostringstream>();
-        *stream << "SealKeys: "
+        *stream << "\nSealKeys: "
                 << "\nPlainModulus: " << m_plainModulus
                 << "\nSchemeType: " << schemeType
                 << "\nPolyModulusDegree: " << m_polyModulusDegree;

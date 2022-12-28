@@ -180,7 +180,7 @@ namespace yakbas::sec {
         const auto &status = clientWriterPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Sent Secret BookingRequests successfully...");
+            LOG4CPLUS_TRACE(*m_logger, "Sent Secret BookingRequests successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during Sending Secret BookingRequests. Error message: " +
@@ -236,7 +236,7 @@ namespace yakbas::sec {
         const auto &status = clientWriterPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Sent Symmetric Secret BookingRequests successfully...");
+            LOG4CPLUS_TRACE(*m_logger, "Sent Symmetric Secret BookingRequests successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during Sending Symmetric Secret BookingRequests. Error message: " +

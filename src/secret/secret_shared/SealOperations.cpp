@@ -41,15 +41,19 @@ namespace yakbas::sec {
 
     std::unique_ptr<std::string> SealOperations::GetEncryptedBuffer(const uint64_t &num,
                                                                     const seal::Encryptor &encryptor) {
+        const std::string hexString = seal::util::uint_to_hex_string(&num, std::size_t(1));
+        const auto plainTextToEncrypt = GetUnique<seal::Plaintext>(hexString);
         const auto &stream = util::GetUniqueStream();
-        SealOperations::Encrypt(num, encryptor)->save(*stream);
+        encryptor.encrypt(*plainTextToEncrypt).save(*stream);
         return std::make_unique<std::string>(stream->str());
     }
 
     std::unique_ptr<std::string> SealOperations::GetSymmetricEncryptedBuffer(const uint64_t &num,
                                                                              const seal::Encryptor &encryptor) {
+        const std::string hexString = seal::util::uint_to_hex_string(&num, std::size_t(1));
+        const auto plainTextToEncrypt = GetUnique<seal::Plaintext>(hexString);
         const auto &stream = util::GetUniqueStream();
-        SealOperations::EncryptSymmetric(num, encryptor)->save(*stream);
+        encryptor.encrypt_symmetric(*plainTextToEncrypt).save(*stream);
         return std::make_unique<std::string>(stream->str());
     }
 
