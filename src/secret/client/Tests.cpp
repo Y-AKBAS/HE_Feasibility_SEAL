@@ -74,7 +74,7 @@ namespace yakbas::sec::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 20;
+            const int numberOfJourneys = 30;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -85,7 +85,9 @@ namespace yakbas::sec::test {
             }
             long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
-                           "Secret Symmetric Secret Booking passed time in millis: " +
+                           "Secret Symmetric Secret Booking passed time in millis for " +
+                           std::to_string(numberOfJourneys) +
+                           " journeys: " +
                            std::to_string(passedTimeInMillisWithStop));
 
             timer.start();
@@ -97,7 +99,8 @@ namespace yakbas::sec::test {
             }
             passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
-                           "Secret Secret Booking passed time in millis: " +
+                           "Secret Booking passed time in millis for " + std::to_string(numberOfJourneys) +
+                           " journeys: " +
                            std::to_string(passedTimeInMillisWithStop));
         }
 
