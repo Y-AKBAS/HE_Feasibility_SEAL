@@ -17,6 +17,8 @@ namespace yakbas::sec {
 
         [[nodiscard]] std::unique_ptr<seal::Ciphertext> Encrypt(const std::uint64_t &num) const;
 
+        [[nodiscard]] std::unique_ptr<seal::Ciphertext> EncryptSymmetric(const std::uint64_t &num) const;
+
         [[nodiscard]] std::uint64_t Decrypt(const seal::Ciphertext &cipher) const;
 
         [[nodiscard]] std::unique_ptr<std::string> GetEncryptedBuffer(const uint64_t &num) const;
@@ -46,10 +48,11 @@ namespace yakbas::sec {
 
         [[nodiscard]] static std::string GetBufferFromCipher(seal::Ciphertext &ciphertext);
 
+        [[nodiscard]] std::unique_ptr<std::string> GetSymmetricEncryptedBuffer(const uint64_t &num) const;
+
     private:
 
         [[nodiscard]] std::unique_ptr<std::stringstream> PublicKeyToBuffer() const;
-
         const SealOperations *m_sealOperations{nullptr};
         std::unique_ptr<seal::PublicKey> m_publicKeyPtr{nullptr};
         std::unique_ptr<seal::SecretKey> m_secretKeyPtr{nullptr};
@@ -58,6 +61,7 @@ namespace yakbas::sec {
         std::unique_ptr<seal::Evaluator> m_evaluatorPtr{nullptr};
         std::unique_ptr<seal::RelinKeys> m_relinKeysPtr{nullptr};
         std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
+
         std::string m_publicKeyBuffer{};
     };
 

@@ -8,7 +8,7 @@ namespace yakbas::sec {
 
     SealOperations::SealOperations(const SealKeys &sealKeys)
             : m_sealInfoPtr(std::make_unique<SealInfo>(sealKeys)),
-              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))) {}
+              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SealOperations"))) {}
 
     std::unique_ptr<seal::Ciphertext>
     SealOperations::Encrypt(const uint64_t &num, const seal::Encryptor &encryptor) {
@@ -19,9 +19,17 @@ namespace yakbas::sec {
         return cipherText;
     }
 
+    std::unique_ptr<seal::Ciphertext>
+    SealOperations::EncryptSymmetric(const uint64_t &num, const seal::Encryptor &encryptor) {
+        const std::string hexString = seal::util::uint_to_hex_string(&num, std::size_t(1));
+        const auto plainTextToEncrypt = GetUnique<seal::Plaintext>(hexString);
+        auto cipherText = GetUnique<seal::Ciphertext>();
+        encryptor.encrypt_symmetric(*plainTextToEncrypt, *cipherText);
+        return cipherText;
+    }
+
     std::uint64_t SealOperations::Decrypt(const seal::Ciphertext &cipher,
                                           seal::Decryptor &decryptor) {
-
         const auto decryptedPlaintext = GetUnique<seal::Plaintext>();
         decryptor.decrypt(cipher, *decryptedPlaintext);
         const std::string hexString = decryptedPlaintext->to_string();
@@ -35,6 +43,13 @@ namespace yakbas::sec {
                                                                     const seal::Encryptor &encryptor) {
         const auto &stream = util::GetUniqueStream();
         SealOperations::Encrypt(num, encryptor)->save(*stream);
+        return std::make_unique<std::string>(stream->str());
+    }
+
+    std::unique_ptr<std::string> SealOperations::GetSymmetricEncryptedBuffer(const uint64_t &num,
+                                                                             const seal::Encryptor &encryptor) {
+        const auto &stream = util::GetUniqueStream();
+        SealOperations::EncryptSymmetric(num, encryptor)->save(*stream);
         return std::make_unique<std::string>(stream->str());
     }
 

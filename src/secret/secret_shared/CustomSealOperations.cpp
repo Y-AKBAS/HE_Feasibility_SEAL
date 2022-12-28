@@ -19,7 +19,7 @@ namespace yakbas::sec {
 
         m_encryptorPtr = GetUnique<seal::Encryptor>(
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
-                *m_publicKeyPtr);
+                *m_publicKeyPtr, *m_secretKeyPtr);
 
         m_decryptorPtr = GetUnique<seal::Decryptor>(
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
@@ -61,15 +61,23 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<seal::Ciphertext> CustomSealOperations::Encrypt(const uint64_t &num) const {
-        return yakbas::sec::SealOperations::Encrypt(num, *m_encryptorPtr);
+        return SealOperations::Encrypt(num, *m_encryptorPtr);
+    }
+
+    std::unique_ptr<seal::Ciphertext> CustomSealOperations::EncryptSymmetric(const uint64_t &num) const {
+        return SealOperations::EncryptSymmetric(num, *m_encryptorPtr);
     }
 
     std::uint64_t CustomSealOperations::Decrypt(const seal::Ciphertext &cipher) const {
-        return yakbas::sec::SealOperations::Decrypt(cipher, *m_decryptorPtr);
+        return SealOperations::Decrypt(cipher, *m_decryptorPtr);
     }
 
     std::unique_ptr<std::string> CustomSealOperations::GetEncryptedBuffer(const uint64_t &num) const {
-        return yakbas::sec::SealOperations::GetEncryptedBuffer(num, *m_encryptorPtr);
+        return SealOperations::GetEncryptedBuffer(num, *m_encryptorPtr);
+    }
+
+    std::unique_ptr<std::string> CustomSealOperations::GetSymmetricEncryptedBuffer(const uint64_t &num) const {
+        return SealOperations::GetSymmetricEncryptedBuffer(num, *m_encryptorPtr);
     }
 
     std::unique_ptr<seal::Ciphertext>

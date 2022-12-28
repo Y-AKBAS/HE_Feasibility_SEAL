@@ -52,7 +52,7 @@ namespace yakbas::sec::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 20;
+            const int numberOfJourneys = 8;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -67,6 +67,38 @@ namespace yakbas::sec::test {
             long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Secret Booking passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
+        }
+
+        TEST_CASE("Client Manager Symmetric Secret Booking Request Test") {
+
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            CHECK(ClientManager::IsInitialized());
+            Timer timer;
+            const int numberOfJourneys = 20;
+            const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
+
+            for (int i = 0; i < numberOfJourneys; ++i) {
+                const auto &journeyPtr = journeysVecPtr->at(i);
+                std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
+                const auto bookingResponsePtr = clientManagerPtr->BookSymmetricSecretlyAndDecrypt(*journeyPtr);
+                CHECK(bookingResponsePtr->total() == totalBeforeSent);
+            }
+            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "Secret Symmetric Secret Booking passed time in millis: " +
+                           std::to_string(passedTimeInMillisWithStop));
+
+            timer.start();
+            for (int i = 0; i < numberOfJourneys; ++i) {
+                const auto &journeyPtr = journeysVecPtr->at(i);
+                std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
+                const auto bookingResponsePtr = clientManagerPtr->BookSecretlyAndDecrypt(*journeyPtr);
+                CHECK(bookingResponsePtr->total() == totalBeforeSent);
+            }
+            passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "Secret Secret Booking passed time in millis: " +
+                           std::to_string(passedTimeInMillisWithStop));
         }
 
         TEST_CASE("Client Manager Payment Request Test") {
