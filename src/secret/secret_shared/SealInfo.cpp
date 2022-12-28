@@ -50,13 +50,21 @@ namespace yakbas::sec {
     SealInfo::SealInfo(const SealKeys &sealKeys)
             : m_sealKeys(sealKeys) {
 
-        m_coefficientModulusPtr = std::make_unique<std::vector<seal::Modulus>>(
-                seal::CoeffModulus::BFVDefault(m_sealKeys.m_polyModulusDegree));
         m_encryptionParamsPtr = std::make_unique<seal::EncryptionParameters>(m_sealKeys.m_schemeType);
+
+        if (m_sealKeys.m_schemeType == seal::scheme_type::bfv) {
+            m_coefficientModulusPtr = std::make_unique<std::vector<seal::Modulus>>(
+                    seal::CoeffModulus::BFVDefault(m_sealKeys.m_polyModulusDegree));
+            m_encryptionParamsPtr->set_plain_modulus(m_sealKeys.m_plainModulus);
+        }
+
+        if (m_sealKeys.m_schemeType == seal::scheme_type::ckks) {
+            m_coefficientModulusPtr = std::make_unique<std::vector<seal::Modulus>>(
+                    seal::CoeffModulus::Create(m_sealKeys.m_polyModulusDegree, {60, 40, 40, 60}));
+        }
 
         m_encryptionParamsPtr->set_poly_modulus_degree(m_sealKeys.m_polyModulusDegree);
         m_encryptionParamsPtr->set_coeff_modulus(*m_coefficientModulusPtr);
-        m_encryptionParamsPtr->set_plain_modulus(m_sealKeys.m_plainModulus);
 
         m_sealContextPtr = std::make_unique<seal::SEALContext>(*m_encryptionParamsPtr);
         m_keyGeneratorPtr = std::make_unique<seal::KeyGenerator>(*m_sealContextPtr);
