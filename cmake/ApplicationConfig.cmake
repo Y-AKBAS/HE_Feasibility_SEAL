@@ -17,6 +17,7 @@ add_compile_definitions(${PUBLIC_PREFIX}PLATFORM_SERVER_PORT="${LOCALHOST}8088")
 add_compile_definitions(${PUBLIC_PREFIX}TRANSPORTER_SERVER_PORT="${LOCALHOST}8089")
 
 add_compile_definitions(DISABLE_TESTS=false)
-add_compile_definitions(SEAL_SCHEME_TYPE=0x1)
+add_compile_definitions(SEAL_SCHEME_TYPE=0x2)
 add_compile_definitions(SEAL_POLY_MODULUS_DEGREE=16384)
 add_compile_definitions(SEAL_PLAIN_MODULUS_DEGREE=1024)
+add_compile_definitions(ENCODING_ENABLED=true)

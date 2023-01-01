@@ -42,13 +42,13 @@ namespace yakbas::sec {
 
         [[nodiscard]] const std::unique_ptr<seal::Decryptor> &GetDecryptorPtr() const;
 
-        void Relinearize(seal::Ciphertext &ciphertext);
-
-        void SwitchMode(seal::Ciphertext &ciphertext);
-
         [[nodiscard]] static std::string GetBufferFromCipher(seal::Ciphertext &ciphertext);
 
         [[nodiscard]] std::unique_ptr<std::string> GetSymmetricEncryptedBuffer(const uint64_t &num) const;
+
+        void Relinearize(seal::Ciphertext &ciphertext);
+
+        void SwitchMode(seal::Ciphertext &ciphertext);
 
     private:
 

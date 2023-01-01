@@ -61,23 +61,23 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<seal::Ciphertext> CustomSealOperations::Encrypt(const uint64_t &num) const {
-        return SealOperations::Encrypt(num, *m_encryptorPtr);
+        return m_sealOperations->Encrypt(num, *m_encryptorPtr);
     }
 
     std::unique_ptr<seal::Ciphertext> CustomSealOperations::EncryptSymmetric(const uint64_t &num) const {
-        return SealOperations::EncryptSymmetric(num, *m_encryptorPtr);
+        return m_sealOperations->EncryptSymmetric(num, *m_encryptorPtr);
     }
 
     std::uint64_t CustomSealOperations::Decrypt(const seal::Ciphertext &cipher) const {
-        return SealOperations::Decrypt(cipher, *m_decryptorPtr);
+        return m_sealOperations->Decrypt(cipher, *m_decryptorPtr);
     }
 
     std::unique_ptr<std::string> CustomSealOperations::GetEncryptedBuffer(const uint64_t &num) const {
-        return SealOperations::GetEncryptedBuffer(num, *m_encryptorPtr);
+        return m_sealOperations->GetEncryptedBuffer(num, *m_encryptorPtr);
     }
 
     std::unique_ptr<std::string> CustomSealOperations::GetSymmetricEncryptedBuffer(const uint64_t &num) const {
-        return SealOperations::GetSymmetricEncryptedBuffer(num, *m_encryptorPtr);
+        return m_sealOperations->GetSymmetricEncryptedBuffer(num, *m_encryptorPtr);
     }
 
     std::unique_ptr<seal::Ciphertext>

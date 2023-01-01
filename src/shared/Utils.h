@@ -50,7 +50,7 @@ namespace yakbas::util {
     }
 
     template<typename... Ts>
-    struct LambdaOverloader : Ts... {
+    struct LambdaOverloader : Ts ... {
         using Ts::operator()...;
 
         LambdaOverloader(Ts...ts) {}
@@ -65,6 +65,14 @@ namespace yakbas::util {
     std::uint64_t GetRandomNumber();
 
     std::string GetUUID();
+
+    bool CompareWithTolerance(const double *left, const double *right, int precision = 5);
+
+    long toDec(const std::string &hexVal);
+
+    std::string doubleToHex(const double *val);
+
+    double hexToDouble(const std::string &val);
 
     using FilePtr = std::unique_ptr<FILE, decltype([](FILE *f) { fclose(f); })>;
 

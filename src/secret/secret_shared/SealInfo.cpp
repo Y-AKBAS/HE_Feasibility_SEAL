@@ -3,13 +3,17 @@
 
 namespace yakbas::sec {
 
-    SealKeys::SealKeys(seal::scheme_type schemeType, size_t polyModulusDegree, int plainModulus)
-            : m_schemeType(schemeType), m_polyModulusDegree(polyModulusDegree), m_plainModulus(plainModulus) {}
+    SealKeys::SealKeys(seal::scheme_type schemeType, size_t polyModulusDegree, int plainModulus, bool isEncodingEnabled)
+            : m_schemeType(schemeType),
+              m_polyModulusDegree(polyModulusDegree),
+              m_plainModulus(plainModulus),
+              m_isEncodingEnabled(isEncodingEnabled) {}
 
     bool SealKeys::operator==(const SealKeys &rhs) const {
         return (this->m_polyModulusDegree == rhs.m_polyModulusDegree) &&
                (this->m_schemeType == rhs.m_schemeType) &&
-               (this->m_plainModulus == rhs.m_plainModulus);
+               (this->m_plainModulus == rhs.m_plainModulus) &&
+               (this->m_isEncodingEnabled == rhs.m_isEncodingEnabled);
     }
 
     bool SealKeys::operator<(const SealKeys &rhs) const {
@@ -52,15 +56,21 @@ namespace yakbas::sec {
 
         m_encryptionParamsPtr = std::make_unique<seal::EncryptionParameters>(m_sealKeys.m_schemeType);
 
-        if (m_sealKeys.m_schemeType == seal::scheme_type::bfv) {
+        if (m_sealKeys.m_schemeType == seal::scheme_type::bfv ||
+            m_sealKeys.m_schemeType == seal::scheme_type::bgv) {
+
             m_coefficientModulusPtr = std::make_unique<std::vector<seal::Modulus>>(
                     seal::CoeffModulus::BFVDefault(m_sealKeys.m_polyModulusDegree));
-            m_encryptionParamsPtr->set_plain_modulus(m_sealKeys.m_plainModulus);
+            if (m_sealKeys.m_isEncodingEnabled) {
+                m_encryptionParamsPtr->set_plain_modulus(seal::PlainModulus::Batching(m_sealKeys.m_plainModulus, 20));
+            } else {
+                m_encryptionParamsPtr->set_plain_modulus(m_sealKeys.m_plainModulus);
+            }
         }
 
         if (m_sealKeys.m_schemeType == seal::scheme_type::ckks) {
             m_coefficientModulusPtr = std::make_unique<std::vector<seal::Modulus>>(
-                    seal::CoeffModulus::Create(m_sealKeys.m_polyModulusDegree, {60, 40, 40, 60}));
+                    seal::CoeffModulus::Create(m_sealKeys.m_polyModulusDegree, {60, 40, 40, 40, 60}));
         }
 
         m_encryptionParamsPtr->set_poly_modulus_degree(m_sealKeys.m_polyModulusDegree);

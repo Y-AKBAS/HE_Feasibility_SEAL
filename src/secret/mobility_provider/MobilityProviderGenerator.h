@@ -3,6 +3,7 @@
 
 #include "SecretCommunication.grpc.pb.h"
 #include "SharedCommunication.pb.h"
+#include "CustomSealOperations.h"
 
 #include <vector>
 #include <memory>
@@ -29,16 +30,19 @@ namespace yakbas::sec {
                                                            grpc::ServerWriter<communication::Journey> *writer);
 
         static void GenerateSecretRide(const communication::sec::SearchRequest *request,
+                                       const SealOperations &operations,
                                        const seal::Encryptor &encryptor,
                                        communication::sec::Ride *ridePtr);
 
         static void GenerateSecretRides(const communication::sec::SearchRequest *request,
+                                        const SealOperations &operations,
                                         const seal::Encryptor &encryptor,
                                         communication::sec::Journey *journeyPtr,
                                         int numberOfRides);
 
         [[nodiscard]] static grpc::Status GenerateSecretJourneys(const communication::sec::SearchRequest *request,
                                                                  grpc::ServerWriter<communication::sec::Journey> *writer,
+                                                                 const SealOperations &operations,
                                                                  const seal::Encryptor &encryptor);
 
     private:

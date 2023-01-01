@@ -42,7 +42,7 @@ namespace yakbas::util {
 
     std::uint64_t GetRandomNumber() {
         static const auto mtPtr = []() -> decltype(auto) {
-            LOG4CPLUS_DEBUG(*utilLogger, "Random generator engine being created...");
+            LOG4CPLUS_DEBUG(*utilLogger, "Random generator engine is being created...");
             std::random_device device;
             std::seed_seq seedSeq{device()};
             return GetUnique<std::mt19937>(seedSeq);
@@ -60,6 +60,35 @@ namespace yakbas::util {
         */
 
         return "id_" + std::to_string(Timer::GetCurrentTimeNanos());
+    }
+
+    bool CompareWithTolerance(const double *left, const double *right, int precision) {
+        constexpr const double ten = 10.0;
+        const double scale = std::pow(ten, precision);
+        const double leftTrunc = std::trunc(*left * scale) / scale;
+        const double rightTrunc = std::trunc(*right * scale) / scale;
+        const double tolerance = ten / scale;
+        return std::abs(leftTrunc - rightTrunc) < tolerance;
+    }
+
+    long toDec(const std::string &hexVal) {
+        long num;
+        std::stringstream sstream;
+        sstream << hexVal;
+        sstream >> std::hex >> num;
+        return num;
+    }
+
+    std::string doubleToHex(const double *val) {
+        char buffer[100] = {0};
+        snprintf(buffer, 10, "%A", *val);
+        return buffer;
+    }
+
+    double hexToDouble(const std::string &val) {
+        double d = 0.0;
+        sscanf_s(val.c_str(), "%lA", &d);
+        return d;
     }
 
 }

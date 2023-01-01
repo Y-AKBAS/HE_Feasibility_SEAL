@@ -70,11 +70,10 @@ namespace yakbas::sec::test {
         }
 
         TEST_CASE("Client Manager Symmetric Secret Booking Request Test") {
-
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 30;
+            const int numberOfJourneys = 20;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {

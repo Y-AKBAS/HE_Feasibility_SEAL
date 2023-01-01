@@ -10,7 +10,7 @@ namespace yakbas::constants {
     const std::pair<const char *, bool> DOCKTEST_NO_RUN = std::make_pair("no-run", false);
     const std::pair<const char *, bool> DOCKTEST_NO_BREAKS = std::make_pair("no-breaks", true);
     const std::pair<const char *, int> DOCKTEST_ABORT_AFTER = std::make_pair("abort-after", 1);
-    const int APP_MAX_RANDOM_NUMBER = 10;
-    const int APP_MIN_RANDOM_NUMBER = 1;
+    const int APP_MAX_RANDOM_NUMBER = 18;
+    const int APP_MIN_RANDOM_NUMBER = 2;
 
 } // yakbas

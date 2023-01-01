@@ -29,11 +29,12 @@ namespace yakbas::sec {
 
     grpc::Status MobilityProviderGenerator::GenerateSecretJourneys(const communication::sec::SearchRequest *request,
                                                                    grpc::ServerWriter<communication::sec::Journey> *writer,
+                                                                   const SealOperations &operations,
                                                                    const seal::Encryptor &encryptor) {
         try {
             for (int i = 0; i < request->numberofjourneys(); ++i) {
                 const auto journeyPtr = GetUnique<communication::sec::Journey>();
-                GenerateSecretRides(request, encryptor, journeyPtr.get(), (i % 2) + 1);
+                GenerateSecretRides(request, operations, encryptor, journeyPtr.get(), (i % 2) + 1);
                 writer->Write(*journeyPtr);
             }
         } catch (const std::exception &e) {
@@ -63,12 +64,13 @@ namespace yakbas::sec {
     }
 
     void MobilityProviderGenerator::GenerateSecretRides(const communication::sec::SearchRequest *request,
+                                                        const SealOperations &operations,
                                                         const seal::Encryptor &encryptor,
                                                         communication::sec::Journey *journeyPtr, int numberOfRides) {
 
         for (int i = 0; i < numberOfRides; ++i) {
             communication::sec::Ride *ridesPtr = journeyPtr->add_rides();
-            GenerateSecretRide(request, encryptor, ridesPtr);
+            GenerateSecretRide(request, operations, encryptor, ridesPtr);
         }
     }
 
@@ -83,6 +85,7 @@ namespace yakbas::sec {
     }
 
     void MobilityProviderGenerator::GenerateSecretRide(const communication::sec::SearchRequest *request,
+                                                       const SealOperations &operations,
                                                        const seal::Encryptor &encryptor,
                                                        communication::sec::Ride *ridePtr) {
 
@@ -94,9 +97,9 @@ namespace yakbas::sec {
         const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
 
         //ciphers
-        auto unitPricePtr = SealOperations::GetEncryptedBuffer(randomNumber, encryptor);
-        const auto coefficientPtr = SealOperations::GetEncryptedBuffer(randomNumber, encryptor);
-        const auto discountPtr = SealOperations::GetEncryptedBuffer(randomNumber, encryptor);
+        auto unitPricePtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
+        const auto coefficientPtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
+        const auto discountPtr = operations.GetEncryptedBuffer(randomNumber % 3, encryptor);
 
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
@@ -112,7 +115,7 @@ namespace yakbas::sec {
 
         // set seat price if it makes sense
         if (isSeatPriceMeaningful && (randomNumber % 2) == 1) {
-            const auto seatPricePtr = SealOperations::GetEncryptedBuffer(GetRandomNumber(), encryptor);
+            const auto seatPricePtr = operations.GetEncryptedBuffer(randomNumber % 4, encryptor);
             transporterPtr->set_seatprice(*seatPricePtr);
         }
 
