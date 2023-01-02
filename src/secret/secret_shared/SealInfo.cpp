@@ -62,7 +62,8 @@ namespace yakbas::sec {
             m_coefficientModulusPtr = std::make_unique<std::vector<seal::Modulus>>(
                     seal::CoeffModulus::BFVDefault(m_sealKeys.m_polyModulusDegree));
             if (m_sealKeys.m_isEncodingEnabled) {
-                m_encryptionParamsPtr->set_plain_modulus(seal::PlainModulus::Batching(m_sealKeys.m_plainModulus, 20));
+                m_encryptionParamsPtr->set_plain_modulus(
+                        seal::PlainModulus::Batching(m_sealKeys.m_polyModulusDegree, 20));
             } else {
                 m_encryptionParamsPtr->set_plain_modulus(m_sealKeys.m_plainModulus);
             }

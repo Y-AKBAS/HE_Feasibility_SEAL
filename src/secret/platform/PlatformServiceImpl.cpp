@@ -137,37 +137,44 @@ namespace yakbas::sec {
     PlatformServiceImpl::GetRequestTotalAndInsertSeat(const communication::sec::BookingRequest &request,
                                                       google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const {
 
-        const auto &unitPrice = request.unitprice();
-        auto unitPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(unitPrice));
+        try {
+            const auto &unitPrice = request.unitprice();
+            auto unitPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(unitPrice));
 
-        const auto &coefficient = request.coefficient();
-        auto coefficientCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(coefficient));
+            const auto &coefficient = request.coefficient();
+            auto coefficientCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(coefficient));
 
-        auto totalCipherPtr = GetUnique<seal::Ciphertext>();
-        const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
-        evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
-                               *totalCipherPtr);
+            auto totalCipherPtr = GetUnique<seal::Ciphertext>();
+            const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
+            evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
+                                   *totalCipherPtr);
 
-        const auto &discount = request.discount();
-        if (!discount.empty()) {
-            auto newCipherPtr = GetUnique<seal::Ciphertext>();
-            auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
-            evaluatorPtr->sub(*totalCipherPtr, *discountCipherPtr, *newCipherPtr);
-            totalCipherPtr = std::move(newCipherPtr);
+            const auto &discount = request.discount();
+            if (!discount.empty()) {
+                auto newCipherPtr = GetUnique<seal::Ciphertext>();
+                auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
+                evaluatorPtr->sub(*totalCipherPtr, *discountCipherPtr, *newCipherPtr);
+                totalCipherPtr = std::move(newCipherPtr);
+            }
+
+            const auto &seatPrice = request.seatprice();
+            if (!seatPrice.empty()) {
+                auto newCipherPtr = GetUnique<seal::Ciphertext>();
+                auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
+                evaluatorPtr->add(*totalCipherPtr, *seatPriceCipherPtr, *newCipherPtr);
+                totalCipherPtr = std::move(newCipherPtr);
+                rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
+            }
+
+            m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+
+            return totalCipherPtr;
+        } catch (const std::exception &e) {
+            LOG4CPLUS_ERROR(*m_logger,
+                            std::string("Error occurred while getting request total. Message: ") + e.what());
+            throw e;
         }
 
-        const auto &seatPrice = request.seatprice();
-        if (!seatPrice.empty()) {
-            auto newCipherPtr = GetUnique<seal::Ciphertext>();
-            auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
-            evaluatorPtr->add(*totalCipherPtr, *seatPriceCipherPtr, *newCipherPtr);
-            totalCipherPtr = std::move(newCipherPtr);
-            rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
-        }
-
-        m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
-
-        return totalCipherPtr;
     }
 
 } // yakbas

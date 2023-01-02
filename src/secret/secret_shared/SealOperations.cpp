@@ -11,11 +11,15 @@ namespace yakbas::sec {
               m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SealOperations"))),
               m_schemeType(sealKeys.m_schemeType) {
 
-        if (m_schemeType == seal::scheme_type::bgv ||
-            m_schemeType == seal::scheme_type::bfv) {
-            m_batchEncoder = std::make_unique<seal::BatchEncoder>(*m_sealInfoPtr->m_sealContextPtr);
-        } else {
-            m_ckksEncoder = std::make_unique<seal::CKKSEncoder>(*m_sealInfoPtr->m_sealContextPtr);
+        if (m_sealInfoPtr->m_sealKeys.m_isEncodingEnabled) {
+
+            if (m_schemeType == seal::scheme_type::bgv ||
+                m_schemeType == seal::scheme_type::bfv) {
+                m_batchEncoder = std::make_unique<seal::BatchEncoder>(*m_sealInfoPtr->m_sealContextPtr);
+            } else {
+                m_ckksEncoder = std::make_unique<seal::CKKSEncoder>(*m_sealInfoPtr->m_sealContextPtr);
+            }
+
         }
     }
 
