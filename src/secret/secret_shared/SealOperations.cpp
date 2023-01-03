@@ -1,6 +1,5 @@
 
 #include "SealOperations.h"
-#include "Utils.h"
 #include <log4cplus/loggingmacros.h>
 
 namespace yakbas::sec {
@@ -26,33 +25,37 @@ namespace yakbas::sec {
     const double SealOperations::m_scale{std::pow(2.0, 40)};
 
     std::unique_ptr<seal::Ciphertext>
-    SealOperations::Encrypt(const uint64_t &num, const seal::Encryptor &encryptor) const {
+    SealOperations::Encrypt(const num_variant &num, const seal::Encryptor &encryptor) const {
 
         if (m_sealInfoPtr->m_sealKeys.m_isEncodingEnabled) {
             return this->EncodeAndEncrypt(num, encryptor);
         }
 
-        const std::string hexString = seal::util::uint_to_hex_string(&num, std::size_t(1));
-        seal::Plaintext plaintext(hexString);
-        auto cipherText = GetUnique<seal::Ciphertext>();
-        encryptor.encrypt(plaintext, *cipherText);
-        return cipherText;
+        if (const auto value = std::get_if<std::uint64_t>(&num)) {
+            const std::string hexString = seal::util::uint_to_hex_string(value, std::size_t(1));
+            seal::Plaintext plaintext(hexString);
+            auto cipherText = GetUnique<seal::Ciphertext>();
+            encryptor.encrypt(plaintext, *cipherText);
+            return cipherText;
+        }
+
+        throw std::invalid_argument("Type mismatch! It should be std::uint64_t for encryption");
     }
 
     std::unique_ptr<seal::Ciphertext>
-    SealOperations::EncodeAndEncrypt(const std::uint64_t &num,
+    SealOperations::EncodeAndEncrypt(const num_variant &num,
                                      const seal::Encryptor &encryptor) const {
 
         auto cipherText = GetUnique<seal::Ciphertext>();
         seal::Plaintext plaintext;
         if (m_schemeType == seal::scheme_type::ckks) {
-            m_ckksEncoder->encode(static_cast<double>(num), m_scale, plaintext);
+            m_ckksEncoder->encode(std::get<double>(num), m_scale, plaintext);
             encryptor.encrypt(plaintext, *cipherText);
             return cipherText;
         }
 
         std::vector<std::uint64_t> vec(m_batchEncoder->slot_count(), 0ULL);
-        vec.at(0) = num;
+        vec.at(0) = std::get<std::uint64_t>(num);
         m_batchEncoder->encode(vec, plaintext);
         encryptor.encrypt(plaintext, *cipherText);
 
@@ -60,13 +63,13 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<seal::Ciphertext>
-    SealOperations::EncryptSymmetric(const uint64_t &num, const seal::Encryptor &encryptor) const {
+    SealOperations::EncryptSymmetric(const num_variant &num, const seal::Encryptor &encryptor) const {
 
         if (m_sealInfoPtr->m_sealKeys.m_isEncodingEnabled) {
             return this->EncodeAndEncryptSymmetric(num, encryptor);
         }
 
-        const std::string hexString = seal::util::uint_to_hex_string(&num, std::size_t(1));
+        const std::string hexString = seal::util::uint_to_hex_string(&std::get<std::uint64_t>(num), std::size_t(1));
         const auto plainTextToEncrypt = GetUnique<seal::Plaintext>(hexString);
         auto cipherText = GetUnique<seal::Ciphertext>();
         encryptor.encrypt_symmetric(*plainTextToEncrypt, *cipherText);
@@ -74,27 +77,27 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<seal::Ciphertext>
-    SealOperations::EncodeAndEncryptSymmetric(const std::uint64_t &num,
+    SealOperations::EncodeAndEncryptSymmetric(const num_variant &num,
                                               const seal::Encryptor &encryptor) const {
 
         auto cipherText = GetUnique<seal::Ciphertext>();
         seal::Plaintext plaintext;
         if (m_schemeType == seal::scheme_type::ckks) {
-            m_ckksEncoder->encode(static_cast<double>(num), m_scale, plaintext);
+            m_ckksEncoder->encode(std::get<double>(num), m_scale, plaintext);
             encryptor.encrypt_symmetric(plaintext, *cipherText);
             return cipherText;
         }
 
         std::vector<std::uint64_t> vec(m_batchEncoder->slot_count(), 0ULL);
-        vec.at(0) = num;
+        vec.at(0) = std::get<std::uint64_t>(num);
         m_batchEncoder->encode(vec, plaintext);
         encryptor.encrypt_symmetric(plaintext, *cipherText);
 
         return cipherText;
     }
 
-    std::uint64_t SealOperations::Decrypt(const seal::Ciphertext &cipher,
-                                          seal::Decryptor &decryptor) const {
+    num_variant SealOperations::Decrypt(const seal::Ciphertext &cipher,
+                                        seal::Decryptor &decryptor) const {
 
         if (m_sealInfoPtr->m_sealKeys.m_isEncodingEnabled) {
             return this->DecodeAndDecrypt(cipher, decryptor);
@@ -109,8 +112,8 @@ namespace yakbas::sec {
         return result;
     }
 
-    std::uint64_t SealOperations::DecodeAndDecrypt(const seal::Ciphertext &cipher,
-                                                   seal::Decryptor &decryptor) const {
+    num_variant SealOperations::DecodeAndDecrypt(const seal::Ciphertext &cipher,
+                                                 seal::Decryptor &decryptor) const {
 
         seal::Plaintext decryptedPlain;
         decryptor.decrypt(cipher, decryptedPlain);
@@ -118,7 +121,7 @@ namespace yakbas::sec {
         if (m_schemeType == seal::scheme_type::ckks) {
             std::vector<double> output;
             m_ckksEncoder->decode(decryptedPlain, output);
-            return static_cast<std::uint64_t>(output.at(0));
+            return output.at(0);
         } else {
             std::vector<uint64_t> output;
             m_batchEncoder->decode(decryptedPlain, output);
@@ -126,37 +129,85 @@ namespace yakbas::sec {
         }
     }
 
-    std::unique_ptr<std::string> SealOperations::GetEncryptedBuffer(const uint64_t &num,
+    std::unique_ptr<std::string> SealOperations::GetEncryptedBuffer(const std::variant<std::uint64_t, double, int> &num,
                                                                     const seal::Encryptor &encryptor) const {
-        const auto &stream = util::GetUniqueStream();
+        const auto &stream = GetUniqueStream();
         const auto &cipherPtr = this->Encrypt(num, encryptor);
         cipherPtr->save(*stream);
         return std::make_unique<std::string>(stream->str());
     }
 
-    std::unique_ptr<std::string> SealOperations::GetSymmetricEncryptedBuffer(const uint64_t &num,
+    std::unique_ptr<std::string> SealOperations::GetSymmetricEncryptedBuffer(const num_variant &num,
                                                                              const seal::Encryptor &encryptor) const {
-        const auto &stream = util::GetUniqueStream();
+        const auto &stream = GetUniqueStream();
         const auto &cipherPtr = this->EncryptSymmetric(num, encryptor);
         cipherPtr->save(*stream);
         return std::make_unique<std::string>(stream->str());
     }
 
+    void SealOperations::AddProcessedInPlace(seal::Ciphertext &processedCipher,
+                                             seal::Ciphertext &cipherToAdd,
+                                             const seal::Evaluator &evaluator) const {
+        try {
+            if (m_schemeType != seal::scheme_type::ckks) {
+                evaluator.add_inplace(processedCipher, cipherToAdd);
+                return;
+            }
+
+            evaluator.rescale_to_next_inplace(processedCipher);
+            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(std::log2(processedCipher.scale())));
+            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(std::log2(cipherToAdd.scale())));
+            if (CompareWithDecimalTolerance(&processedCipher.scale(), &cipherToAdd.scale(), 1)) {
+                processedCipher.scale() = cipherToAdd.scale();
+            }
+
+            evaluator.mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
+            evaluator.add_inplace(processedCipher, cipherToAdd);
+        } catch (const std::exception &exception) {
+            LOG4CPLUS_ERROR(*m_logger,
+                            std::string("Exception thrown in AddProcessedInPlace. Message: ") + exception.what());
+        }
+    }
+
+    void SealOperations::SubProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
+                                             const seal::Evaluator &evaluator) const {
+
+        try {
+            if (m_schemeType != seal::scheme_type::ckks) {
+                evaluator.sub_inplace(processedCipher, cipherToAdd);
+                return;
+            }
+
+            evaluator.rescale_to_next_inplace(processedCipher);
+            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(std::log2(processedCipher.scale())));
+            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(std::log2(cipherToAdd.scale())));
+            if (CompareWithDecimalTolerance(&processedCipher.scale(), &cipherToAdd.scale(), 1)) {
+                processedCipher.scale() = cipherToAdd.scale();
+            }
+
+            evaluator.mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
+            evaluator.sub_inplace(processedCipher, cipherToAdd);
+        } catch (const std::exception &exception) {
+            LOG4CPLUS_ERROR(*m_logger,
+                            std::string("Exception thrown in SubProcessedInPlace. Message: ") + exception.what());
+        }
+    }
+
     std::unique_ptr<seal::Ciphertext>
     SealOperations::GetCipherFromBuffer(std::stringstream &stream) const {
-        auto cipher = util::GetUnique<seal::Ciphertext>();
+        auto cipher = GetUnique<seal::Ciphertext>();
         try {
             cipher->load(*this->m_sealInfoPtr->m_sealContextPtr, stream);
         }
         catch (std::exception &e) {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error while GetCipherFromBuffer()... excp: " + std::string(e.what()));
+                            "Error while GetCipherFromBuffer()... exp: " + std::string(e.what()));
         }
         return cipher;
     }
 
-    std::uint64_t SealOperations::DecryptFromBuffer(std::stringstream &stream,
-                                                    seal::Decryptor &decryptor) const {
+    num_variant SealOperations::DecryptFromBuffer(std::stringstream &stream,
+                                                  seal::Decryptor &decryptor) const {
         const auto &cipherFromBuffer = this->GetCipherFromBuffer(stream);
         return this->Decrypt(*cipherFromBuffer, decryptor);
     }
@@ -172,8 +223,20 @@ namespace yakbas::sec {
         return keyPtr;
     }
 
+    std::unique_ptr<seal::RelinKeys>
+    SealOperations::GetRelinKeysFromBuffer(const std::unique_ptr<std::stringstream> &stream) const {
+        auto keyPtr = GetUnique<seal::RelinKeys>();
+        keyPtr->load(*this->m_sealInfoPtr->m_sealContextPtr, *stream);
+        return keyPtr;
+    }
+
     bool SealOperations::operator==(const SealOperations &rhs) const {
         return this->m_sealInfoPtr->m_sealKeys == rhs.m_sealInfoPtr->m_sealKeys;
+    }
+
+    void SealOperations::Relinearize(seal::Ciphertext &ciphertext, const seal::Evaluator &evaluator,
+                                     const seal::RelinKeys &relinKeys) {
+        evaluator.relinearize_inplace(ciphertext, relinKeys);
     }
 
 } // yakbas

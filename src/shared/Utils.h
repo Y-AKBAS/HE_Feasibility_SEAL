@@ -11,11 +11,16 @@
 #include <sstream>
 #include <log4cplus/logger.h>
 #include <filesystem>
+#include <random>
+#include <variant>
+#include "ApplicationConstants.h"
 
 
 namespace yakbas::util {
 
+    using num_variant = std::variant<std::uint64_t, double, int>;
     extern const std::unique_ptr<log4cplus::Logger> utilLogger;
+    extern const std::unique_ptr<std::mt19937> mtPtr;
 
     template<typename T>
     constexpr std::unique_ptr<T> GetUnique(const auto &... constructorParams) {
@@ -53,8 +58,15 @@ namespace yakbas::util {
     struct LambdaOverloader : Ts ... {
         using Ts::operator()...;
 
-        LambdaOverloader(Ts...ts) {}
+        explicit LambdaOverloader(Ts...ts) {}
     };
+
+    template<typename T>
+    T GetRandomNumber() {
+        static auto distribution = std::uniform_real_distribution<double>(constants::APP_MIN_RANDOM_NUMBER,
+                                                                          constants::APP_MAX_RANDOM_NUMBER);
+        return static_cast<T>(distribution(*mtPtr));
+    }
 
     std::shared_ptr<std::stringstream> GetSharedStream();
 
@@ -62,21 +74,19 @@ namespace yakbas::util {
 
     std::unique_ptr<std::stringstream> GetUniqueStream(const std::string &message);
 
-    std::uint64_t GetRandomNumber();
-
     std::string GetUUID();
 
-    bool CompareWithTolerance(const double *left, const double *right, int precision = 5);
+    bool CompareWithDecimalTolerance(const double *left, const double *right, int precision = 5);
 
-    long toDec(const std::string &hexVal);
+    long ToDec(const std::string &hexVal);
 
-    std::string doubleToHex(const double *val);
+    std::string DoubleToHex(const double *val);
 
-    double hexToDouble(const std::string &val);
+    double HexToDouble(const std::string &val);
 
     using FilePtr = std::unique_ptr<FILE, decltype([](FILE *f) { fclose(f); })>;
 
-    [[nodiscard]] FilePtr fopen(const std::filesystem::path &path, std::string_view mode);
+    [[nodiscard]] FilePtr Fopen(const std::filesystem::path &path, std::string_view mode);
 
     std::ostream &operator<<(std::ostream &os, std::byte b);
 

@@ -4,37 +4,51 @@
 #include <memory>
 #include "seal/seal.h"
 #include "SealInfo.h"
+#include "Utils.h"
 #include <log4cplus/logger.h>
 
 namespace yakbas::sec {
+    using namespace yakbas::util;
 
     class SealOperations {
     public:
         explicit SealOperations(const SealKeys &sealKeys = {});
 
-        [[nodiscard]] std::unique_ptr<seal::Ciphertext> Encrypt(const std::uint64_t &num,
+        [[nodiscard]] std::unique_ptr<seal::Ciphertext> Encrypt(const num_variant &num,
                                                                 const seal::Encryptor &encryptor) const;
 
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
-        EncryptSymmetric(const uint64_t &num, const seal::Encryptor &encryptor) const;
+        EncryptSymmetric(const num_variant &num, const seal::Encryptor &encryptor) const;
 
-        [[nodiscard]] std::uint64_t Decrypt(const seal::Ciphertext &cipher,
-                                            seal::Decryptor &decryptor) const;
+        [[nodiscard]] num_variant Decrypt(const seal::Ciphertext &cipher,
+                                          seal::Decryptor &decryptor) const;
+
+        void AddProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
+                                 const seal::Evaluator &evaluator) const;
+
+        void SubProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
+                                 const seal::Evaluator &evaluator) const;
 
         [[nodiscard]] std::unique_ptr<std::string>
-        GetEncryptedBuffer(const uint64_t &num, const seal::Encryptor &encryptor) const;
+        GetEncryptedBuffer(const num_variant &num, const seal::Encryptor &encryptor) const;
 
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
         GetCipherFromBuffer(std::stringstream &stream) const;
 
         [[nodiscard]] std::unique_ptr<std::string>
-        GetSymmetricEncryptedBuffer(const uint64_t &num, const seal::Encryptor &encryptor) const;
+        GetSymmetricEncryptedBuffer(const num_variant &num, const seal::Encryptor &encryptor) const;
 
-        [[nodiscard]] std::uint64_t DecryptFromBuffer(std::stringstream &stream,
-                                                      seal::Decryptor &decryptor) const;
+        [[nodiscard]] num_variant DecryptFromBuffer(std::stringstream &stream,
+                                                    seal::Decryptor &decryptor) const;
 
         [[nodiscard]] std::unique_ptr<seal::PublicKey>
         GetPublicKeyFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
+
+        [[nodiscard]] std::unique_ptr<seal::RelinKeys>
+        GetRelinKeysFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
+
+        static void
+        Relinearize(seal::Ciphertext &ciphertext, const seal::Evaluator &evaluator, const seal::RelinKeys &relinKeys);
 
         [[nodiscard]] const std::unique_ptr<SealInfo> &GetSealInfoPtr() const;
 
@@ -42,14 +56,14 @@ namespace yakbas::sec {
 
     private:
 
-        [[nodiscard]] std::unique_ptr<seal::Ciphertext> EncodeAndEncrypt(const std::uint64_t &num,
+        [[nodiscard]] std::unique_ptr<seal::Ciphertext> EncodeAndEncrypt(const num_variant &num,
                                                                          const seal::Encryptor &encryptor) const;
 
-        [[nodiscard]] std::unique_ptr<seal::Ciphertext> EncodeAndEncryptSymmetric(const std::uint64_t &num,
+        [[nodiscard]] std::unique_ptr<seal::Ciphertext> EncodeAndEncryptSymmetric(const num_variant &num,
                                                                                   const seal::Encryptor &encryptor) const;
 
-        [[nodiscard]] std::uint64_t DecodeAndDecrypt(const seal::Ciphertext &cipher,
-                                                     seal::Decryptor &decryptor) const;
+        [[nodiscard]] num_variant DecodeAndDecrypt(const seal::Ciphertext &cipher,
+                                                   seal::Decryptor &decryptor) const;
 
         const std::unique_ptr<SealInfo> m_sealInfoPtr{nullptr};
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};

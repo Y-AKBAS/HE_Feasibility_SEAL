@@ -1,11 +1,9 @@
 
 #include "Utils.h"
-#include "ApplicationConstants.h"
 #include "Timer.h"
 
-#include <random>
-#include <iostream>
 #include <log4cplus/loggingmacros.h>
+#include <iostream>
 
 /*
 #include <boost/uuid/uuid_generators.hpp> // generators
@@ -15,8 +13,15 @@
 
 namespace yakbas::util {
 
-    extern const std::unique_ptr<log4cplus::Logger> utilLogger
+    const std::unique_ptr<log4cplus::Logger> utilLogger
             = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("Util Logger"));
+
+    const std::unique_ptr<std::mt19937> mtPtr = []() -> std::unique_ptr<std::mt19937> {
+        LOG4CPLUS_DEBUG(*utilLogger, "Random number generator engine is being created...");
+        std::random_device device;
+        std::seed_seq seedSeq{device()};
+        return GetUnique<std::mt19937>(seedSeq);
+    }();
 
     const auto optionalStreamLambda = std::make_optional([](std::stringstream &stream) {
         stream.exceptions(std::ios::badbit | std::ios::failbit);
@@ -40,19 +45,6 @@ namespace yakbas::util {
         return os << std::bitset<8>(std::to_integer<int>(b));
     }
 
-    std::uint64_t GetRandomNumber() {
-        static const auto mtPtr = []() -> decltype(auto) {
-            LOG4CPLUS_DEBUG(*utilLogger, "Random generator engine is being created...");
-            std::random_device device;
-            std::seed_seq seedSeq{device()};
-            return GetUnique<std::mt19937>(seedSeq);
-        }();
-        static auto distribution = std::uniform_real_distribution<double>(constants::APP_MIN_RANDOM_NUMBER,
-                                                                          constants::APP_MAX_RANDOM_NUMBER);
-
-        return static_cast<std::uint64_t>(distribution(*mtPtr));
-    }
-
     std::string GetUUID() {
         /*
         static const auto uuidGenPtr = GetUnique<boost::uuids::random_generator>();
@@ -62,7 +54,7 @@ namespace yakbas::util {
         return "id_" + std::to_string(Timer::GetCurrentTimeNanos());
     }
 
-    bool CompareWithTolerance(const double *left, const double *right, int precision) {
+    bool CompareWithDecimalTolerance(const double *left, const double *right, int precision) {
         constexpr const double ten = 10.0;
         const double scale = std::pow(ten, precision);
         const double leftTrunc = std::trunc(*left * scale) / scale;
@@ -71,7 +63,7 @@ namespace yakbas::util {
         return std::abs(leftTrunc - rightTrunc) < tolerance;
     }
 
-    long toDec(const std::string &hexVal) {
+    long ToDec(const std::string &hexVal) {
         long num;
         std::stringstream sstream;
         sstream << hexVal;
@@ -79,13 +71,13 @@ namespace yakbas::util {
         return num;
     }
 
-    std::string doubleToHex(const double *val) {
+    std::string DoubleToHex(const double *val) {
         char buffer[100] = {0};
         snprintf(buffer, 10, "%A", *val);
         return buffer;
     }
 
-    double hexToDouble(const std::string &val) {
+    double HexToDouble(const std::string &val) {
         double d = 0.0;
         sscanf_s(val.c_str(), "%lA", &d);
         return d;
