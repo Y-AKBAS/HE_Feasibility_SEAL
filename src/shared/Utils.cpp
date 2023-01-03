@@ -54,15 +54,6 @@ namespace yakbas::util {
         return "id_" + std::to_string(Timer::GetCurrentTimeNanos());
     }
 
-    bool CompareWithDecimalTolerance(const double *left, const double *right, int precision) {
-        constexpr const double ten = 10.0;
-        const double scale = std::pow(ten, precision);
-        const double leftTrunc = std::trunc(*left * scale) / scale;
-        const double rightTrunc = std::trunc(*right * scale) / scale;
-        const double tolerance = ten / scale;
-        return std::abs(leftTrunc - rightTrunc) < tolerance;
-    }
-
     long ToDec(const std::string &hexVal) {
         long num;
         std::stringstream sstream;

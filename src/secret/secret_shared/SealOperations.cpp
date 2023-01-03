@@ -123,8 +123,9 @@ namespace yakbas::sec {
             m_ckksEncoder->decode(decryptedPlain, output);
             return output.at(0);
         } else {
-            std::vector<uint64_t> output;
+            std::vector<std::uint64_t> output;
             m_batchEncoder->decode(decryptedPlain, output);
+            std::cout << "batch encoder output: " << output.at(0) << std::endl;
             return output.at(0);
         }
     }

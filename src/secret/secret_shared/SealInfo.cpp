@@ -67,16 +67,19 @@ namespace yakbas::sec {
             } else {
                 m_encryptionParamsPtr->set_plain_modulus(m_sealKeys.m_plainModulus);
             }
-        }
 
-        if (m_sealKeys.m_schemeType == seal::scheme_type::ckks) {
+        } else if (m_sealKeys.m_schemeType == seal::scheme_type::ckks) {
+            if (!m_sealKeys.m_isEncodingEnabled) {
+                throw std::invalid_argument("Encoding should be enabled for CKKS Scheme");
+            }
             m_coefficientModulusPtr = std::make_unique<std::vector<seal::Modulus>>(
                     seal::CoeffModulus::Create(m_sealKeys.m_polyModulusDegree, {60, 40, 40, 40, 60}));
+        } else {
+            throw std::invalid_argument("Please specify a valid scheme!");
         }
 
         m_encryptionParamsPtr->set_poly_modulus_degree(m_sealKeys.m_polyModulusDegree);
         m_encryptionParamsPtr->set_coeff_modulus(*m_coefficientModulusPtr);
-
         m_sealContextPtr = std::make_unique<seal::SEALContext>(*m_encryptionParamsPtr);
         m_keyGeneratorPtr = std::make_unique<seal::KeyGenerator>(*m_sealContextPtr);
         m_evaluatorPtr = std::make_unique<seal::Evaluator>(*m_sealContextPtr);

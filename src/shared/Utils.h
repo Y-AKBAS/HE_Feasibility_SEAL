@@ -58,7 +58,7 @@ namespace yakbas::util {
     struct LambdaOverloader : Ts ... {
         using Ts::operator()...;
 
-        explicit LambdaOverloader(Ts...ts) {}
+        LambdaOverloader(Ts...ts) {}
     };
 
     template<typename T>
@@ -68,6 +68,21 @@ namespace yakbas::util {
         return static_cast<T>(distribution(*mtPtr));
     }
 
+    template<typename T>
+    num_variant GetRandomNumberVariant() {
+        return GetRandomNumber<T>();
+    }
+
+    template<typename T = num_variant>
+    bool CompareWithDecimalTolerance(const T *left, const T *right, int precision = 5) {
+        constexpr const double ten = 10.0;
+        const double scale = std::pow(ten, precision);
+        const double leftTrunc = std::trunc(*left * scale) / scale;
+        const double rightTrunc = std::trunc(*right * scale) / scale;
+        const double tolerance = ten / scale;
+        return std::abs(leftTrunc - rightTrunc) < tolerance;
+    }
+
     std::shared_ptr<std::stringstream> GetSharedStream();
 
     std::unique_ptr<std::stringstream> GetUniqueStream();
@@ -75,8 +90,6 @@ namespace yakbas::util {
     std::unique_ptr<std::stringstream> GetUniqueStream(const std::string &message);
 
     std::string GetUUID();
-
-    bool CompareWithDecimalTolerance(const double *left, const double *right, int precision = 5);
 
     long ToDec(const std::string &hexVal);
 
