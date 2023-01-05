@@ -32,6 +32,7 @@ namespace yakbas::sec {
         }
 
         if (const auto value = std::get_if<std::uint64_t>(&num)) {
+            std::cout << "num to encrypt: " << *value << std::endl;
             const std::string hexString = seal::util::uint_to_hex_string(value, std::size_t(1));
             seal::Plaintext plaintext(hexString);
             auto cipherText = GetUnique<seal::Ciphertext>();
@@ -131,8 +132,8 @@ namespace yakbas::sec {
             }
         } catch (const std::exception &e) {
             std::cout << "Decryption exception message: " << e.what() << std::endl;
+            throw std::invalid_argument("False Decode and Decrypt arguments");
         }
-
     }
 
     std::unique_ptr<std::string> SealOperations::GetEncryptedBuffer(const std::variant<std::uint64_t, double, int> &num,

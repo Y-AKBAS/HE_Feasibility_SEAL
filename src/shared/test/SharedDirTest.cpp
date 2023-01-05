@@ -154,7 +154,7 @@ namespace yakbas::test {
                 CHECK(overloader(doubleValue) == doubleValue);
             }
 
-            SUBCASE("NumToAny and AnyToNum Test") {
+            SUBCASE("NumToAny and AnyToNum Double Test") {
 
                 const auto beforeNum = GetRandomNumber<double>();
                 google::protobuf::Any beforeAny{};
@@ -174,7 +174,7 @@ namespace yakbas::test {
                 CHECK(veryAfterNum == beforeNum);
             }
 
-            SUBCASE("NumToAny and AnyToNum Test") {
+            SUBCASE("NumToAny and AnyToNum std::uint64_t Test") {
 
                 const auto beforeNum = GetRandomNumber<std::uint64_t>();
                 google::protobuf::Any beforeAny{};
@@ -198,7 +198,7 @@ namespace yakbas::test {
                 CHECK(veryAfterNum == beforeNum);
                 CHECK(lastNum == beforeNum);
             }
-            
+
             ::log4cplus::deinitialize();
         }
     }

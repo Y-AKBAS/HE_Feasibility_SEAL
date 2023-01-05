@@ -137,32 +137,29 @@ namespace yakbas::sec {
         // optionals: seatPrice, discount
         const auto providerId = GetUUID();
         const bool isCkks = operations.GetSealInfoPtr()->m_sealKeys.m_schemeType == seal::scheme_type::ckks;
+        const auto randomNumber = isCkks ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
         const int randomInt = GetRandomNumber<int>();
         const auto transporterType = GetTransporterType(randomInt);
         const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
+
+        std::cout << "Mobility Generator random: " << GetAnyVariant<double>(&randomNumber) << std::endl;
 
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
         timestampPtr->set_nanos(static_cast<int32_t>(Timer::GetCurrentTimeNanos()));
 
-        google::protobuf::Any any{};
-        if (isCkks) {
-            NumToAny<double>(&any);
-        } else {
-            NumToAny<std::uint64_t>(&any);
-        }
-
         // set Transporter
         const auto transporterPtr = ridePtr->mutable_transporter();
         transporterPtr->set_providerid(providerId);
-        transporterPtr->mutable_unitprice()->CopyFrom(any);
+        NumVariantToAny(&randomNumber, transporterPtr->mutable_unitprice());
         transporterPtr->set_capacity(GetRandomNumber<std::uint64_t>());
         transporterPtr->set_transportertype(transporterType);
         transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
 
         // set seat price if it makes sense
         if (isSeatPriceMeaningful) {
-            transporterPtr->mutable_seatprice()->CopyFrom(any);
+            std::cout << "Seat price set" << std::endl;
+            NumVariantToAny(&randomNumber, transporterPtr->mutable_seatprice());
         }
 
         // set other infos
@@ -170,10 +167,11 @@ namespace yakbas::sec {
         ridePtr->set_providerid(providerId);
         ridePtr->set_from(request->from());
         ridePtr->set_to(request->to());
-        ridePtr->mutable_coefficient()->CopyFrom(any);
+        NumVariantToAny(&randomNumber, ridePtr->mutable_coefficient());
 
         if ((randomInt % 2) == 1) {
-            ridePtr->mutable_discount()->CopyFrom(any);
+            std::cout << "Discount set" << std::endl;
+            NumVariantToAny(&randomNumber, ridePtr->mutable_discount());
         }
     }
 

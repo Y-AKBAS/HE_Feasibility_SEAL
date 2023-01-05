@@ -43,7 +43,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
 
-            const int numberOfJourneys = 5;
+            const int numberOfJourneys = 50;
             const auto journeysVecPtr = clientManagerPtr->SearchSecretly("Leipzig", "Halle",
                                                                          numberOfJourneys);
             CheckJourneys(*journeysVecPtr, numberOfJourneys, isCKKS);
@@ -55,7 +55,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 8;
+            const int numberOfJourneys = 30;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -83,7 +83,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 20;
+            const int numberOfJourneys = 50;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -112,6 +112,7 @@ namespace yakbas::sec::test {
                 const auto bookingResponsePtr = clientManagerPtr->BookSecretlyAndDecrypt(*journeyPtr);
 
                 const double total = AnyToNum(isCKKS, &bookingResponsePtr->total());
+                std::cout << "Booking Response Total Inside: " << total << std::endl;
                 if (isCKKS) {
                     CHECK(CompareWithDecimalTolerance(&total, &totalBeforeSent));
                 } else {
@@ -131,7 +132,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 6;
+            const int numberOfJourneys = 8;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             const auto index = GetRandomNumber<int>() % numberOfJourneys;
@@ -172,6 +173,36 @@ namespace yakbas::sec::test {
             CHECK(total == findTotal(journey, false));
         }
 
+        TEST_CASE("FindTotal With NumVariant std::uint64_t test") {
+            communication::Journey journey;
+            const auto rides = journey.mutable_rides();
+            auto ridePtr = rides->Add();
+            const auto variant = GetRandomNumberVariant<std::uint64_t>();
+            NumVariantToAny(&variant, ridePtr->mutable_discount());
+            NumVariantToAny(&variant, ridePtr->mutable_coefficient());
+            auto transporterPtr = ridePtr->mutable_transporter();
+            NumVariantToAny(&variant, transporterPtr->mutable_seatprice());
+            NumVariantToAny(&variant, transporterPtr->mutable_unitprice());
+            const auto num = GetAnyVariant<std::uint64_t>(&variant);
+            auto total = ((num * num) + num) - num;
+            CHECK(total == findTotal(journey, false));
+        }
+
+        TEST_CASE("FindTotal With NumVariant double test") {
+            communication::Journey journey;
+            const auto rides = journey.mutable_rides();
+            auto ridePtr = rides->Add();
+            const auto variant = GetRandomNumberVariant<std::uint64_t>();
+            NumVariantToAny(&variant, ridePtr->mutable_discount());
+            NumVariantToAny(&variant, ridePtr->mutable_coefficient());
+            auto transporterPtr = ridePtr->mutable_transporter();
+            NumVariantToAny(&variant, transporterPtr->mutable_seatprice());
+            NumVariantToAny(&variant, transporterPtr->mutable_unitprice());
+            const auto num = GetAnyVariant<double>(&variant);
+            auto total = ((num * num) + num) - num;
+            CHECK(total == findTotal(journey, false));
+        }
+
         void CheckJourneys(const std::vector<std::unique_ptr<communication::Journey>> &journeys, int numberOfJourneys,
                            bool isCKKS) {
 
@@ -204,9 +235,19 @@ namespace yakbas::sec::test {
             CHECK(!rides.empty());
 
             for (const auto &ride: rides) {
-                total += AnyToNum(isCKKS, &ride.coefficient()) * AnyToNum(isCKKS, &ride.transporter().unitprice());
-                total += AnyToNum(isCKKS, &ride.transporter().seatprice());
-                total -= AnyToNum(isCKKS, &ride.discount());
+                const double findTotalCoefficient = AnyToNum(isCKKS, &ride.coefficient());
+                const double findTotalUnitPrice = AnyToNum(isCKKS, &ride.transporter().unitprice());
+                const double findTotalSeatPrice = AnyToNum(isCKKS, &ride.transporter().seatprice());
+                const double findTotalDiscount = AnyToNum(isCKKS, &ride.discount());
+
+                std::cout << "findTotalCoefficient: " << findTotalCoefficient << std::endl;
+                std::cout << "findTotalUnitPrice: " << findTotalUnitPrice << std::endl;
+                std::cout << "findTotalSeatPrice: " << findTotalSeatPrice << std::endl;
+                std::cout << "findTotalDiscount: " << findTotalDiscount << std::endl;
+
+                total += findTotalCoefficient * findTotalUnitPrice;
+                total += findTotalSeatPrice;
+                total -= findTotalDiscount;
             }
 
             return total;

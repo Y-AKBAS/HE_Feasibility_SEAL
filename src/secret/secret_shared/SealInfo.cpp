@@ -44,7 +44,9 @@ namespace yakbas::sec {
         *stream << "\nSealKeys: "
                 << "\nPlainModulus: " << m_plainModulus
                 << "\nSchemeType: " << schemeType
-                << "\nPolyModulusDegree: " << m_polyModulusDegree;
+                << "\nPolyModulusDegree: " << m_polyModulusDegree
+                << std::boolalpha
+                << "\nBatchingEnabled: " << m_isEncodingEnabled;
 
         return stream->str();
     }
