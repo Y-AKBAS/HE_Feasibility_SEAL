@@ -8,11 +8,9 @@
 #if (!DISABLE_TESTS)
 
 #include "CustomSealOperations.h"
-#include "Utils.h"
 #include <memory>
 #include <log4cplus/configurator.h>
-#include <log4cplus/loggingmacros.h>
-#include "ApplicationConstants.h"
+
 
 namespace yakbas::sec::test {
 
@@ -72,16 +70,16 @@ namespace yakbas::sec::test {
                 const auto num = isCKKS ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
 
                 const auto cipherStringPtr = customSealOperations->GetEncryptedBuffer(num);
-                const auto stream = util::GetUnique<std::stringstream>(*cipherStringPtr);
+                const auto stream = GetUnique<std::stringstream>(*cipherStringPtr);
 
                 const auto newCipher = customSealOperations->GetCipherFromBuffer(stream);
                 const auto &variant = customSealOperations->Decrypt(*newCipher);
 
+                const auto decNum = GetAnyVariant<double>(&variant);
+
                 if (isCKKS) {
-                    const auto decNum = std::get<double>(variant);
                     CHECK(CompareWithDecimalTolerance(&std::get<double>(num), &decNum));
                 } else {
-                    const auto decNum = std::get<std::uint64_t>(variant);
                     CHECK(std::get<std::uint64_t>(num) == decNum);
                 }
             }
@@ -121,6 +119,14 @@ namespace yakbas::sec::test {
 
                 const auto decNum = std::get<double>(variant);
                 CHECK(CompareWithDecimalTolerance(&num, &decNum));
+
+                //symmetric
+                const auto &symmetricBuffer = customSealOperations->GetSymmetricEncryptedBuffer(num);
+                const auto symmetricStream = GetUniqueStream(*symmetricBuffer);
+                const auto &symmetricVariant = customSealOperations->DecryptFromBuffer(symmetricStream);
+
+                const auto symmetricDecNum = std::get<double>(symmetricVariant);
+                CHECK(CompareWithDecimalTolerance(&num, &symmetricDecNum));
             }
 
             SUBCASE("Serialization With Encoded BFV Test") {
@@ -133,12 +139,21 @@ namespace yakbas::sec::test {
 
                 const auto num = GetRandomNumber<std::uint64_t>();
 
+                // asymmetric
                 const auto cipherStringPtr = customSealOperations->GetEncryptedBuffer(num);
                 const auto stream = std::make_unique<std::stringstream>(*cipherStringPtr);
                 const auto &variant = customSealOperations->DecryptFromBuffer(stream);
 
                 const auto decNum = std::get<std::uint64_t>(variant);
                 CHECK(num == decNum);
+
+                //symmetric
+                const auto &symmetricBuffer = customSealOperations->GetSymmetricEncryptedBuffer(num);
+                const auto symmetricStream = GetUniqueStream(*symmetricBuffer);
+                const auto &symmetricVariant = customSealOperations->DecryptFromBuffer(symmetricStream);
+
+                const auto symmetricDecNum = std::get<std::uint64_t>(symmetricVariant);
+                CHECK(num == symmetricDecNum);
             }
 
             SUBCASE("Serialization With Unencoded BFV Test") {
@@ -151,12 +166,21 @@ namespace yakbas::sec::test {
 
                 const auto num = GetRandomNumber<std::uint64_t>();
 
+                // asymmetric
                 const auto cipherStringPtr = customSealOperations->GetEncryptedBuffer(num);
                 const auto stream = std::make_unique<std::stringstream>(*cipherStringPtr);
                 const auto &variant = customSealOperations->DecryptFromBuffer(stream);
 
                 const auto decNum = std::get<std::uint64_t>(variant);
                 CHECK(num == decNum);
+
+                //symmetric
+                const auto &symmetricBuffer = customSealOperations->GetSymmetricEncryptedBuffer(num);
+                const auto symmetricStream = GetUniqueStream(*symmetricBuffer);
+                const auto &symmetricVariant = customSealOperations->DecryptFromBuffer(symmetricStream);
+
+                const auto symmetricDecNum = std::get<std::uint64_t>(symmetricVariant);
+                CHECK(num == symmetricDecNum);
             }
 
             SUBCASE("Serialization With Encoded BGV Test") {
@@ -169,12 +193,21 @@ namespace yakbas::sec::test {
 
                 const auto num = GetRandomNumber<std::uint64_t>();
 
+                // asymmetric
                 const auto cipherStringPtr = customSealOperations->GetEncryptedBuffer(num);
                 const auto stream = std::make_unique<std::stringstream>(*cipherStringPtr);
                 const auto &variant = customSealOperations->DecryptFromBuffer(stream);
 
                 const auto decNum = std::get<std::uint64_t>(variant);
                 CHECK(num == decNum);
+
+                //symmetric
+                const auto &symmetricBuffer = customSealOperations->GetSymmetricEncryptedBuffer(num);
+                const auto symmetricStream = GetUniqueStream(*symmetricBuffer);
+                const auto &symmetricVariant = customSealOperations->DecryptFromBuffer(symmetricStream);
+
+                const auto symmetricDecNum = std::get<std::uint64_t>(symmetricVariant);
+                CHECK(num == symmetricDecNum);
             }
 
             SUBCASE("Serialization With Unencoded BGV Test") {
@@ -187,12 +220,42 @@ namespace yakbas::sec::test {
 
                 const auto num = GetRandomNumber<std::uint64_t>();
 
+                // asymmetric
                 const auto cipherStringPtr = customSealOperations->GetEncryptedBuffer(num);
                 const auto stream = std::make_unique<std::stringstream>(*cipherStringPtr);
                 const auto &variant = customSealOperations->DecryptFromBuffer(stream);
 
                 const auto decNum = std::get<std::uint64_t>(variant);
                 CHECK(num == decNum);
+
+                //symmetric
+                const auto &symmetricBuffer = customSealOperations->GetSymmetricEncryptedBuffer(num);
+                const auto symmetricStream = GetUniqueStream(*symmetricBuffer);
+                const auto &symmetricVariant = customSealOperations->DecryptFromBuffer(symmetricStream);
+
+                const auto symmetricDecNum = std::get<std::uint64_t>(symmetricVariant);
+                CHECK(num == symmetricDecNum);
+            }
+
+            SUBCASE("NumVariantToAny Test") {
+                const auto customSealOperations = GetUnique<CustomSealOperations>();
+                bool isCKKS = customSealOperations->GetSealOperations()->GetSealInfoPtr()->m_sealKeys.m_schemeType ==
+                              seal::scheme_type::ckks;
+                const auto num = isCKKS ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
+
+                const auto cipherStringPtr = customSealOperations->GetEncryptedBuffer(num);
+                const auto stream = GetUnique<std::stringstream>(*cipherStringPtr);
+
+                const auto newCipher = customSealOperations->GetCipherFromBuffer(stream);
+                const auto &variant = customSealOperations->Decrypt(*newCipher);
+
+                const auto decNum = GetAnyVariant<double>(&variant);
+
+                if (isCKKS) {
+                    CHECK(CompareWithDecimalTolerance(&std::get<double>(num), &decNum));
+                } else {
+                    CHECK(std::get<std::uint64_t>(num) == decNum);
+                }
             }
 
             SUBCASE("SealKeys Initialization test") {

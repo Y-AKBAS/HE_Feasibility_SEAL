@@ -115,19 +115,24 @@ namespace yakbas::sec {
     num_variant SealOperations::DecodeAndDecrypt(const seal::Ciphertext &cipher,
                                                  seal::Decryptor &decryptor) const {
 
-        seal::Plaintext decryptedPlain;
-        decryptor.decrypt(cipher, decryptedPlain);
+        try {
+            seal::Plaintext decryptedPlain;
+            decryptor.decrypt(cipher, decryptedPlain);
 
-        if (m_schemeType == seal::scheme_type::ckks) {
-            std::vector<double> output;
-            m_ckksEncoder->decode(decryptedPlain, output);
-            return output.at(0);
-        } else {
-            std::vector<std::uint64_t> output;
-            m_batchEncoder->decode(decryptedPlain, output);
-            std::cout << "batch encoder output: " << output.at(0) << std::endl;
-            return output.at(0);
+            if (m_schemeType == seal::scheme_type::ckks) {
+                std::vector<double> output;
+                m_ckksEncoder->decode(decryptedPlain, output);
+                return output.at(0);
+            } else {
+                std::vector<std::uint64_t> output;
+                m_batchEncoder->decode(decryptedPlain, output);
+                std::cout << "batch encoder output: " << output.at(0) << std::endl;
+                return output.at(0);
+            }
+        } catch (const std::exception &e) {
+            std::cout << "Decryption exception message: " << e.what() << std::endl;
         }
+
     }
 
     std::unique_ptr<std::string> SealOperations::GetEncryptedBuffer(const std::variant<std::uint64_t, double, int> &num,
@@ -156,10 +161,11 @@ namespace yakbas::sec {
             }
 
             evaluator.rescale_to_next_inplace(processedCipher);
+            processedCipher.scale() = cipherToAdd.scale();
             LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(std::log2(processedCipher.scale())));
             LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(std::log2(cipherToAdd.scale())));
-            if (CompareWithDecimalTolerance(&processedCipher.scale(), &cipherToAdd.scale(), 1)) {
-                processedCipher.scale() = cipherToAdd.scale();
+            if (CompareWithTolerance(&processedCipher.scale(), &cipherToAdd.scale())) {
+                //processedCipher.scale() = cipherToAdd.scale();
             }
 
             evaluator.mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
@@ -180,10 +186,14 @@ namespace yakbas::sec {
             }
 
             evaluator.rescale_to_next_inplace(processedCipher);
-            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(std::log2(processedCipher.scale())));
-            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(std::log2(cipherToAdd.scale())));
-            if (CompareWithDecimalTolerance(&processedCipher.scale(), &cipherToAdd.scale(), 1)) {
-                processedCipher.scale() = cipherToAdd.scale();
+            double processedCipherScale = std::log2(processedCipher.scale());
+            double cipherToAddScale = std::log2(cipherToAdd.scale());
+            processedCipher.scale() = cipherToAdd.scale();
+            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
+            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
+            if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 3)) {
+                LOG4CPLUS_INFO(*m_logger, "Cipher scales are being equal now.");
+                //processedCipher.scale() = cipherToAdd.scale();
             }
 
             evaluator.mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());

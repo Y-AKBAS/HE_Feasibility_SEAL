@@ -33,7 +33,8 @@ namespace yakbas::sec {
                                                              grpc::ServerWriter<communication::Journey> *writer) {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Mobility Provider Service impl SearchForRides invoked...");
-        return MobilityProviderGenerator::GenerateJourneys(request, writer);
+        const auto &operations = m_customSealOperationsPtr->GetSealOperations();
+        return MobilityProviderGenerator::GenerateJourneys(request, writer, *operations);
     }
 
     grpc::Status MobilityProviderServiceImpl::ReportInvoicing(grpc::ServerContext *context,

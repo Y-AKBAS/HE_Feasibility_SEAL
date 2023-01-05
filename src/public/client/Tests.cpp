@@ -12,6 +12,7 @@
 #include "SharedCommunication.pb.h"
 
 namespace yakbas::pub::test {
+    using namespace yakbas::util;
 
     TEST_SUITE("Public Client Test Suite") {
 
@@ -56,7 +57,7 @@ namespace yakbas::pub::test {
 
                 const auto bookingResponsePtr = clientManagerPtr->Book(*journeyPtr);
 
-                CHECK(bookingResponsePtr->total() == totalBeforeSent);
+                CHECK(AnyToNum<std::uint64_t>(&bookingResponsePtr->total()) == totalBeforeSent);
             }
             long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
@@ -73,12 +74,12 @@ namespace yakbas::pub::test {
             const int numberOfJourneys = 6;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
-            const auto index = util::GetRandomNumber() % numberOfJourneys;
+            const auto index = GetRandomNumber<int>() % numberOfJourneys;
             const auto &journeyPtr = journeysVecPtr->at(index);
 
             std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
             const auto bookingResponsePtr = clientManagerPtr->Book(*journeyPtr);
-            CHECK(bookingResponsePtr->total() == totalBeforeSent);
+            CHECK(AnyToNum<std::uint64_t>(&bookingResponsePtr->total()) == totalBeforeSent);
 
             const auto invoicingResponsePtr = clientManagerPtr->Pay(*bookingResponsePtr);
             CHECK(invoicingResponsePtr->status() == communication::StatusCode::SUCCESSFUL);
@@ -106,11 +107,11 @@ namespace yakbas::pub::test {
                     CHECK(!ride.providerid().empty());
                     CHECK(!ride.from().empty());
                     CHECK(!ride.to().empty());
-                    CHECK(ride.coefficient() >= constants::APP_MIN_RANDOM_NUMBER);
-                    CHECK(ride.coefficient() <= constants::APP_MAX_RANDOM_NUMBER);
+                    CHECK(AnyToNum<std::uint64_t>(&ride.coefficient()) >= constants::APP_MIN_RANDOM_NUMBER);
+                    CHECK(AnyToNum<std::uint64_t>(&ride.coefficient()) <= constants::APP_MAX_RANDOM_NUMBER);
                     CHECK(!ride.transporter().providerid().empty());
-                    CHECK(ride.transporter().unitprice() >= constants::APP_MIN_RANDOM_NUMBER);
-                    CHECK(ride.transporter().unitprice() <= constants::APP_MAX_RANDOM_NUMBER);
+                    CHECK(AnyToNum<std::uint64_t>(&ride.transporter().unitprice()) >= constants::APP_MIN_RANDOM_NUMBER);
+                    CHECK(AnyToNum<std::uint64_t>(&ride.transporter().unitprice()) <= constants::APP_MAX_RANDOM_NUMBER);
                 }
             }
         }
@@ -122,9 +123,10 @@ namespace yakbas::pub::test {
             CHECK(!rides.empty());
 
             for (const auto &ride: rides) {
-                total += ride.coefficient() * ride.transporter().unitprice();
-                total += ride.transporter().seatprice();
-                total -= ride.discount();
+                total += AnyToNum<std::uint64_t>(&ride.coefficient()) *
+                         AnyToNum<std::uint64_t>(&ride.transporter().unitprice());
+                total += AnyToNum<std::uint64_t>(&ride.transporter().seatprice());
+                total -= AnyToNum<std::uint64_t>(&ride.discount());
             }
 
             return total;

@@ -13,7 +13,9 @@ namespace yakbas::sec {
             : m_customSealOperationsPtr(std::make_unique<CustomSealOperations>(sealKeys)),
               m_platformClientManager(std::make_unique<PlatformClientManager>()),
               m_logger(std::make_unique<log4cplus::Logger>(
-                      log4cplus::Logger::getInstance("Secret Platform Service Impl"))) {}
+                      log4cplus::Logger::getInstance("Secret Platform Service Impl"))) {
+        m_schemeType = m_customSealOperationsPtr->GetSealOperations()->GetSealInfoPtr()->m_sealKeys.m_schemeType;
+    }
 
     grpc::Status PlatformServiceImpl::SearchForSecretRides(grpc::ServerContext *context,
                                                            const communication::sec::SearchRequest *request,
@@ -110,7 +112,9 @@ namespace yakbas::sec {
         }
 
         std::unique_ptr<seal::Ciphertext> &totalCipherPtr = requestTotalCiphers.at(0);
-        m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+        if (m_schemeType != seal::scheme_type::ckks) {
+            m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+        }
         const auto buffer = CustomSealOperations::GetBufferFromCipher(*totalCipherPtr);
         response->set_total(buffer);
 
@@ -138,6 +142,9 @@ namespace yakbas::sec {
                                                       google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const {
 
         try {
+            const auto &relinKeys = request.relinkeys();
+            const auto relinKeysPtr = m_customSealOperationsPtr->GetRelinKeysFromBuffer(GetUniqueStream(relinKeys));
+
             const auto &unitPrice = request.unitprice();
             auto unitPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(unitPrice));
 
@@ -149,30 +156,34 @@ namespace yakbas::sec {
             evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
                                    *totalCipherPtr);
 
+            SealOperations::Relinearize(*totalCipherPtr, *evaluatorPtr, *relinKeysPtr);
+
             const auto &discount = request.discount();
             if (!discount.empty()) {
-                auto newCipherPtr = GetUnique<seal::Ciphertext>();
                 auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
-                evaluatorPtr->sub(*totalCipherPtr, *discountCipherPtr, *newCipherPtr);
-                totalCipherPtr = std::move(newCipherPtr);
+                m_customSealOperationsPtr->GetSealOperations()->SubProcessedInPlace(*totalCipherPtr,
+                                                                                    *discountCipherPtr,
+                                                                                    *evaluatorPtr);
             }
 
             const auto &seatPrice = request.seatprice();
             if (!seatPrice.empty()) {
-                auto newCipherPtr = GetUnique<seal::Ciphertext>();
                 auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
-                evaluatorPtr->add(*totalCipherPtr, *seatPriceCipherPtr, *newCipherPtr);
-                totalCipherPtr = std::move(newCipherPtr);
+                m_customSealOperationsPtr->GetSealOperations()->AddProcessedInPlace(*totalCipherPtr,
+                                                                                    *seatPriceCipherPtr,
+                                                                                    *evaluatorPtr);
                 rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
             }
 
-            m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+            if (m_schemeType != seal::scheme_type::ckks) {
+                m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+            }
 
             return totalCipherPtr;
-        } catch (const std::exception &e) {
+        } catch (const std::exception &exception) {
             LOG4CPLUS_ERROR(*m_logger,
-                            std::string("Error occurred while getting request total. Message: ") + e.what());
-            throw e;
+                            std::string("Error occurred while getting request total. Message: ") + exception.what());
+            throw exception;
         }
 
     }

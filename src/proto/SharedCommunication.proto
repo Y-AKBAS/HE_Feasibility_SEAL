@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
 
 package communication;
 
@@ -29,17 +30,17 @@ message Ride {
   string to = 5;
   google.protobuf.Timestamp startTime = 6;
   google.protobuf.Timestamp endTime = 7;
-  double coefficient = 8;
-  double discount = 9;
+  google.protobuf.Any coefficient = 8;
+  google.protobuf.Any discount = 9;
 }
 
 message Transporter {
   string providerId = 1;
   TransporterType transporterType = 2;
-  double unitPrice = 3;
+  google.protobuf.Any unitPrice = 3;
   UnitPriceType unitPriceType = 4;
   uint64 capacity = 5;
-  double seatPrice = 6;
+  google.protobuf.Any seatPrice = 6;
 }
 
 message BookingResponse {
@@ -47,7 +48,7 @@ message BookingResponse {
   map<string, int32> rideIdSeatNumberMap = 2;
   BookingType bookingType = 3;
   InvoicingClerkType invoicingClerkType = 4;
-  double total = 5;
+  google.protobuf.Any total = 5;
 }
 
 message InvoicingRequest {

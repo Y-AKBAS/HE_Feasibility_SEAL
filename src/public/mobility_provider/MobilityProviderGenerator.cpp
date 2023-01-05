@@ -58,26 +58,28 @@ namespace yakbas::pub {
 
         // optionals: seatPrice, discount
         const auto providerId = GetUUID();
-        const auto randomNumber = GetRandomNumber();
-        const auto transporterType = GetTransporterType(static_cast<int>(randomNumber));
+        const int randomInt = GetRandomNumber<int>();
+        const auto transporterType = GetTransporterType(randomInt);
         const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
-        std::unique_ptr<std::string> seatPriceBufferPtr{};
 
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
         timestampPtr->set_nanos(static_cast<int32_t>(Timer::GetCurrentTimeNanos()));
 
+        google::protobuf::Any any{};
+        NumToAny<std::uint64_t>(&any);
+
         // set Transporter
         const auto transporterPtr = ridePtr->mutable_transporter();
         transporterPtr->set_providerid(providerId);
-        transporterPtr->set_unitprice(randomNumber);
-        transporterPtr->set_capacity(GetRandomNumber());
+        transporterPtr->mutable_unitprice()->CopyFrom(any);
+        transporterPtr->set_capacity(GetRandomNumber<std::uint64_t>());
         transporterPtr->set_transportertype(transporterType);
         transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
 
         // set seat price if it makes sense
-        if (isSeatPriceMeaningful && (randomNumber % 2) == 1) {
-            transporterPtr->set_seatprice(randomNumber);
+        if (isSeatPriceMeaningful) {
+            transporterPtr->mutable_seatprice()->CopyFrom(any);
         }
 
         // set other infos
@@ -85,10 +87,10 @@ namespace yakbas::pub {
         ridePtr->set_providerid(providerId);
         ridePtr->set_from(request->from());
         ridePtr->set_to(request->to());
-        ridePtr->set_coefficient(randomNumber);
+        ridePtr->mutable_coefficient()->CopyFrom(any);
 
-        if ((randomNumber % 2) == 1) {
-            ridePtr->set_discount(randomNumber);
+        if ((randomInt % 2) == 1) {
+            ridePtr->mutable_discount()->CopyFrom(any);
         }
     }
 

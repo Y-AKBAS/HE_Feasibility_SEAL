@@ -1,10 +1,8 @@
 
 #include "MobilityProviderGenerator.h"
-#include "Utils.h"
-#include "SealOperations.h"
 #include "Timer.h"
 
-#include <google/protobuf/util/time_util.h>
+#include <google/protobuf/wrappers.pb.h>
 #include <log4cplus/loggingmacros.h>
 
 namespace yakbas::sec {
@@ -38,7 +36,7 @@ namespace yakbas::sec {
                 writer->Write(*journeyPtr);
             }
         } catch (const std::exception &e) {
-            const std::string message = "Setting Journeys has failed...";
+            const std::string message = "Journey generation has failed...";
             LOG4CPLUS_ERROR(*m_logger, message + "\n" + e.what());
             return {grpc::StatusCode::INTERNAL, message};
         }
@@ -47,15 +45,16 @@ namespace yakbas::sec {
     }
 
     grpc::Status MobilityProviderGenerator::GenerateJourneys(const communication::SearchRequest *request,
-                                                             grpc::ServerWriter<communication::Journey> *writer) {
+                                                             grpc::ServerWriter<communication::Journey> *writer,
+                                                             const SealOperations &operations) {
         try {
             for (int i = 0; i < request->numberofjourneys(); ++i) {
                 const auto journeyPtr = GetUnique<communication::Journey>();
-                GenerateRides(request, journeyPtr.get(), (i % 2) + 1);
+                GenerateRides(request, journeyPtr.get(), operations, (i % 2) + 1);
                 writer->Write(*journeyPtr);
             }
         } catch (const std::exception &e) {
-            const std::string message = "Setting Journeys has failed...";
+            const std::string message = "Journey generation has failed...";
             LOG4CPLUS_ERROR(*m_logger, message + "\n" + e.what());
             return {grpc::StatusCode::INTERNAL, message};
         }
@@ -76,11 +75,12 @@ namespace yakbas::sec {
 
     void MobilityProviderGenerator::GenerateRides(const communication::SearchRequest *request,
                                                   communication::Journey *journeyPtr,
+                                                  const SealOperations &operations,
                                                   const int numberOfRides) {
 
         for (int i = 0; i < numberOfRides; ++i) {
             communication::Ride *ridesPtr = journeyPtr->add_rides();
-            GenerateRide(request, ridesPtr);
+            GenerateRide(request, operations, ridesPtr);
         }
     }
 
@@ -88,18 +88,17 @@ namespace yakbas::sec {
                                                        const SealOperations &operations,
                                                        const seal::Encryptor &encryptor,
                                                        communication::sec::Ride *ridePtr) {
-
         // optionals: seatPrice, discount
-
         const auto providerId = GetUUID();
-        const auto randomNumber = GetRandomNumber();
-        const auto transporterType = GetTransporterType(static_cast<int>(randomNumber));
+        const bool isCkks = operations.GetSealInfoPtr()->m_sealKeys.m_schemeType == seal::scheme_type::ckks;
+        const auto randomNumber = isCkks ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
+        const int randomInt = GetRandomNumber<int>();
+        const auto transporterType = GetTransporterType(randomInt);
         const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
 
         //ciphers
         auto unitPricePtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
         const auto coefficientPtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
-        const auto discountPtr = operations.GetEncryptedBuffer(randomNumber % 3, encryptor);
 
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
@@ -109,13 +108,13 @@ namespace yakbas::sec {
         const auto transporterPtr = ridePtr->mutable_transporter();
         transporterPtr->set_providerid(providerId);
         transporterPtr->set_unitprice(*unitPricePtr);
-        transporterPtr->set_capacity(randomNumber);
+        transporterPtr->set_capacity(GetRandomNumber<std::uint64_t>());
         transporterPtr->set_transportertype(transporterType);
         transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
 
         // set seat price if it makes sense
-        if (isSeatPriceMeaningful && (randomNumber % 2) == 1) {
-            const auto seatPricePtr = operations.GetEncryptedBuffer(randomNumber % 4, encryptor);
+        if (isSeatPriceMeaningful) {
+            const auto seatPricePtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
             transporterPtr->set_seatprice(*seatPricePtr);
         }
 
@@ -126,36 +125,44 @@ namespace yakbas::sec {
         ridePtr->set_to(request->to());
         ridePtr->set_coefficient(*coefficientPtr);
 
-        if ((randomNumber % 2) == 1) {
+        if ((randomInt % 2) == 1) {
+            const auto discountPtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
             ridePtr->set_discount(*discountPtr);
         }
     }
 
     void MobilityProviderGenerator::GenerateRide(const communication::SearchRequest *request,
+                                                 const SealOperations &operations,
                                                  communication::Ride *ridePtr) {
-
         // optionals: seatPrice, discount
         const auto providerId = GetUUID();
-        const auto randomNumber = GetRandomNumber();
-        const auto transporterType = GetTransporterType(static_cast<int>(randomNumber));
+        const bool isCkks = operations.GetSealInfoPtr()->m_sealKeys.m_schemeType == seal::scheme_type::ckks;
+        const int randomInt = GetRandomNumber<int>();
+        const auto transporterType = GetTransporterType(randomInt);
         const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
-        std::unique_ptr<std::string> seatPriceBufferPtr{};
 
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
         timestampPtr->set_nanos(static_cast<int32_t>(Timer::GetCurrentTimeNanos()));
 
+        google::protobuf::Any any{};
+        if (isCkks) {
+            NumToAny<double>(&any);
+        } else {
+            NumToAny<std::uint64_t>(&any);
+        }
+
         // set Transporter
         const auto transporterPtr = ridePtr->mutable_transporter();
         transporterPtr->set_providerid(providerId);
-        transporterPtr->set_unitprice(randomNumber);
-        transporterPtr->set_capacity(GetRandomNumber());
+        transporterPtr->mutable_unitprice()->CopyFrom(any);
+        transporterPtr->set_capacity(GetRandomNumber<std::uint64_t>());
         transporterPtr->set_transportertype(transporterType);
         transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
 
         // set seat price if it makes sense
-        if (isSeatPriceMeaningful && (randomNumber % 2) == 1) {
-            transporterPtr->set_seatprice(randomNumber);
+        if (isSeatPriceMeaningful) {
+            transporterPtr->mutable_seatprice()->CopyFrom(any);
         }
 
         // set other infos
@@ -163,10 +170,10 @@ namespace yakbas::sec {
         ridePtr->set_providerid(providerId);
         ridePtr->set_from(request->from());
         ridePtr->set_to(request->to());
-        ridePtr->set_coefficient(randomNumber);
+        ridePtr->mutable_coefficient()->CopyFrom(any);
 
-        if ((randomNumber % 2) == 1) {
-            ridePtr->set_discount(randomNumber);
+        if ((randomInt % 2) == 1) {
+            ridePtr->mutable_discount()->CopyFrom(any);
         }
     }
 

@@ -9,8 +9,9 @@
 
 #include "Timer.h"
 #include "Utils.h"
-#include "ApplicationConstants.h"
+#include "SharedCommunication.pb.h"
 #include <chrono>
+
 
 #include <log4cplus/configurator.h>
 #include <log4cplus/loggingmacros.h>
@@ -44,7 +45,7 @@ namespace yakbas::test {
 
             SUBCASE("Random number range tests") {
                 for (int i = 0; i < 50; ++i) {
-                    const auto number = GetRandomNumber();
+                    auto number = GetRandomNumber<int>();
                     CHECK(number >= constants::APP_MIN_RANDOM_NUMBER);
                     CHECK(number <= constants::APP_MAX_RANDOM_NUMBER);
                 }
@@ -153,6 +154,51 @@ namespace yakbas::test {
                 CHECK(overloader(doubleValue) == doubleValue);
             }
 
+            SUBCASE("NumToAny and AnyToNum Test") {
+
+                const auto beforeNum = GetRandomNumber<double>();
+                google::protobuf::Any beforeAny{};
+                NumToAny(beforeNum, &beforeAny);
+
+                google::protobuf::Any afterAny{};
+                afterAny.CopyFrom(beforeAny);
+                const auto afterNum = AnyToNum<double>(&afterAny);
+                const auto veryAfterNum = AnyToNum<double>(&afterAny);
+
+                const auto steadyStream = GetUniqueStream();
+                *steadyStream << "\nBeforeNum: " << beforeNum << "\nAfterNum: " << afterNum;
+                LOG4CPLUS_DEBUG(*logger, steadyStream->str());
+
+                CHECK(beforeNum == afterNum);
+                CHECK(veryAfterNum == afterNum);
+                CHECK(veryAfterNum == beforeNum);
+            }
+
+            SUBCASE("NumToAny and AnyToNum Test") {
+
+                const auto beforeNum = GetRandomNumber<std::uint64_t>();
+                google::protobuf::Any beforeAny{};
+                NumToAny(beforeNum, &beforeAny);
+
+                google::protobuf::Any afterAny{};
+                afterAny.CopyFrom(beforeAny);
+                const auto afterNum = AnyToNum<std::uint64_t>(&afterAny);
+                const auto veryAfterNum = AnyToNum<std::uint64_t>(&afterAny);
+
+                google::protobuf::Any lastAny{};
+                lastAny.CopyFrom(beforeAny);
+                const auto lastNum = static_cast<double>(AnyToNum<std::uint64_t>(&lastAny));
+
+                const auto steadyStream = GetUniqueStream();
+                *steadyStream << "\nBeforeNum: " << beforeNum << "\nAfterNum: " << afterNum;
+                LOG4CPLUS_DEBUG(*logger, steadyStream->str());
+
+                CHECK(beforeNum == afterNum);
+                CHECK(veryAfterNum == afterNum);
+                CHECK(veryAfterNum == beforeNum);
+                CHECK(lastNum == beforeNum);
+            }
+            
             ::log4cplus::deinitialize();
         }
     }

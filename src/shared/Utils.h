@@ -13,14 +13,59 @@
 #include <filesystem>
 #include <random>
 #include <variant>
+#include <google/protobuf/any.pb.h>
+#include <google/protobuf/wrappers.pb.h>
+#include <log4cplus/loggingmacros.h>
 #include "ApplicationConstants.h"
 
 
 namespace yakbas::util {
 
     using num_variant = std::variant<std::uint64_t, double, int>;
-    extern const std::unique_ptr<log4cplus::Logger> utilLogger;
     extern const std::unique_ptr<std::mt19937> mtPtr;
+
+    template<typename... Ts>
+    struct LambdaOverloader : Ts ... {
+        using Ts::operator()...;
+
+        LambdaOverloader(Ts...ts) {}
+    };
+
+    const LambdaOverloader anyToNumOverloader = {
+            [](const std::uint64_t value, const google::protobuf::Any *any) -> decltype(auto) {
+                google::protobuf::UInt64Value uInt64Value{};
+                any->UnpackTo(&uInt64Value);
+                return uInt64Value.value();
+            },
+            [](const int value, const google::protobuf::Any *any) -> decltype(auto) {
+                google::protobuf::Int32Value int32Value{};
+                any->UnpackTo(&int32Value);
+                return int32Value.value();
+            },
+            [](const double value, const google::protobuf::Any *any) -> decltype(auto) {
+                google::protobuf::DoubleValue doubleValue{};
+                any->UnpackTo(&doubleValue);
+                return doubleValue.value();
+            }
+    };
+
+    const LambdaOverloader numToAnyOverloader = {
+            [](const std::uint64_t value, google::protobuf::Any *any) {
+                google::protobuf::UInt64Value uInt64Value{};
+                uInt64Value.set_value(value);
+                any->PackFrom(uInt64Value);
+            },
+            [](const int value, google::protobuf::Any *any) {
+                google::protobuf::Int32Value int32Value{};
+                int32Value.set_value(value);
+                any->PackFrom(int32Value);
+            },
+            [](const double value, google::protobuf::Any *any) {
+                google::protobuf::DoubleValue doubleValue{};
+                doubleValue.set_value(value);
+                any->PackFrom(doubleValue);
+            }
+    };
 
     template<typename T>
     constexpr std::unique_ptr<T> GetUnique(const auto &... constructorParams) {
@@ -54,13 +99,6 @@ namespace yakbas::util {
         return ptr;
     }
 
-    template<typename... Ts>
-    struct LambdaOverloader : Ts ... {
-        using Ts::operator()...;
-
-        LambdaOverloader(Ts...ts) {}
-    };
-
     template<typename T>
     T GetRandomNumber() {
         static auto distribution = std::uniform_real_distribution<double>(constants::APP_MIN_RANDOM_NUMBER,
@@ -74,14 +112,69 @@ namespace yakbas::util {
     }
 
     template<typename T = num_variant>
+    T AnyToNum(const google::protobuf::Any *any) {
+        const T t{};
+        return anyToNumOverloader(t, any);
+    }
+
+    template<typename T = num_variant>
+    num_variant AnyToNumVariant(const google::protobuf::Any *any) {
+        return AnyToNum<T>(any);
+    }
+
+    template<typename T = num_variant>
+    void NumToAny(google::protobuf::Any *any) {
+        const auto num = GetRandomNumber<T>();
+        return numToAnyOverloader(num, any);
+    }
+
+    template<typename T = num_variant>
+    void NumToAny(T num, google::protobuf::Any *any) {
+        return numToAnyOverloader(num, any);
+    }
+
+    template<typename T = num_variant>
+    T GetAnyVariant(const num_variant *variant) {
+
+        if (const auto value = std::get_if<std::uint64_t>(variant)) {
+            return static_cast<T>(*value);
+        }
+
+        if (const auto value = std::get_if<double>(variant)) {
+            return static_cast<T>(*value);
+        }
+
+        if (const auto value = std::get_if<int>(variant)) {
+            return static_cast<T>(*value);
+        }
+
+        throw std::invalid_argument("Cannot extract variant value!");
+    }
+
+    template<typename T = num_variant>
     bool CompareWithDecimalTolerance(const T *left, const T *right, int precision = 5) {
         constexpr const double ten = 10.0;
         const double scale = std::pow(ten, precision);
         const double leftTrunc = std::trunc(*left * scale) / scale;
         const double rightTrunc = std::trunc(*right * scale) / scale;
         const double tolerance = ten / scale;
-        return std::abs(leftTrunc - rightTrunc) < tolerance;
+        double difference = std::abs(leftTrunc - rightTrunc);
+        std::cout << "decimal tolerance difference: " << difference << std::endl;
+        return difference < tolerance;
     }
+
+    template<typename T>
+    bool CompareWithTolerance(const T *left, const T *right, int tolerance = 1) {
+        double difference = std::abs(left - right);
+        std::cout << "CompareWithTolerance difference: " << difference << std::endl;
+        return difference < tolerance;
+    }
+
+    void NumVariantToAny(const num_variant *variant, google::protobuf::Any *any);
+
+    num_variant AnyToNumVariant(bool isCKKS, const google::protobuf::Any *any);
+
+    double AnyToNum(bool isCKKS, const google::protobuf::Any *any);
 
     std::shared_ptr<std::stringstream> GetSharedStream();
 

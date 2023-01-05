@@ -2,7 +2,6 @@
 #include "Utils.h"
 #include "Timer.h"
 
-#include <log4cplus/loggingmacros.h>
 #include <iostream>
 
 /*
@@ -13,19 +12,43 @@
 
 namespace yakbas::util {
 
-    const std::unique_ptr<log4cplus::Logger> utilLogger
-            = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("Util Logger"));
-
     const std::unique_ptr<std::mt19937> mtPtr = []() -> std::unique_ptr<std::mt19937> {
-        LOG4CPLUS_DEBUG(*utilLogger, "Random number generator engine is being created...");
         std::random_device device;
         std::seed_seq seedSeq{device()};
-        return GetUnique<std::mt19937>(seedSeq);
+        return std::make_unique<std::mt19937>(seedSeq);
     }();
 
     const auto optionalStreamLambda = std::make_optional([](std::stringstream &stream) {
         stream.exceptions(std::ios::badbit | std::ios::failbit);
     });
+
+    num_variant AnyToNumVariant(bool isCKKS, const google::protobuf::Any *any) {
+        return isCKKS ? AnyToNumVariant<double>(any) : AnyToNumVariant<std::uint64_t>(any);
+    }
+
+    double AnyToNum(bool isCKKS, const google::protobuf::Any *any) {
+        return isCKKS ? AnyToNum<double>(any) : static_cast<double>(AnyToNum<std::uint64_t>(any));
+    }
+
+    void NumVariantToAny(const num_variant *variant, google::protobuf::Any *any) {
+
+        if (const auto value = std::get_if<std::uint64_t>(variant)) {
+            NumToAny(*value, any);
+            return;
+        }
+
+        if (const auto value = std::get_if<double>(variant)) {
+            NumToAny(*value, any);
+            return;
+        }
+
+        if (const auto value = std::get_if<int>(variant)) {
+            NumToAny(*value, any);
+            return;
+        }
+
+        throw std::invalid_argument("Cannot Convert variant to Any!");
+    }
 
     std::shared_ptr<std::stringstream> GetSharedStream() {
         return GetModifiedShared<std::stringstream>(optionalStreamLambda);

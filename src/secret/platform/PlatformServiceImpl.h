@@ -31,6 +31,7 @@ namespace yakbas::sec {
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
         const std::unique_ptr<PlatformClientManager> m_platformClientManager{nullptr};
+        seal::scheme_type m_schemeType;
 
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
         GetRequestTotalAndInsertSeat(const communication::sec::BookingRequest &request,
