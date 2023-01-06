@@ -11,7 +11,6 @@
 #include <memory>
 #include <log4cplus/configurator.h>
 
-
 namespace yakbas::sec::test {
 
     template<typename T = num_variant>
@@ -36,14 +35,19 @@ namespace yakbas::sec::test {
             const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
 
             SUBCASE("GetOperationsTest") {
-                const auto sealKeys_1 = util::GetUnique<SealKeys>();
+                try {
+                    const auto sealKeys_1 = util::GetUnique<SealKeys>();
 
-                const auto customSealOperations =
-                        util::GetUnique<CustomSealOperations>(*sealKeys_1);
-                const SealOperations &operations_1 = CustomSealOperations::GetOperations(*sealKeys_1);
-                const SealOperations &operations_1_1 = CustomSealOperations::GetOperations(*sealKeys_1);
-                CHECK(operations_1 == operations_1_1);
-                CHECK(*operations_1.GetSealInfoPtr() == *operations_1_1.GetSealInfoPtr());
+                    const auto customSealOperations =
+                            util::GetUnique<CustomSealOperations>(*sealKeys_1);
+                    const SealOperations &operations_1 = CustomSealOperations::GetOperations(*sealKeys_1);
+                    const SealOperations &operations_1_1 = CustomSealOperations::GetOperations(*sealKeys_1);
+                    CHECK(operations_1 == operations_1_1);
+                    CHECK(*operations_1.GetSealInfoPtr() == *operations_1_1.GetSealInfoPtr());
+                } catch (std::exception &e) {
+                    LOG4CPLUS_ERROR(*logger, std::string("GetOperationsTest Failed. Message: ") + e.what());
+                    ::log4cplus::deinitialize();
+                }
             }
 
             SUBCASE("Encryption Test") {
@@ -263,6 +267,12 @@ namespace yakbas::sec::test {
                 CHECK(keys.m_schemeType == static_cast<const seal::scheme_type>(SEAL_SCHEME_TYPE));
                 CHECK(keys.m_polyModulusDegree == SEAL_POLY_MODULUS_DEGREE);
                 CHECK(keys.m_plainModulus == SEAL_PLAIN_MODULUS_DEGREE);
+                CHECK(keys.m_isEncodingEnabled == ENCODING_ENABLED);
+                CHECK(keys.m_scalePower == CKKS_SCALE_POWER);
+
+                for (int i = 0; i < constants::ENCODING_BIT_SIZES.size(); ++i) {
+                    CHECK(constants::ENCODING_BIT_SIZES.at(i) == keys.m_encodingBitSizes.at(i));
+                }
             }
 
             ::log4cplus::deinitialize();

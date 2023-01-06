@@ -29,6 +29,14 @@ namespace yakbas::sec {
         void SubProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
                                  const seal::Evaluator &evaluator) const;
 
+        void AddProcessedCiphers(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
+                                 seal::Ciphertext &destination,
+                                 const seal::Evaluator &evaluator) const;
+
+        void SubProcessedCiphers(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
+                                 seal::Ciphertext &destination,
+                                 const seal::Evaluator &evaluator) const;
+
         [[nodiscard]] std::unique_ptr<std::string>
         GetEncryptedBuffer(const num_variant &num, const seal::Encryptor &encryptor) const;
 
@@ -47,10 +55,13 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<seal::RelinKeys>
         GetRelinKeysFromBuffer(const std::unique_ptr<std::stringstream> &stream) const;
 
+        [[nodiscard]] const std::unique_ptr<SealInfo> &GetSealInfoPtr() const;
+
+        [[nodiscard]] std::unique_ptr<seal::Ciphertext>
+        GetNewCipher(const std::optional<seal::parms_id_type> &parms_id) const;
+
         static void
         Relinearize(seal::Ciphertext &ciphertext, const seal::Evaluator &evaluator, const seal::RelinKeys &relinKeys);
-
-        [[nodiscard]] const std::unique_ptr<SealInfo> &GetSealInfoPtr() const;
 
         bool operator==(const SealOperations &rhs) const;
 
@@ -70,7 +81,8 @@ namespace yakbas::sec {
         const seal::scheme_type m_schemeType;
         std::unique_ptr<seal::CKKSEncoder> m_ckksEncoder{nullptr};
         std::unique_ptr<seal::BatchEncoder> m_batchEncoder{nullptr};
-        const static double m_scale;
+        const double m_scale{};
+        const int m_scalePower{};
     };
 
 } // yakbas

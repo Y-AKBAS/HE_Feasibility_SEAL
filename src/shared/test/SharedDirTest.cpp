@@ -49,6 +49,18 @@ namespace yakbas::test {
                     CHECK(number >= constants::APP_MIN_RANDOM_NUMBER);
                     CHECK(number <= constants::APP_MAX_RANDOM_NUMBER);
                 }
+
+                for (int i = 0; i < 50; ++i) {
+                    auto number = GetRandomNumber<double>();
+                    CHECK(number >= constants::APP_MIN_RANDOM_NUMBER);
+                    CHECK(number <= constants::APP_MAX_RANDOM_NUMBER);
+                }
+
+                for (int i = 0; i < 50; ++i) {
+                    auto number = GetRandomNumber<std::uint64_t>();
+                    CHECK(number >= constants::APP_MIN_RANDOM_NUMBER);
+                    CHECK(number <= constants::APP_MAX_RANDOM_NUMBER);
+                }
             }
 
             SUBCASE("Timer PassedTimeInMillisWithStop Test") {
@@ -197,6 +209,19 @@ namespace yakbas::test {
                 CHECK(veryAfterNum == afterNum);
                 CHECK(veryAfterNum == beforeNum);
                 CHECK(lastNum == beforeNum);
+            }
+
+            SUBCASE("GetAnyVariant Test") {
+
+                num_variant var = 15.2;
+                const auto doubleValue = GetAnyVariant<double>(&var);
+                CHECK(isSameType<double>(doubleValue));
+
+                const auto intValue = GetAnyVariant<int>(&var);
+                CHECK(isSameType<int>(intValue));
+
+                const auto uintValue = GetAnyVariant<std::uint64_t>(&var);
+                CHECK(isSameType<std::uint64_t>(uintValue));
             }
 
             ::log4cplus::deinitialize();

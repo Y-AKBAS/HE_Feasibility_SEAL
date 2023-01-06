@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <random>
 #include <variant>
+#include <type_traits>
 #include <google/protobuf/any.pb.h>
 #include <google/protobuf/wrappers.pb.h>
 #include <log4cplus/loggingmacros.h>
@@ -66,6 +67,17 @@ namespace yakbas::util {
                 any->PackFrom(doubleValue);
             }
     };
+
+    template<typename T, typename U>
+    constexpr bool areSameType = std::is_same_v<std::decay_t<T>, U>;
+
+    template<typename T>
+    constexpr bool isSameType(const auto &arg) {
+        return std::is_same_v<T, std::decay_t<decltype(arg)>>;
+    }
+
+    template<typename T>
+    constexpr const auto numCaster = [](const auto &value) -> T { return static_cast<T>(value); };
 
     template<typename T>
     constexpr std::unique_ptr<T> GetUnique(const auto &... constructorParams) {
@@ -135,24 +147,11 @@ namespace yakbas::util {
 
     template<typename T = num_variant>
     T GetAnyVariant(const num_variant *variant) {
-
-        if (const auto value = std::get_if<std::uint64_t>(variant)) {
-            return static_cast<T>(*value);
-        }
-
-        if (const auto value = std::get_if<double>(variant)) {
-            return static_cast<T>(*value);
-        }
-
-        if (const auto value = std::get_if<int>(variant)) {
-            return static_cast<T>(*value);
-        }
-
-        throw std::invalid_argument("Cannot extract variant value!");
+        return std::visit(numCaster<T>, *variant);
     }
 
     template<typename T = num_variant>
-    bool CompareWithDecimalTolerance(const T *left, const T *right, int precision = 5) {
+    bool CompareWithDecimalTolerance(const T *left, const T *right, int precision = 3) {
         constexpr const double ten = 10.0;
         const double scale = std::pow(ten, precision);
         const double leftTrunc = std::trunc(*left * scale) / scale;

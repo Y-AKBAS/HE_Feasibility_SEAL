@@ -1,19 +1,24 @@
 
 #include "SealInfo.h"
+#include "ApplicationConstants.h"
 
 namespace yakbas::sec {
 
-    SealKeys::SealKeys(seal::scheme_type schemeType, size_t polyModulusDegree, int plainModulus, bool isEncodingEnabled)
+    SealKeys::SealKeys(seal::scheme_type schemeType, size_t polyModulusDegree, int plainModulus, bool isEncodingEnabled,
+                       int scalePower, std::vector<int> &bitSizes)
             : m_schemeType(schemeType),
               m_polyModulusDegree(polyModulusDegree),
               m_plainModulus(plainModulus),
-              m_isEncodingEnabled(isEncodingEnabled) {}
+              m_isEncodingEnabled(isEncodingEnabled),
+              m_scalePower(scalePower),
+              m_encodingBitSizes(bitSizes) {}
 
     bool SealKeys::operator==(const SealKeys &rhs) const {
         return (this->m_polyModulusDegree == rhs.m_polyModulusDegree) &&
                (this->m_schemeType == rhs.m_schemeType) &&
                (this->m_plainModulus == rhs.m_plainModulus) &&
-               (this->m_isEncodingEnabled == rhs.m_isEncodingEnabled);
+               (this->m_isEncodingEnabled == rhs.m_isEncodingEnabled) &&
+               (this->m_scalePower == rhs.m_scalePower);
     }
 
     bool SealKeys::operator<(const SealKeys &rhs) const {
@@ -51,7 +56,7 @@ namespace yakbas::sec {
         return stream->str();
     }
 
-    SealKeys::SealKeys() = default;
+    SealKeys::SealKeys() : m_encodingBitSizes(constants::ENCODING_BIT_SIZES) {}
 
     SealInfo::SealInfo(const SealKeys &sealKeys)
             : m_sealKeys(sealKeys) {
@@ -75,7 +80,7 @@ namespace yakbas::sec {
                 throw std::invalid_argument("Encoding should be enabled for CKKS Scheme");
             }
             m_coefficientModulusPtr = std::make_unique<std::vector<seal::Modulus>>(
-                    seal::CoeffModulus::Create(m_sealKeys.m_polyModulusDegree, {60, 40, 40, 40, 60}));
+                    seal::CoeffModulus::Create(m_sealKeys.m_polyModulusDegree, m_sealKeys.m_encodingBitSizes));
         } else {
             throw std::invalid_argument("Please specify a valid scheme!");
         }
