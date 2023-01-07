@@ -22,7 +22,9 @@ namespace yakbas::sec {
         const auto publicKeyPtr = m_customSealOperationsPtr->GetPublicKeyFromBuffer(stream);
         const auto newEncryptorPtr = CustomSealOperations::CreateNewEncryptor(*publicKeyPtr);
 
-        auto status = MobilityProviderGenerator::GenerateSecretJourneys(request, writer, *newEncryptorPtr);
+        const auto &operations = m_customSealOperationsPtr->GetSealOperations();
+
+        auto status = MobilityProviderGenerator::GenerateSecretJourneys(request, writer, *operations, *newEncryptorPtr);
         return status;
     }
 
@@ -31,7 +33,8 @@ namespace yakbas::sec {
                                                              grpc::ServerWriter<communication::Journey> *writer) {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Mobility Provider Service impl SearchForRides invoked...");
-        return MobilityProviderGenerator::GenerateJourneys(request, writer);
+        const auto &operations = m_customSealOperationsPtr->GetSealOperations();
+        return MobilityProviderGenerator::GenerateJourneys(request, writer, *operations);
     }
 
     grpc::Status MobilityProviderServiceImpl::ReportInvoicing(grpc::ServerContext *context,

@@ -1,11 +1,8 @@
 
 #include "Utils.h"
-#include "ApplicationConstants.h"
 #include "Timer.h"
 
-#include <random>
 #include <iostream>
-#include <log4cplus/loggingmacros.h>
 
 /*
 #include <boost/uuid/uuid_generators.hpp> // generators
@@ -15,12 +12,43 @@
 
 namespace yakbas::util {
 
-    extern const std::unique_ptr<log4cplus::Logger> utilLogger
-            = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("Util Logger"));
+    const std::unique_ptr<std::mt19937> mtPtr = []() -> std::unique_ptr<std::mt19937> {
+        std::random_device device;
+        std::seed_seq seedSeq{device()};
+        return std::make_unique<std::mt19937>(seedSeq);
+    }();
 
     const auto optionalStreamLambda = std::make_optional([](std::stringstream &stream) {
         stream.exceptions(std::ios::badbit | std::ios::failbit);
     });
+
+    num_variant AnyToNumVariant(bool isCKKS, const google::protobuf::Any *any) {
+        return isCKKS ? AnyToNumVariant<double>(any) : AnyToNumVariant<std::uint64_t>(any);
+    }
+
+    double AnyToNum(bool isCKKS, const google::protobuf::Any *any) {
+        return isCKKS ? AnyToNum<double>(any) : static_cast<double>(AnyToNum<std::uint64_t>(any));
+    }
+
+    void NumVariantToAny(const num_variant *variant, google::protobuf::Any *any) {
+
+        if (const auto value = std::get_if<std::uint64_t>(variant)) {
+            NumToAny(*value, any);
+            return;
+        }
+
+        if (const auto value = std::get_if<double>(variant)) {
+            NumToAny(*value, any);
+            return;
+        }
+
+        if (const auto value = std::get_if<int>(variant)) {
+            NumToAny(*value, any);
+            return;
+        }
+
+        throw std::invalid_argument("Cannot Convert variant to Any!");
+    }
 
     std::shared_ptr<std::stringstream> GetSharedStream() {
         return GetModifiedShared<std::stringstream>(optionalStreamLambda);
@@ -40,19 +68,6 @@ namespace yakbas::util {
         return os << std::bitset<8>(std::to_integer<int>(b));
     }
 
-    std::uint64_t GetRandomNumber() {
-        static const auto mtPtr = []() -> decltype(auto) {
-            LOG4CPLUS_DEBUG(*utilLogger, "Random generator engine being created...");
-            std::random_device device;
-            std::seed_seq seedSeq{device()};
-            return GetUnique<std::mt19937>(seedSeq);
-        }();
-        static auto distribution = std::uniform_real_distribution<double>(constants::APP_MIN_RANDOM_NUMBER,
-                                                                          constants::APP_MAX_RANDOM_NUMBER);
-
-        return static_cast<std::uint64_t>(distribution(*mtPtr));
-    }
-
     std::string GetUUID() {
         /*
         static const auto uuidGenPtr = GetUnique<boost::uuids::random_generator>();
@@ -60,6 +75,26 @@ namespace yakbas::util {
         */
 
         return "id_" + std::to_string(Timer::GetCurrentTimeNanos());
+    }
+
+    long ToDec(const std::string &hexVal) {
+        long num;
+        std::stringstream sstream;
+        sstream << hexVal;
+        sstream >> std::hex >> num;
+        return num;
+    }
+
+    std::string DoubleToHex(const double *val) {
+        char buffer[100] = {0};
+        snprintf(buffer, 10, "%A", *val);
+        return buffer;
+    }
+
+    double HexToDouble(const std::string &val) {
+        double d = 0.0;
+        sscanf_s(val.c_str(), "%lA", &d);
+        return d;
     }
 
 }

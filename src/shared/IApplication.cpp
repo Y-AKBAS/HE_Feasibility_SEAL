@@ -32,4 +32,8 @@ namespace yakbas {
         log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+
+    void IApplication::DisableLogging() {
+        log4cplus::deinitialize();
+    }
 }

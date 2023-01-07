@@ -18,6 +18,8 @@ namespace yakbas {
 
         virtual void EnableLogging();
 
+        virtual void DisableLogging();
+
         virtual int RunTests(int argc, char **argv);
     };
 

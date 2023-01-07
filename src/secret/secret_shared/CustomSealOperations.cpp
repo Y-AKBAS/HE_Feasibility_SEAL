@@ -33,6 +33,7 @@ namespace yakbas::sec {
         m_sealOperations->GetSealInfoPtr()->m_keyGeneratorPtr->create_relin_keys(*m_relinKeysPtr);
 
         m_publicKeyBuffer = this->PublicKeyToBuffer()->str();
+        m_relinKeysBuffer = this->RelinKeyToBuffer()->str();
     }
 
     // No worries. Doesn't cause memory leak :)
@@ -54,30 +55,30 @@ namespace yakbas::sec {
             return *(*it);
         }
 
-        LOG4CPLUS_DEBUG(*logger, "Creating new with params: \n" + sealKeys.ToString());
+        LOG4CPLUS_DEBUG(*logger, "Creating new SealKeys with params: " + sealKeys.ToString());
         const auto newOperationsPtr = new SealOperations(sealKeys);
         operations.push_back(newOperationsPtr);
         return *newOperationsPtr;
     }
 
-    std::unique_ptr<seal::Ciphertext> CustomSealOperations::Encrypt(const uint64_t &num) const {
-        return SealOperations::Encrypt(num, *m_encryptorPtr);
+    std::unique_ptr<seal::Ciphertext> CustomSealOperations::Encrypt(const num_variant &num) const {
+        return m_sealOperations->Encrypt(num, *m_encryptorPtr);
     }
 
-    std::unique_ptr<seal::Ciphertext> CustomSealOperations::EncryptSymmetric(const uint64_t &num) const {
-        return SealOperations::EncryptSymmetric(num, *m_encryptorPtr);
+    std::unique_ptr<seal::Ciphertext> CustomSealOperations::EncryptSymmetric(const num_variant &num) const {
+        return m_sealOperations->EncryptSymmetric(num, *m_encryptorPtr);
     }
 
-    std::uint64_t CustomSealOperations::Decrypt(const seal::Ciphertext &cipher) const {
-        return SealOperations::Decrypt(cipher, *m_decryptorPtr);
+    num_variant CustomSealOperations::Decrypt(const seal::Ciphertext &cipher) const {
+        return m_sealOperations->Decrypt(cipher, *m_decryptorPtr);
     }
 
-    std::unique_ptr<std::string> CustomSealOperations::GetEncryptedBuffer(const uint64_t &num) const {
-        return SealOperations::GetEncryptedBuffer(num, *m_encryptorPtr);
+    std::unique_ptr<std::string> CustomSealOperations::GetEncryptedBuffer(const num_variant &num) const {
+        return m_sealOperations->GetEncryptedBuffer(num, *m_encryptorPtr);
     }
 
-    std::unique_ptr<std::string> CustomSealOperations::GetSymmetricEncryptedBuffer(const uint64_t &num) const {
-        return SealOperations::GetSymmetricEncryptedBuffer(num, *m_encryptorPtr);
+    std::unique_ptr<std::string> CustomSealOperations::GetSymmetricEncryptedBuffer(const num_variant &num) const {
+        return m_sealOperations->GetSymmetricEncryptedBuffer(num, *m_encryptorPtr);
     }
 
     std::unique_ptr<seal::Ciphertext>
@@ -85,7 +86,7 @@ namespace yakbas::sec {
         return m_sealOperations->GetCipherFromBuffer(*stream);
     }
 
-    std::uint64_t CustomSealOperations::DecryptFromBuffer(const std::unique_ptr<std::stringstream> &stream) const {
+    num_variant CustomSealOperations::DecryptFromBuffer(const std::unique_ptr<std::stringstream> &stream) const {
         return m_sealOperations->DecryptFromBuffer(*stream, *m_decryptorPtr);
     }
 
@@ -98,9 +99,20 @@ namespace yakbas::sec {
         return m_sealOperations->GetPublicKeyFromBuffer(stream);
     }
 
+    std::unique_ptr<seal::RelinKeys>
+    CustomSealOperations::GetRelinKeysFromBuffer(const std::unique_ptr<std::stringstream> &stream) const {
+        return m_sealOperations->GetRelinKeysFromBuffer(stream);
+    }
+
     std::unique_ptr<std::stringstream> CustomSealOperations::PublicKeyToBuffer() const {
         auto streamPtr = GetUniqueStream();
         m_publicKeyPtr->save(*streamPtr);
+        return streamPtr;
+    }
+
+    std::unique_ptr<std::stringstream> CustomSealOperations::RelinKeyToBuffer() const {
+        auto streamPtr = GetUniqueStream();
+        m_relinKeysPtr->save(*streamPtr);
         return streamPtr;
     }
 
@@ -123,7 +135,7 @@ namespace yakbas::sec {
     }
 
     void CustomSealOperations::Relinearize(seal::Ciphertext &ciphertext) {
-        m_evaluatorPtr->relinearize_inplace(ciphertext, *m_relinKeysPtr);
+        SealOperations::Relinearize(ciphertext, *m_evaluatorPtr, *m_relinKeysPtr);
     }
 
     void CustomSealOperations::SwitchMode(seal::Ciphertext &ciphertext) {
@@ -138,6 +150,20 @@ namespace yakbas::sec {
 
     const std::unique_ptr<seal::Decryptor> &CustomSealOperations::GetDecryptorPtr() const {
         return m_decryptorPtr;
+    }
+
+    const std::string &CustomSealOperations::GetRelinKeysBuffer() const {
+        return m_relinKeysBuffer;
+    }
+
+    void CustomSealOperations::AddProcessedInPlace(seal::Ciphertext &processedCipher,
+                                                   seal::Ciphertext &cipherToAdd) const {
+        m_sealOperations->AddProcessedInPlace(processedCipher, cipherToAdd, *m_evaluatorPtr);
+    }
+
+    void CustomSealOperations::SubProcessedInPlace(seal::Ciphertext &processedCipher,
+                                                   seal::Ciphertext &cipherToAdd) const {
+        m_sealOperations->SubProcessedInPlace(processedCipher, cipherToAdd, *m_evaluatorPtr);
     }
 
 } // yakbas

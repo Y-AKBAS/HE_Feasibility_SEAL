@@ -82,20 +82,20 @@ namespace yakbas::pub {
 
             const auto requestPtr = GetUnique<communication::pub::BookingRequest>();
 
-            int bookingType = static_cast<int>(GetRandomNumber()) % (communication::BookingType_ARRAYSIZE - 1);
+            int bookingType = GetRandomNumber<int>() % (communication::BookingType_ARRAYSIZE - 1);
             requestPtr->set_bookingtype(static_cast<communication::BookingType>(bookingType));
 
-            requestPtr->set_coefficient(ride.coefficient());
-            requestPtr->set_unitprice(ride.transporter().unitprice());
+            requestPtr->set_coefficient(AnyToNum<std::uint64_t>(&ride.coefficient()));
+            requestPtr->set_unitprice(AnyToNum<std::uint64_t>(&ride.transporter().unitprice()));
 
-            const auto discount = ride.discount();
-            if (discount > 0) {
-                requestPtr->set_discount(discount);
-            }
-
-            const auto seatPrice = ride.transporter().seatprice();
+            const auto seatPrice = AnyToNum<std::uint64_t>(&ride.transporter().seatprice());
             if (seatPrice > 0) {
                 requestPtr->set_seatprice(seatPrice);
+            }
+
+            const auto discount = AnyToNum<std::uint64_t>(&ride.discount());
+            if (discount > 0) {
+                requestPtr->set_discount(discount);
             }
 
             if (!clientWriterPtr->Write(*requestPtr)) {
@@ -125,7 +125,8 @@ namespace yakbas::pub {
         auto invoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
 
         const auto invoicingRequestPtr = GetUnique<communication::InvoicingRequest>();
-        invoicingRequestPtr->set_price(bookingResponse.total());
+        const auto total = AnyToNum<std::uint64_t>(&bookingResponse.total());
+        invoicingRequestPtr->set_price(static_cast<double>(total));
         const auto protoUserPtr = invoicingRequestPtr->mutable_user();
         m_userPtr->ToProto(protoUserPtr);
 

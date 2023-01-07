@@ -74,7 +74,8 @@ namespace yakbas::pub {
             }
         } while (isReadable);
 
-        response->set_total(total);
+        auto anyPtr = response->mutable_total();
+        NumToAny(total, anyPtr);
 
         return grpc::Status::OK;
     }

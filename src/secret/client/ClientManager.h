@@ -54,10 +54,14 @@ namespace yakbas::sec {
                                             const google::protobuf::Map<std::string, int32_t> *sourceMapPtr);
 
         const std::unique_ptr<SecretUser> m_userPtr{nullptr};
-
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
-        static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
+        seal::scheme_type m_schemeType;
+    public:
+        seal::scheme_type GetSchemeType() const;
 
+    private:
+
+        static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
         static std::once_flag m_isInitialized;
     };
 

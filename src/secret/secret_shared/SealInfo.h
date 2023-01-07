@@ -12,7 +12,8 @@ namespace yakbas::sec {
 
     struct SealKeys {
 
-        SealKeys(seal::scheme_type schemeType, size_t polyModulusDegree, int plainModulus);
+        SealKeys(seal::scheme_type schemeType, size_t polyModulusDegree, int plainModulus, bool isEncodingEnabled,
+                 int scalePower, std::vector<int> &bitSizes);
 
         SealKeys();
 
@@ -22,9 +23,13 @@ namespace yakbas::sec {
 
         [[nodiscard]] std::string ToString() const;
 
-        const seal::scheme_type m_schemeType = static_cast<const seal::scheme_type>(SEAL_SCHEME_TYPE);
-        const std::size_t m_polyModulusDegree = SEAL_POLY_MODULUS_DEGREE;
-        const int m_plainModulus = SEAL_PLAIN_MODULUS_DEGREE;
+        seal::scheme_type m_schemeType = static_cast<const seal::scheme_type>(SEAL_SCHEME_TYPE);
+        std::size_t m_polyModulusDegree = SEAL_POLY_MODULUS_DEGREE;
+        int m_plainModulus = SEAL_PLAIN_MODULUS_DEGREE;
+        bool m_isEncodingEnabled = ENCODING_ENABLED;
+        int m_scalePower = CKKS_SCALE_POWER;
+        std::vector<int> m_encodingBitSizes{};
+        double m_scale = std::pow(2.0, m_scalePower);
     };
 
     struct SealInfo {
