@@ -36,10 +36,6 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
         GetRequestTotalAndInsertSeat(const communication::sec::BookingRequest &request,
                                      google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const;
-
-        [[nodiscard]] std::unique_ptr<seal::Ciphertext>
-        GetNewCipher(const std::optional<seal::parms_id_type> &parms_id = {}) const;
-
     };
 
 }// yakbas

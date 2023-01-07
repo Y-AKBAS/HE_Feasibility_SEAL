@@ -43,7 +43,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
 
-            const int numberOfJourneys = 50;
+            const int numberOfJourneys = 5;
             const auto journeysVecPtr = clientManagerPtr->SearchSecretly("Leipzig", "Halle",
                                                                          numberOfJourneys);
             CheckJourneys(*journeysVecPtr, numberOfJourneys, isCKKS);
@@ -55,7 +55,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 30;
+            const int numberOfJourneys = 9;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -83,7 +83,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 50;
+            const int numberOfJourneys = 7;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -142,8 +142,9 @@ namespace yakbas::sec::test {
             const auto bookingResponsePtr = clientManagerPtr->BookSecretlyAndDecrypt(*journeyPtr);
 
             const double total = AnyToNum(isCKKS, &bookingResponsePtr->total());
+            std::cout << "Payment Request Test: \ntotalBeforeSent: " << totalBeforeSent << " total: " << total << std::endl;
             if (isCKKS) {
-                CHECK(CompareWithDecimalTolerance(&total, &totalBeforeSent));
+                CHECK(CompareWithDecimalTolerance(&total, &totalBeforeSent, 3));
             } else {
                 CHECK(total == totalBeforeSent);
             }

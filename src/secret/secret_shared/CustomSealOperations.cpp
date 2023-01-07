@@ -156,4 +156,14 @@ namespace yakbas::sec {
         return m_relinKeysBuffer;
     }
 
+    void CustomSealOperations::AddProcessedInPlace(seal::Ciphertext &processedCipher,
+                                                   seal::Ciphertext &cipherToAdd) const {
+        m_sealOperations->AddProcessedInPlace(processedCipher, cipherToAdd, *m_evaluatorPtr);
+    }
+
+    void CustomSealOperations::SubProcessedInPlace(seal::Ciphertext &processedCipher,
+                                                   seal::Ciphertext &cipherToAdd) const {
+        m_sealOperations->SubProcessedInPlace(processedCipher, cipherToAdd, *m_evaluatorPtr);
+    }
+
 } // yakbas

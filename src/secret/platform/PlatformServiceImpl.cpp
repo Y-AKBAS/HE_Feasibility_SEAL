@@ -103,19 +103,22 @@ namespace yakbas::sec {
             }
         } while (isReadable);
 
+        auto &totalCipherPtr = requestTotalCiphers.at(0);
         if (requestTotalCiphers.size() > 1) {
+            std::cout << "More than one requestTotalCiphers" << std::endl;
             for (int i = 1; i < requestTotalCiphers.size(); ++i) {
-                auto newCipherPtr = GetUnique<seal::Ciphertext>();
-                evaluatorPtr->add(*requestTotalCiphers.at(0), *requestTotalCiphers.at(i), *newCipherPtr);
-                requestTotalCiphers.at(0) = std::move(newCipherPtr);
+                m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *requestTotalCiphers.at(i));
+                /*auto newCipherPtr = m_customSealOperationsPtr->GetSealOperations()->GetNewCipher(
+                        std::make_optional(totalCipherPtr->parms_id()));
+                evaluatorPtr->add(*totalCipherPtr, *requestTotalCiphers.at(i), *newCipherPtr);
+                totalCipherPtr = std::move(newCipherPtr);*/
             }
         }
 
-        std::unique_ptr<seal::Ciphertext> &totalCipherPtr = requestTotalCiphers.at(0);
         if (m_schemeType != seal::scheme_type::ckks) {
             m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
         }
-        const auto buffer = CustomSealOperations::GetBufferFromCipher(*totalCipherPtr);
+        const auto &buffer = CustomSealOperations::GetBufferFromCipher(*totalCipherPtr);
         response->set_total(buffer);
 
         return grpc::Status::OK;
@@ -150,36 +153,31 @@ namespace yakbas::sec {
             const auto &coefficient = request.coefficient();
             auto coefficientCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(coefficient));
 
-            auto totalCipherPtr = GetNewCipher(std::make_optional(coefficientCipherPtr->parms_id()));
+            auto totalCipherPtr = m_customSealOperationsPtr->GetSealOperations()->GetNewCipher(
+                    std::make_optional(coefficientCipherPtr->parms_id()));
 
             const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
             evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
                                    *totalCipherPtr);
 
-            //SealOperations::Relinearize(*totalCipherPtr, *evaluatorPtr, *relinKeysPtr);
+            SealOperations::Relinearize(*totalCipherPtr, *evaluatorPtr, *relinKeysPtr);
 
             const auto &discount = request.discount();
             if (!discount.empty()) {
-                auto newCipherPtr = GetUnique<seal::Ciphertext>();
                 auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
-                evaluatorPtr->sub(*totalCipherPtr, *discountCipherPtr, *newCipherPtr);
-                totalCipherPtr = std::move(newCipherPtr);
-                /*auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
-                m_customSealOperationsPtr->GetSealOperations()->SubProcessedInPlace(*totalCipherPtr,
-                                                                                    *discountCipherPtr,
-                                                                                    *evaluatorPtr);*/
+                /* auto newCipherPtr = GetUnique<seal::Ciphertext>();
+                 evaluatorPtr->sub(*totalCipherPtr, *discountCipherPtr, *newCipherPtr);
+                 totalCipherPtr = std::move(newCipherPtr);*/
+                m_customSealOperationsPtr->SubProcessedInPlace(*totalCipherPtr, *discountCipherPtr);
             }
 
             const auto &seatPrice = request.seatprice();
             if (!seatPrice.empty()) {
-                auto newCipherPtr = GetUnique<seal::Ciphertext>();
                 auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
+                /*auto newCipherPtr = GetUnique<seal::Ciphertext>();
                 evaluatorPtr->add(*totalCipherPtr, *seatPriceCipherPtr, *newCipherPtr);
-                totalCipherPtr = std::move(newCipherPtr);
-                /*auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
-                m_customSealOperationsPtr->GetSealOperations()->AddProcessedInPlace(*totalCipherPtr,
-                                                                                    *seatPriceCipherPtr,
-                                                                                    *evaluatorPtr);*/
+                totalCipherPtr = std::move(newCipherPtr);*/
+                m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *seatPriceCipherPtr);
                 rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
             }
 
@@ -194,13 +192,6 @@ namespace yakbas::sec {
             throw exception;
         }
 
-    }
-
-    std::unique_ptr<seal::Ciphertext>
-    PlatformServiceImpl::GetNewCipher(const std::optional<seal::parms_id_type> &parms_id) const {
-        const static auto &sealContextPtr = m_customSealOperationsPtr->GetSealOperations()->GetSealInfoPtr()->m_sealContextPtr;
-        return parms_id.has_value() ? std::make_unique<seal::Ciphertext>(*sealContextPtr, parms_id.value())
-                                    : std::make_unique<seal::Ciphertext>(*sealContextPtr);
     }
 
 } // yakbas

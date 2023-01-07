@@ -56,6 +56,10 @@ namespace yakbas::sec {
 
         void SwitchMode(seal::Ciphertext &ciphertext);
 
+        void AddProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd) const;
+
+        void SubProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd) const;
+
     private:
 
         [[nodiscard]] std::unique_ptr<std::stringstream> PublicKeyToBuffer() const;

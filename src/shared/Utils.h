@@ -23,6 +23,8 @@
 namespace yakbas::util {
 
     using num_variant = std::variant<std::uint64_t, double, int>;
+    using namespace std::string_literals;
+
     extern const std::unique_ptr<std::mt19937> mtPtr;
 
     template<typename... Ts>

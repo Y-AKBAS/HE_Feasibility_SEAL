@@ -11,8 +11,6 @@
 #include "Utils.h"
 #include "SharedCommunication.pb.h"
 #include <chrono>
-
-
 #include <log4cplus/configurator.h>
 #include <log4cplus/loggingmacros.h>
 

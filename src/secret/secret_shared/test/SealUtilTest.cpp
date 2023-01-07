@@ -37,7 +37,6 @@ namespace yakbas::sec::test {
             SUBCASE("GetOperationsTest") {
                 try {
                     const auto sealKeys_1 = util::GetUnique<SealKeys>();
-
                     const auto customSealOperations =
                             util::GetUnique<CustomSealOperations>(*sealKeys_1);
                     const SealOperations &operations_1 = CustomSealOperations::GetOperations(*sealKeys_1);
@@ -45,7 +44,7 @@ namespace yakbas::sec::test {
                     CHECK(operations_1 == operations_1_1);
                     CHECK(*operations_1.GetSealInfoPtr() == *operations_1_1.GetSealInfoPtr());
                 } catch (std::exception &e) {
-                    LOG4CPLUS_ERROR(*logger, std::string("GetOperationsTest Failed. Message: ") + e.what());
+                    LOG4CPLUS_ERROR(*logger, "GetOperationsTest Failed. Message: "s + e.what());
                     ::log4cplus::deinitialize();
                 }
             }
@@ -276,6 +275,79 @@ namespace yakbas::sec::test {
             }
 
             ::log4cplus::deinitialize();
+        }
+
+        TEST_CASE("ProcessedCipher Addition Test For CKKS") {
+            ::log4cplus::initialize();
+            ::log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
+            const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
+
+            try {
+                SealKeys keys{};
+                keys.m_schemeType = seal::scheme_type::ckks;
+                keys.m_isEncodingEnabled = true;
+
+                const auto customSealOperations = GetUnique<CustomSealOperations>(keys);
+                const auto variant = GetRandomNumberVariant<double>();
+                const auto num = GetAnyVariant<double>(&variant);
+                const auto expectedResult = num * num + num - num;
+
+                LOG4CPLUS_INFO(*logger, "random number: "s + std::to_string(num));
+                LOG4CPLUS_INFO(*logger, "expectedResult: "s + std::to_string(expectedResult));
+
+                const auto &bufferString = customSealOperations->GetSymmetricEncryptedBuffer(variant);
+
+                auto coeffCipher = customSealOperations->GetCipherFromBuffer(GetUniqueStream(*bufferString));
+                auto unitPriceCipher = customSealOperations->GetCipherFromBuffer(GetUniqueStream(*bufferString));
+                auto discountCipher = customSealOperations->GetCipherFromBuffer(GetUniqueStream(*bufferString));
+                auto seatPriceCipher = customSealOperations->GetCipherFromBuffer(GetUniqueStream(*bufferString));
+
+                auto firstTotalCipher = customSealOperations->GetSealOperations()->GetNewCipher(
+                        std::make_optional(coeffCipher->parms_id()));
+
+                customSealOperations->GetEvaluatorPtr()->multiply(*coeffCipher, *unitPriceCipher,
+                                                                  *firstTotalCipher);
+                customSealOperations->GetSealOperations()->SubProcessedInPlace(*firstTotalCipher, *discountCipher,
+                                                                               *customSealOperations->GetEvaluatorPtr());
+
+                customSealOperations->AddProcessedInPlace(*firstTotalCipher, *seatPriceCipher);
+
+                const std::string &firstTotalBuffer = CustomSealOperations::GetBufferFromCipher(*firstTotalCipher);
+                const num_variant &firstTotalVariant = customSealOperations->DecryptFromBuffer(
+                        GetUniqueStream(firstTotalBuffer));
+                const auto &firstTotalNum = GetAnyVariant<double>(&firstTotalVariant);
+
+                CHECK(CompareWithDecimalTolerance(&expectedResult, &firstTotalNum, 3));
+
+                auto secondTotalCipher = customSealOperations->GetSealOperations()->GetNewCipher(
+                        std::make_optional(coeffCipher->parms_id()));
+
+                customSealOperations->GetEvaluatorPtr()->multiply(*coeffCipher, *unitPriceCipher,
+                                                                  *secondTotalCipher);
+                customSealOperations->GetSealOperations()->SubProcessedInPlace(*secondTotalCipher, *discountCipher,
+                                                                               *customSealOperations->GetEvaluatorPtr());
+
+                customSealOperations->AddProcessedInPlace(*secondTotalCipher, *seatPriceCipher);
+
+                const std::string &secondTotalBuffer = CustomSealOperations::GetBufferFromCipher(*secondTotalCipher);
+                const num_variant &secondTotalVariant = customSealOperations->DecryptFromBuffer(
+                        GetUniqueStream(secondTotalBuffer));
+                const auto &secondTotalNum = GetAnyVariant<double>(&secondTotalVariant);
+
+                CHECK(CompareWithDecimalTolerance(&expectedResult, &secondTotalNum, 3));
+
+                customSealOperations->AddProcessedInPlace(*firstTotalCipher, *secondTotalCipher);
+                const auto &finalVariant = customSealOperations->Decrypt(*firstTotalCipher);
+
+                const auto &finalTotalNum = GetAnyVariant<double>(&finalVariant);
+
+                const double finalExpectedResult = expectedResult + expectedResult;
+                CHECK(CompareWithDecimalTolerance(&finalExpectedResult, &finalTotalNum, 3));
+
+            } catch (std::exception &e) {
+                LOG4CPLUS_ERROR(*logger, "exception message: "s + e.what());
+            }
+            log4cplus::deinitialize();
         }
     }
 

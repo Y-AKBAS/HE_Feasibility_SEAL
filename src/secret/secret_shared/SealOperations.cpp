@@ -174,7 +174,7 @@ namespace yakbas::sec {
 
             LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
             LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
-            if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 4)) {
+            if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 5)) {
                 processedCipher.scale() = cipherToAdd.scale();
                 LOG4CPLUS_INFO(*m_logger,
                                "Cipher scales are being equal now. Scale: " + std::to_string(processedCipherScale));
@@ -196,9 +196,17 @@ namespace yakbas::sec {
                 return;
             }
 
-            evaluator.rescale_to_next_inplace(processedCipher);
             double processedCipherScale = std::log2(processedCipher.scale());
             double cipherToAddScale = std::log2(cipherToAdd.scale());
+
+            if (processedCipherScale > m_scalePower) {
+                evaluator.rescale_to_next_inplace(processedCipher);
+            }
+
+            if (cipherToAddScale > m_scalePower) {
+                evaluator.rescale_to_next_inplace(cipherToAdd);
+            }
+
             LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
             LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
             if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 5)) {
