@@ -2,14 +2,16 @@
 
 #include <grpcpp/grpcpp.h>
 #include "SecretCommunication.grpc.pb.h"
+#include "SealInfo.h"
 
 namespace yakbas::sec {
 
     class ClientServiceImpl final : public communication::sec::SecretCommunicationService::Service {
 
     public:
-        ClientServiceImpl();
+        explicit ClientServiceImpl(const SealKeys &sealKeys = {});
 
+        ~ClientServiceImpl() override;
     };
 
 }// yakbas

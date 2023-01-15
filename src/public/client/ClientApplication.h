@@ -1,16 +1,16 @@
 
 #include "IApplication.h"
+#include "PublicBaseApplication.h"
 
 namespace yakbas::pub {
 
-    class ClientApplication : public IApplication {
+    class ClientApplication : public PublicBaseApplication {
     public:
         ~ClientApplication() override;
 
         void Run(int argc, char **argv) override;
 
-        void StartServer() override;
-
+        void StartServer(BaseCommandLineInfo *commandLineInfoPtr) override;
     };
 
 } // yakbas

@@ -12,12 +12,19 @@ namespace yakbas::pub {
     PlatformApplication::~PlatformApplication() = default;
 
     void PlatformApplication::Run(int argc, char **argv) {
-        EnableLogging();
-        RunTests(argc, argv);
-        this->StartServer();
+        try {
+            EnableLogging();
+            RunTests(argc, argv);
+            auto commandLinePtr = HandleCommandLine(argc, argv, "Public Platform Application");
+            this->StartServer(commandLinePtr.get());
+        } catch (std::exception &e) {
+            const auto logger = log4cplus::Logger::getInstance("Public Platform Exception Logger");
+            LOG4CPLUS_ERROR(logger, std::string("Exception message: ") + e.what());
+            DisableLogging();
+        }
     }
 
-    void PlatformApplication::StartServer() {
+    void PlatformApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
         const auto serverManager = GetUnique<PlatformServerManager>(
                 GetShared<PlatformServiceImpl>(),
                 PUBLIC_PLATFORM_SERVER_PORT,

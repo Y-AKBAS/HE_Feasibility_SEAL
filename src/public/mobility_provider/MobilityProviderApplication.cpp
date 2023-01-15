@@ -13,12 +13,19 @@ namespace yakbas::pub {
     MobilityProviderApplication::~MobilityProviderApplication() = default;
 
     void MobilityProviderApplication::Run(int argc, char **argv) {
-        EnableLogging();
-        RunTests(argc, argv);
-        this->StartServer();
+        try {
+            EnableLogging();
+            RunTests(argc, argv);
+            auto commandLinePtr = HandleCommandLine(argc, argv, "Public Mobility Provider Application");
+            this->StartServer(commandLinePtr.get());
+        } catch (std::exception &e) {
+            const auto logger = log4cplus::Logger::getInstance("Public Mobility Provider Exception Logger");
+            LOG4CPLUS_ERROR(logger, std::string("Exception message: ") + e.what());
+            DisableLogging();
+        }
     }
 
-    void MobilityProviderApplication::StartServer() {
+    void MobilityProviderApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
         const auto serverManager = GetUnique<MobilityProviderServerManager>(
                 GetShared<MobilityProviderServiceImpl>(),
                 PUBLIC_MOBILITY_PROVIDER_SERVER_PORT,

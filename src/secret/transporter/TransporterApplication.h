@@ -1,16 +1,16 @@
 
 #include "IApplication.h"
+#include "SecretBaseApplication.h"
 
 namespace yakbas::sec {
 
-    class TransporterApplication : public IApplication {
+    class TransporterApplication : public SecretBaseApplication {
     public:
         ~TransporterApplication() override;
 
         void Run(int argc, char **argv) override;
 
-        void StartServer() override;
-
+        void StartServer(BaseCommandLineInfo *commandLineInfoPtr) override;
 
     };
 

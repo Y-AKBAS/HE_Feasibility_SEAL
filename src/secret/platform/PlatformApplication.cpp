@@ -16,18 +16,24 @@ namespace yakbas::sec {
         try {
             EnableLogging();
             RunTests(argc, argv);
-            this->StartServer();
-        } catch (const std::exception &exception) {
-            const static auto logger = log4cplus::Logger::getInstance("Exception Logger");
-            LOG4CPLUS_ERROR(logger, std::string("Exception message: ") + exception.what());
+            auto commandLinePtr = HandleCommandLine(argc, argv, "Secret Platform Application");
+            this->StartServer(commandLinePtr.get());
+        } catch (const std::exception &e) {
+            const auto &logger = log4cplus::Logger::getInstance("Secret Platform Exception Logger");
+            LOG4CPLUS_ERROR(logger, std::string("Exception message: ") + e.what());
             DisableLogging();
-            throw exception;
         }
     }
 
-    void PlatformApplication::StartServer() {
+    void PlatformApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
+        const auto &secretCmdLineInfoPtr = reinterpret_cast<SecretCommandLineInfo *>(commandLineInfoPtr);
+
+        if (secretCmdLineInfoPtr == nullptr) {
+            throw std::bad_cast();
+        }
+
         const auto serverManager = GetUnique<PlatformServerManager>(
-                GetShared<PlatformServiceImpl>(),
+                GetShared<PlatformServiceImpl>(secretCmdLineInfoPtr->m_sealKeys),
                 SECRET_PLATFORM_SERVER_PORT,
                 "Secret Platform Server Manager");
 

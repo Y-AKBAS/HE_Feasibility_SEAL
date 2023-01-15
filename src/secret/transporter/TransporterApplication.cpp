@@ -13,14 +13,28 @@ namespace yakbas::sec {
     TransporterApplication::~TransporterApplication() = default;
 
     void TransporterApplication::Run(int argc, char **argv) {
-        EnableLogging();
-        RunTests(argc, argv);
-        this->StartServer();
+        try {
+            EnableLogging();
+            RunTests(argc, argv);
+            auto commandLinePtr = HandleCommandLine(argc, argv, "Secret Transporter Application");
+            this->StartServer(commandLinePtr.get());
+        } catch (const std::exception &e) {
+            const auto &logger = log4cplus::Logger::getInstance("Secret Transporter Exception Logger");
+            LOG4CPLUS_ERROR(logger, std::string("Exception message: ") + e.what());
+            DisableLogging();
+        }
+
     }
 
-    void TransporterApplication::StartServer() {
+    void TransporterApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
+        const auto &secretCmdLineInfoPtr = reinterpret_cast<SecretCommandLineInfo *>(commandLineInfoPtr);
+
+        if (secretCmdLineInfoPtr == nullptr) {
+            throw std::bad_cast();
+        }
+
         const auto serverManager = GetUnique<TransporterServerManager>(
-                GetShared<TransporterServiceImpl>(),
+                GetShared<TransporterServiceImpl>(secretCmdLineInfoPtr->m_sealKeys),
                 SECRET_TRANSPORTER_SERVER_PORT,
                 "Secret Transporter Server Manager");
 

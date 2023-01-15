@@ -5,9 +5,9 @@ set(TEST_EXEC_FILE "./TestExecutable.cpp")
 list(REMOVE_ITEM SOURCE_FILES ${TEST_EXEC_FILE})
 
 add_library(sharedLib STATIC "${SOURCE_FILES}")
-target_link_libraries(sharedLib PUBLIC Boost::boost doctest::doctest log4cplus::log4cplus
+target_link_libraries(sharedLib PUBLIC Boost::program_options doctest::doctest log4cplus::log4cplus
         PRIVATE "${SHARED_LIBS}")
-target_include_directories(sharedLib PUBLIC . ${Boost_INCLUDE_DIR})
+target_include_directories(sharedLib PUBLIC .)
 
 list(APPEND SHARED_LIBS sharedLib)
 set(SHARED_LIBS "${SHARED_LIBS}" PARENT_SCOPE)

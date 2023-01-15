@@ -2,6 +2,7 @@
 #include "ClientServiceImpl.h"
 
 namespace yakbas::sec {
-    ClientServiceImpl::ClientServiceImpl() = default;
+    ClientServiceImpl::ClientServiceImpl(const SealKeys &sealKeys){}
 
+    ClientServiceImpl::~ClientServiceImpl() = default;
 } // yakbas
