@@ -25,9 +25,18 @@ namespace yakbas::pub {
     }
 
     void InvoiceClerkApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
+        const auto &publicCmdLineInfoPtr = reinterpret_cast<PublicCommandLineInfo *>(commandLineInfoPtr);
+
+        if (publicCmdLineInfoPtr == nullptr) {
+            throw std::bad_cast();
+        }
+
+        const std::string portUrl = publicCmdLineInfoPtr->m_portUrl.empty() ?
+                                    PUBLIC_INVOICE_CLERK_SERVER_PORT : publicCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<InvoiceClerkServerManager>(
                 GetShared<InvoiceClerkServiceImpl>(),
-                PUBLIC_INVOICE_CLERK_SERVER_PORT,
+                portUrl,
                 "Public Invoice Clerk Server Manager");
 
         serverManager->Init();

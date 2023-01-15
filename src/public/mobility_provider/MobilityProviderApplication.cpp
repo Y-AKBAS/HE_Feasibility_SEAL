@@ -26,9 +26,18 @@ namespace yakbas::pub {
     }
 
     void MobilityProviderApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
+        const auto &publicCmdLineInfoPtr = reinterpret_cast<PublicCommandLineInfo *>(commandLineInfoPtr);
+
+        if (publicCmdLineInfoPtr == nullptr) {
+            throw std::bad_cast();
+        }
+
+        const std::string portUrl = publicCmdLineInfoPtr->m_portUrl.empty() ?
+                                    PUBLIC_MOBILITY_PROVIDER_SERVER_PORT : publicCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<MobilityProviderServerManager>(
                 GetShared<MobilityProviderServiceImpl>(),
-                PUBLIC_MOBILITY_PROVIDER_SERVER_PORT,
+                portUrl,
                 "Public Mobility Provider Server Manager");
 
         serverManager->Init();

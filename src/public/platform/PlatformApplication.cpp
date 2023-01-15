@@ -25,9 +25,18 @@ namespace yakbas::pub {
     }
 
     void PlatformApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
+        const auto &publicCmdLineInfoPtr = reinterpret_cast<PublicCommandLineInfo *>(commandLineInfoPtr);
+
+        if (publicCmdLineInfoPtr == nullptr) {
+            throw std::bad_cast();
+        }
+
+        const std::string portUrl = publicCmdLineInfoPtr->m_portUrl.empty() ?
+                                    PUBLIC_PLATFORM_SERVER_PORT : publicCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<PlatformServerManager>(
                 GetShared<PlatformServiceImpl>(),
-                PUBLIC_PLATFORM_SERVER_PORT,
+                portUrl,
                 "Public Platform Server Manager");
 
         serverManager->Init();

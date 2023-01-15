@@ -8,9 +8,6 @@ namespace yakbas::sec {
                this->m_numberOfRequests == secretCommandLineInfo.m_numberOfRequests;
     }
 
-    SecretCommandLineInfo::SecretCommandLineInfo(int numberOfRequests, const SealKeys &sealKeys) : BaseCommandLineInfo(
-            numberOfRequests), m_sealKeys(sealKeys) {}
-
     SecretCommandLineInfo::~SecretCommandLineInfo() = default;
 
     SecretCommandLineInfo::SecretCommandLineInfo() = default;

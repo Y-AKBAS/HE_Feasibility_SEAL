@@ -10,7 +10,7 @@ namespace yakbas::pub {
     class PublicBaseApplication : public IApplication {
 
     public:
-        [[nodiscard]] static std::unique_ptr<PublicCommandLineInfo>
+        [[nodiscard]]  static std::unique_ptr<PublicCommandLineInfo>
         HandleCommandLine(int argc, char **argv, const std::string &&loggerInstance);
     };
 

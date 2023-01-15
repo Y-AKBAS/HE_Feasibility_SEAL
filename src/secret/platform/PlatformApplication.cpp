@@ -32,9 +32,12 @@ namespace yakbas::sec {
             throw std::bad_cast();
         }
 
+        const std::string portUrl = secretCmdLineInfoPtr->m_portUrl.empty() ?
+                                    SECRET_PLATFORM_SERVER_PORT : secretCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<PlatformServerManager>(
                 GetShared<PlatformServiceImpl>(secretCmdLineInfoPtr->m_sealKeys),
-                SECRET_PLATFORM_SERVER_PORT,
+                portUrl,
                 "Secret Platform Server Manager");
 
         serverManager->Init();

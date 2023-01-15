@@ -32,9 +32,12 @@ namespace yakbas::sec {
             throw std::bad_cast();
         }
 
+        const std::string portUrl = secretCmdLineInfoPtr->m_portUrl.empty() ?
+                                    SECRET_INVOICE_CLERK_SERVER_PORT : secretCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<InvoiceClerkServerManager>(
                 GetShared<InvoiceClerkServiceImpl>(secretCmdLineInfoPtr->m_sealKeys),
-                SECRET_INVOICE_CLERK_SERVER_PORT,
+                portUrl,
                 "Secret Invoice Clerk Server Manager");
 
         serverManager->Init();

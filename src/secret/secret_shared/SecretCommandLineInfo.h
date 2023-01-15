@@ -10,8 +10,6 @@ namespace yakbas::sec {
 
         bool operator==(const SecretCommandLineInfo &secretCommandLineInfo) const;
 
-        SecretCommandLineInfo(int numberOfRequests, const SealKeys &sealKeys);
-
         SecretCommandLineInfo();
 
         ~SecretCommandLineInfo() override;

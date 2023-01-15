@@ -12,28 +12,31 @@ namespace yakbas::sec {
         const constexpr char *isEncodingEnabledName = "encodingEnabled,ee";
         const constexpr char *scalePowerName = "scalePower,sp";
         const constexpr char *numberOfRequestsName = "numberOfRequests,nor";
+        const constexpr char *portUrlName = "portUrl,pu";
 
         auto commandLineInfoPtr = std::make_unique<SecretCommandLineInfo>();
         auto &keys = commandLineInfoPtr->m_sealKeys;
-        int schemeTypeHex{};
+        int schemeType{};
 
         po::options_description optionsDescription;
         optionsDescription.add_options()
-                (schemeTypeName, po::value<int>(&schemeTypeHex))
+                (schemeTypeName, po::value<int>(&schemeType))
                 (isEncodingEnabledName, po::bool_switch(&keys.m_isEncodingEnabled))
                 (plainModulusName, po::value<int>(&keys.m_plainModulus))
                 (polyModulusDegreeName, po::value<std::size_t>(&keys.m_polyModulusDegree))
                 (scalePowerName, po::value<int>(&keys.m_scalePower))
-                (numberOfRequestsName, po::value<int>(&commandLineInfoPtr->m_numberOfRequests));
+                (numberOfRequestsName, po::value<int>(&commandLineInfoPtr->m_numberOfRequests))
+                (portUrlName, po::value<std::string>(&commandLineInfoPtr->m_portUrl));
 
         const bool success = IsParsed(cmdLineArgs, optionsDescription);
 
-        if (schemeTypeHex > 0) {
-            keys.m_schemeType = static_cast<seal::scheme_type>(schemeTypeHex);
+        if (schemeType > 0) {
+            keys.m_schemeType = static_cast<seal::scheme_type>(schemeType);
         }
 
         SecretCommandLineInfo localCommandLineInfo{};
-        const bool noArgs = *commandLineInfoPtr == localCommandLineInfo;
+        const bool noArgs = *commandLineInfoPtr == localCommandLineInfo
+                            && !commandLineInfoPtr->m_portUrl.empty();
 
         ParserResultCode resultCode{};
         if (success && noArgs) {

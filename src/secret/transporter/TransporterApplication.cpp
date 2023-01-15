@@ -33,9 +33,12 @@ namespace yakbas::sec {
             throw std::bad_cast();
         }
 
+        const std::string portUrl = secretCmdLineInfoPtr->m_portUrl.empty() ?
+                                    SECRET_TRANSPORTER_SERVER_PORT : secretCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<TransporterServerManager>(
                 GetShared<TransporterServiceImpl>(secretCmdLineInfoPtr->m_sealKeys),
-                SECRET_TRANSPORTER_SERVER_PORT,
+                portUrl,
                 "Secret Transporter Server Manager");
 
         serverManager->Init();

@@ -25,9 +25,18 @@ namespace yakbas::pub {
     }
 
     void ClientApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
+        const auto &publicCmdLineInfoPtr = reinterpret_cast<PublicCommandLineInfo *>(commandLineInfoPtr);
+
+        if (publicCmdLineInfoPtr == nullptr) {
+            throw std::bad_cast();
+        }
+
+        const std::string portUrl = publicCmdLineInfoPtr->m_portUrl.empty() ?
+                                    PUBLIC_CLIENT_SERVER_PORT : publicCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<ClientServerManager>(
                 GetShared<ClientServiceImpl>(),
-                PUBLIC_CLIENT_SERVER_PORT,
+                portUrl,
                 "Public Client Server Manager");
 
         serverManager->Init();

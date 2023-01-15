@@ -32,9 +32,12 @@ namespace yakbas::sec {
             throw std::bad_cast();
         }
 
+        const std::string portUrl = secretCmdLineInfoPtr->m_portUrl.empty() ?
+                                    SECRET_MOBILITY_PROVIDER_SERVER_PORT : secretCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<MobilityProviderServerManager>(
                 GetShared<MobilityProviderServiceImpl>(secretCmdLineInfoPtr->m_sealKeys),
-                SECRET_MOBILITY_PROVIDER_SERVER_PORT,
+                portUrl,
                 "Secret Mobility Provider Server Manager");
 
         serverManager->Init();

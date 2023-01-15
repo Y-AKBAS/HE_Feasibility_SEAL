@@ -28,9 +28,13 @@ namespace yakbas::sec {
         if (secretCmdLineInfoPtr == nullptr) {
             throw std::bad_cast();
         }
+
+        const std::string portUrl = secretCmdLineInfoPtr->m_portUrl.empty() ?
+                                    SECRET_CLIENT_SERVER_PORT : secretCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<ClientServerManager>(
                 GetShared<ClientServiceImpl>(secretCmdLineInfoPtr->m_sealKeys),
-                SECRET_CLIENT_SERVER_PORT,
+                portUrl,
                 "Secret Client Server Manager");
 
         serverManager->Init();
