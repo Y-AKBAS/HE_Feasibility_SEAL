@@ -9,7 +9,6 @@ namespace yakbas::pub {
 
     public:
         ClientServiceImpl();
-
     };
 
 }// yakbas

@@ -3,10 +3,6 @@
 #include "ClientServerManager.h"
 #include "ClientServiceImpl.h"
 #include "Utils.h"
-#include "SealOperations.h"
-#include "CustomSealOperations.h"
-
-#include <log4cplus/configurator.h>
 
 namespace yakbas::sec {
     using namespace yakbas::util;
@@ -14,15 +10,31 @@ namespace yakbas::sec {
     ClientApplication::~ClientApplication() = default;
 
     void ClientApplication::Run(int argc, char **argv) {
-        EnableLogging();
-        RunTests(argc, argv);
-        this->StartServer();
+        try {
+            EnableLogging();
+            RunTests(argc, argv);
+            auto commandLinePtr = HandleCommandLine(argc, argv, "Secret Client Application");
+            this->StartServer(commandLinePtr.get());
+        } catch (std::exception &e) {
+            const auto logger = log4cplus::Logger::getInstance("Secret Client Exception Logger");
+            LOG4CPLUS_ERROR(logger, std::string("Exception message: ") + e.what());
+            DisableLogging();
+        }
     }
 
-    void ClientApplication::StartServer() {
+    void ClientApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
+        const auto &secretCmdLineInfoPtr = reinterpret_cast<SecretCommandLineInfo *>(commandLineInfoPtr);
+
+        if (secretCmdLineInfoPtr == nullptr) {
+            throw std::bad_cast();
+        }
+
+        const std::string portUrl = secretCmdLineInfoPtr->m_portUrl.empty() ?
+                                    SECRET_CLIENT_SERVER_PORT : secretCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<ClientServerManager>(
-                GetShared<ClientServiceImpl>(),
-                SECRET_CLIENT_SERVER_PORT,
+                GetShared<ClientServiceImpl>(secretCmdLineInfoPtr->m_sealKeys),
+                portUrl,
                 "Secret Client Server Manager");
 
         serverManager->Init();

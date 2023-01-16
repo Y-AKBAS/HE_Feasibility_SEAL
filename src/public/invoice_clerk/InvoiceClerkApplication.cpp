@@ -12,15 +12,31 @@ namespace yakbas::pub {
     InvoiceClerkApplication::~InvoiceClerkApplication() = default;
 
     void InvoiceClerkApplication::Run(int argc, char **argv) {
-        EnableLogging();
-        RunTests(argc, argv);
-        this->StartServer();
+        try {
+            EnableLogging();
+            RunTests(argc, argv);
+            auto commandLinePtr = HandleCommandLine(argc, argv, "Public Invoice Clerk Application");
+            this->StartServer(commandLinePtr.get());
+        } catch (std::exception &e) {
+            const auto logger = log4cplus::Logger::getInstance("Public Invoice Clerk Exception Logger");
+            LOG4CPLUS_ERROR(logger, std::string("Exception message: ") + e.what());
+            DisableLogging();
+        }
     }
 
-    void InvoiceClerkApplication::StartServer() {
+    void InvoiceClerkApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
+        const auto &publicCmdLineInfoPtr = reinterpret_cast<PublicCommandLineInfo *>(commandLineInfoPtr);
+
+        if (publicCmdLineInfoPtr == nullptr) {
+            throw std::bad_cast();
+        }
+
+        const std::string portUrl = publicCmdLineInfoPtr->m_portUrl.empty() ?
+                                    PUBLIC_INVOICE_CLERK_SERVER_PORT : publicCmdLineInfoPtr->m_portUrl;
+
         const auto serverManager = GetUnique<InvoiceClerkServerManager>(
                 GetShared<InvoiceClerkServiceImpl>(),
-                PUBLIC_INVOICE_CLERK_SERVER_PORT,
+                portUrl,
                 "Public Invoice Clerk Server Manager");
 
         serverManager->Init();

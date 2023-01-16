@@ -65,6 +65,7 @@ message InvoicingReport {
   string journeyId = 2;
   map<string, int32> rideIdSeatNumberMap = 3;
   BookingType bookingType = 4;
+  StatusCode status = 5;
 }
 
 message ProtoUser {

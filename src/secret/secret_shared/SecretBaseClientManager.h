@@ -18,8 +18,6 @@ namespace yakbas::sec {
 
         [[nodiscard]] std::unique_ptr<secretService::Stub> GetStub(const std::string &channelName) const;
 
-    protected:
-    private:
     };
 
 } // yakbas

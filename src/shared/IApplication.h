@@ -1,5 +1,8 @@
 #pragma once
 
+#include "BaseCommandLineInfo.h"
+#include <memory>
+
 #if (DISABLE_TESTS)
 #define DOCTEST_CONFIG_DISABLE
 #else
@@ -12,7 +15,7 @@ namespace yakbas {
     public:
         virtual ~IApplication() = default;
 
-        virtual void StartServer() = 0;
+        virtual void StartServer(BaseCommandLineInfo *commandLineInfoPtr) = 0;
 
         virtual void Run(int argc, char **argv) = 0;
 
