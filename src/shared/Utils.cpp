@@ -96,5 +96,4 @@ namespace yakbas::util {
         sscanf_s(val.c_str(), "%lA", &d);
         return d;
     }
-
 }

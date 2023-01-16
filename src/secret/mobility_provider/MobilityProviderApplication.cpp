@@ -42,5 +42,4 @@ namespace yakbas::sec {
 
         serverManager->Init();
     }
-
 } // yakbas

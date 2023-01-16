@@ -9,11 +9,13 @@ namespace yakbas::pub {
     PublicBaseCommandLineParser::GetCommandLineInfo(const std::vector<std::string> &cmdLineArgs) {
 
         const constexpr char *portName = "portUrl,pu";
+        const constexpr char *numberOfRequestsName = "numberOfRequests,nor";
 
         auto commandLineInfoPtr = std::make_unique<PublicCommandLineInfo>();
 
         po::options_description optionsDescription;
         optionsDescription.add_options()
+                (numberOfRequestsName, po::value<int>(&commandLineInfoPtr->m_numberOfRequests))
                 (portName, po::value<std::string>(&commandLineInfoPtr->m_portUrl));
 
         const bool success = IsParsed(cmdLineArgs, optionsDescription);

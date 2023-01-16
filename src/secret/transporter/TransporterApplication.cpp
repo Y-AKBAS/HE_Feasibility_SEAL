@@ -23,7 +23,6 @@ namespace yakbas::sec {
             LOG4CPLUS_ERROR(logger, std::string("Exception message: ") + e.what());
             DisableLogging();
         }
-
     }
 
     void TransporterApplication::StartServer(BaseCommandLineInfo *commandLineInfoPtr) {
