@@ -3,9 +3,10 @@
 
 namespace yakbas::sec {
 
-    bool SecretCommandLineInfo::operator==(const SecretCommandLineInfo &secretCommandLineInfo) const {
-        return this->m_sealKeys == secretCommandLineInfo.m_sealKeys &&
-               this->m_numberOfRequests == secretCommandLineInfo.m_numberOfRequests;
+    bool SecretCommandLineInfo::operator==(const SecretCommandLineInfo &rhs) const {
+        return this->m_sealKeys == rhs.m_sealKeys &&
+               this->m_numberOfRequests == rhs.m_numberOfRequests &&
+               this->m_portUrl == rhs.m_portUrl;
     }
 
     SecretCommandLineInfo::~SecretCommandLineInfo() = default;

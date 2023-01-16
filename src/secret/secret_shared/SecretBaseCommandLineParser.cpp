@@ -35,8 +35,7 @@ namespace yakbas::sec {
         }
 
         SecretCommandLineInfo localCommandLineInfo{};
-        const bool noArgs = *commandLineInfoPtr == localCommandLineInfo
-                            && !commandLineInfoPtr->m_portUrl.empty();
+        const bool noArgs = *commandLineInfoPtr == localCommandLineInfo;
 
         ParserResultCode resultCode{};
         if (success && noArgs) {
