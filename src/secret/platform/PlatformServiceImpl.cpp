@@ -102,7 +102,6 @@ namespace yakbas::sec {
 
         auto &totalCipherPtr = requestTotalCiphers.at(0);
         if (requestTotalCiphers.size() > 1) {
-            std::cout << "More than one requestTotalCiphers" << std::endl;
             for (int i = 1; i < requestTotalCiphers.size(); ++i) {
                 m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *requestTotalCiphers.at(i));
             }

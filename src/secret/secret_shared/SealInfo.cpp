@@ -11,7 +11,9 @@ namespace yakbas::sec {
               m_plainModulus(plainModulus),
               m_isEncodingEnabled(isEncodingEnabled),
               m_scalePower(scalePower),
-              m_encodingBitSizes(bitSizes) {}
+              m_encodingBitSizes(bitSizes) {
+        m_scale = std::pow(2.0, m_scalePower);
+    }
 
     bool SealKeys::operator==(const SealKeys &rhs) const {
         return (this->m_polyModulusDegree == rhs.m_polyModulusDegree) &&

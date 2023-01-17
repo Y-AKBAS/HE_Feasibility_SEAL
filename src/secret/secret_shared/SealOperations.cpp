@@ -32,7 +32,6 @@ namespace yakbas::sec {
         }
 
         if (const auto value = std::get_if<std::uint64_t>(&num)) {
-            std::cout << "num to encrypt: " << *value << std::endl;
             const std::string hexString = seal::util::uint_to_hex_string(value, std::size_t(1));
             seal::Plaintext plaintext(hexString);
             auto cipherText = GetUnique<seal::Ciphertext>();
@@ -127,11 +126,10 @@ namespace yakbas::sec {
             } else {
                 std::vector<std::uint64_t> output;
                 m_batchEncoder->decode(decryptedPlain, output);
-                std::cout << "batch encoder output: " << output.at(0) << std::endl;
                 return output.at(0);
             }
         } catch (const std::exception &exception) {
-            std::cout << "Decryption exception message: " << exception.what() << std::endl;
+            LOG4CPLUS_ERROR(*m_logger, "Decryption exception message: "s + exception.what());
             throw exception;
         }
     }

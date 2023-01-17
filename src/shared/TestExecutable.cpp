@@ -3,9 +3,8 @@
 
 #include "doctest/doctest.h"
 
-TEST_SUITE("Generic Application Run Tester"){
+TEST_SUITE("Generic Application Run Tester") {
 
-    TEST_CASE("PRINT_MESSAGE"){
-        std::cout << "Generic Application Run Tester" << std::endl;
+    TEST_CASE("PRINT_MESSAGE") {
     }
 }

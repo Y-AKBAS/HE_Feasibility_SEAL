@@ -35,13 +35,13 @@ namespace yakbas::sec::test {
             const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
 
             SUBCASE("GetOperationsTest") {
-                    const auto sealKeys_1 = util::GetUnique<SealKeys>();
-                    const auto customSealOperations =
-                            util::GetUnique<CustomSealOperations>(*sealKeys_1);
-                    const SealOperations &operations_1 = CustomSealOperations::GetOperations(*sealKeys_1);
-                    const SealOperations &operations_1_1 = CustomSealOperations::GetOperations(*sealKeys_1);
-                    CHECK(operations_1 == operations_1_1);
-                    CHECK(*operations_1.GetSealInfoPtr() == *operations_1_1.GetSealInfoPtr());
+                const auto sealKeys_1 = util::GetUnique<SealKeys>();
+                const auto customSealOperations =
+                        util::GetUnique<CustomSealOperations>(*sealKeys_1);
+                const SealOperations &operations_1 = CustomSealOperations::GetOperations(*sealKeys_1);
+                const SealOperations &operations_1_1 = CustomSealOperations::GetOperations(*sealKeys_1);
+                CHECK(operations_1 == operations_1_1);
+                CHECK(*operations_1.GetSealInfoPtr() == *operations_1_1.GetSealInfoPtr());
             }
 
             SUBCASE("Encryption Test") {
@@ -57,7 +57,7 @@ namespace yakbas::sec::test {
                         EncryptionTest<std::uint64_t>(*customSealOperations, isCKKS);
                     }
                 } catch (std::exception &exception) {
-                    std::cout << exception.what() << std::endl;
+                    LOG4CPLUS_INFO(*logger, "Encryption Test Exception Message: "s + exception.what());
                 }
             }
 
@@ -347,7 +347,6 @@ namespace yakbas::sec::test {
     TEST_CASE("Customization Tests") {
         ::log4cplus::initialize();
         ::log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
-        const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
 
         SUBCASE("CKKS Customization Test") {
             SealKeys keys{};
