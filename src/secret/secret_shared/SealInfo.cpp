@@ -88,7 +88,6 @@ namespace yakbas::sec {
         m_encryptionParamsPtr->set_poly_modulus_degree(m_sealKeys.m_polyModulusDegree);
         m_encryptionParamsPtr->set_coeff_modulus(*m_coefficientModulusPtr);
         m_sealContextPtr = std::make_unique<seal::SEALContext>(*m_encryptionParamsPtr);
-        m_keyGeneratorPtr = std::make_unique<seal::KeyGenerator>(*m_sealContextPtr);
         m_evaluatorPtr = std::make_unique<seal::Evaluator>(*m_sealContextPtr);
     }
 

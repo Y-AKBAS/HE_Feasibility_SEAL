@@ -3,8 +3,6 @@
 
 #include <utility>
 #include "PlatformServiceImpl.h"
-#include "ApplicationConstants.h"
-#include "Utils.h"
 
 namespace yakbas::sec {
     using namespace yakbas::util;
@@ -84,7 +82,6 @@ namespace yakbas::sec {
                                            communication::sec::BookingResponse *response) {
 
         response->set_journey_id(GetUUID());
-        const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
         auto rideIdSeatNumberMap = response->mutable_rideidseatnumbermap();
 
         std::vector<std::unique_ptr<seal::Ciphertext>> requestTotalCiphers{};
@@ -108,10 +105,6 @@ namespace yakbas::sec {
             std::cout << "More than one requestTotalCiphers" << std::endl;
             for (int i = 1; i < requestTotalCiphers.size(); ++i) {
                 m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *requestTotalCiphers.at(i));
-                /*auto newCipherPtr = m_customSealOperationsPtr->GetSealOperations()->GetNewCipher(
-                        std::make_optional(totalCipherPtr->parms_id()));
-                evaluatorPtr->add(*totalCipherPtr, *requestTotalCiphers.at(i), *newCipherPtr);
-                totalCipherPtr = std::move(newCipherPtr);*/
             }
         }
 
@@ -160,23 +153,17 @@ namespace yakbas::sec {
             evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
                                    *totalCipherPtr);
 
-            SealOperations::Relinearize(*totalCipherPtr, *evaluatorPtr, *relinKeysPtr);
+            m_customSealOperationsPtr->GetSealOperations()->Relinearize(*totalCipherPtr, *relinKeysPtr);
 
             const auto &discount = request.discount();
             if (!discount.empty()) {
                 auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
-                /* auto newCipherPtr = GetUnique<seal::Ciphertext>();
-                 evaluatorPtr->sub(*totalCipherPtr, *discountCipherPtr, *newCipherPtr);
-                 totalCipherPtr = std::move(newCipherPtr);*/
                 m_customSealOperationsPtr->SubProcessedInPlace(*totalCipherPtr, *discountCipherPtr);
             }
 
             const auto &seatPrice = request.seatprice();
             if (!seatPrice.empty()) {
                 auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
-                /*auto newCipherPtr = GetUnique<seal::Ciphertext>();
-                evaluatorPtr->add(*totalCipherPtr, *seatPriceCipherPtr, *newCipherPtr);
-                totalCipherPtr = std::move(newCipherPtr);*/
                 m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *seatPriceCipherPtr);
                 rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
             }
@@ -191,7 +178,6 @@ namespace yakbas::sec {
                             std::string("Error occurred while getting request total. Message: ") + exception.what());
             throw exception;
         }
-
     }
 
 } // yakbas

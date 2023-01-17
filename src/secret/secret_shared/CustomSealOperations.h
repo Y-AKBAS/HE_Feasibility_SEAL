@@ -44,7 +44,7 @@ namespace yakbas::sec {
 
         [[nodiscard]] const SealOperations *GetSealOperations() const;
 
-        [[nodiscard]] const std::unique_ptr<seal::Evaluator> &GetEvaluatorPtr() const;
+        [[nodiscard]] const std::unique_ptr<const seal::Evaluator> &GetEvaluatorPtr() const;
 
         [[nodiscard]] const std::unique_ptr<seal::Decryptor> &GetDecryptorPtr() const;
 
@@ -67,11 +67,11 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<std::stringstream> RelinKeyToBuffer() const;
 
         const SealOperations *m_sealOperations{nullptr};
+        std::unique_ptr<seal::KeyGenerator> m_keyGeneratorPtr{nullptr};
         std::unique_ptr<seal::PublicKey> m_publicKeyPtr{nullptr};
         std::unique_ptr<seal::SecretKey> m_secretKeyPtr{nullptr};
         std::unique_ptr<seal::Encryptor> m_encryptorPtr{nullptr};
         std::unique_ptr<seal::Decryptor> m_decryptorPtr{nullptr};
-        std::unique_ptr<seal::Evaluator> m_evaluatorPtr{nullptr};
         std::unique_ptr<seal::RelinKeys> m_relinKeysPtr{nullptr};
         std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
 
