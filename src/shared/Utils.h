@@ -159,16 +159,12 @@ namespace yakbas::util {
         const double leftTrunc = std::trunc(*left * scale) / scale;
         const double rightTrunc = std::trunc(*right * scale) / scale;
         const double tolerance = ten / scale;
-        double difference = std::abs(leftTrunc - rightTrunc);
-        std::cout << "decimal tolerance difference: " << difference << std::endl;
-        return difference < tolerance;
+        return std::abs(leftTrunc - rightTrunc) < tolerance;
     }
 
     template<typename T>
     bool CompareWithTolerance(const T *left, const T *right, int tolerance = 1) {
-        double difference = std::abs(left - right);
-        std::cout << "CompareWithTolerance difference: " << difference << std::endl;
-        return difference < tolerance;
+        return std::abs(left - right) < tolerance;
     }
 
     void NumVariantToAny(const num_variant *variant, google::protobuf::Any *any);

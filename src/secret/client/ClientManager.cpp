@@ -403,10 +403,7 @@ namespace yakbas::sec {
             }
 
             const auto &totalVar = sealOperationsPtr->Decrypt(*cipherPtr);
-            std::cout << "Booking Response Total: " << GetAnyVariant<double>(&totalVar) << std::endl;
             NumVariantToAny(&totalVar, publicResponsePtr->mutable_total());
-            std::cout << "Booking Response Total in public: "
-                      << AnyToNum<std::uint64_t>(publicResponsePtr->mutable_total()) << std::endl;
         } catch (const std::exception &e) {
             LOG4CPLUS_ERROR(*m_logger, "Error occurred during decryption.\nError Message: " + std::string(e.what()));
         }

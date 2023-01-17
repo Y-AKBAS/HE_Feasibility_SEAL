@@ -112,7 +112,6 @@ namespace yakbas::sec::test {
                 const auto bookingResponsePtr = clientManagerPtr->BookSecretlyAndDecrypt(*journeyPtr);
 
                 const double total = AnyToNum(isCKKS, &bookingResponsePtr->total());
-                std::cout << "Booking Response Total Inside: " << total << std::endl;
                 if (isCKKS) {
                     CHECK(CompareWithDecimalTolerance(&total, &totalBeforeSent));
                 } else {
@@ -142,7 +141,6 @@ namespace yakbas::sec::test {
             const auto bookingResponsePtr = clientManagerPtr->BookSecretlyAndDecrypt(*journeyPtr);
 
             const double total = AnyToNum(isCKKS, &bookingResponsePtr->total());
-            std::cout << "Payment Request Test: \ntotalBeforeSent: " << totalBeforeSent << " total: " << total << std::endl;
             if (isCKKS) {
                 CHECK(CompareWithDecimalTolerance(&total, &totalBeforeSent, 3));
             } else {
@@ -240,11 +238,6 @@ namespace yakbas::sec::test {
                 const double findTotalUnitPrice = AnyToNum(isCKKS, &ride.transporter().unitprice());
                 const double findTotalSeatPrice = AnyToNum(isCKKS, &ride.transporter().seatprice());
                 const double findTotalDiscount = AnyToNum(isCKKS, &ride.discount());
-
-                std::cout << "findTotalCoefficient: " << findTotalCoefficient << std::endl;
-                std::cout << "findTotalUnitPrice: " << findTotalUnitPrice << std::endl;
-                std::cout << "findTotalSeatPrice: " << findTotalSeatPrice << std::endl;
-                std::cout << "findTotalDiscount: " << findTotalDiscount << std::endl;
 
                 total += findTotalCoefficient * findTotalUnitPrice;
                 total += findTotalSeatPrice;

@@ -142,8 +142,6 @@ namespace yakbas::sec {
         const auto transporterType = GetTransporterType(randomInt);
         const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
 
-        std::cout << "Mobility Generator random: " << GetAnyVariant<double>(&randomNumber) << std::endl;
-
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
         timestampPtr->set_nanos(static_cast<int32_t>(Timer::GetCurrentTimeNanos()));
@@ -158,7 +156,6 @@ namespace yakbas::sec {
 
         // set seat price if it makes sense
         if (isSeatPriceMeaningful) {
-            std::cout << "Seat price set" << std::endl;
             NumVariantToAny(&randomNumber, transporterPtr->mutable_seatprice());
         }
 
@@ -170,7 +167,6 @@ namespace yakbas::sec {
         NumVariantToAny(&randomNumber, ridePtr->mutable_coefficient());
 
         if ((randomInt % 2) == 1) {
-            std::cout << "Discount set" << std::endl;
             NumVariantToAny(&randomNumber, ridePtr->mutable_discount());
         }
     }
