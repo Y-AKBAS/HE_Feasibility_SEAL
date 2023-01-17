@@ -35,7 +35,6 @@ namespace yakbas::sec::test {
             const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
 
             SUBCASE("GetOperationsTest") {
-                try {
                     const auto sealKeys_1 = util::GetUnique<SealKeys>();
                     const auto customSealOperations =
                             util::GetUnique<CustomSealOperations>(*sealKeys_1);
@@ -43,10 +42,6 @@ namespace yakbas::sec::test {
                     const SealOperations &operations_1_1 = CustomSealOperations::GetOperations(*sealKeys_1);
                     CHECK(operations_1 == operations_1_1);
                     CHECK(*operations_1.GetSealInfoPtr() == *operations_1_1.GetSealInfoPtr());
-                } catch (std::exception &e) {
-                    LOG4CPLUS_ERROR(*logger, "GetOperationsTest Failed. Message: "s + e.what());
-                    ::log4cplus::deinitialize();
-                }
             }
 
             SUBCASE("Encryption Test") {
@@ -307,8 +302,7 @@ namespace yakbas::sec::test {
 
                 customSealOperations->GetEvaluatorPtr()->multiply(*coeffCipher, *unitPriceCipher,
                                                                   *firstTotalCipher);
-                customSealOperations->GetSealOperations()->SubProcessedInPlace(*firstTotalCipher, *discountCipher,
-                                                                               *customSealOperations->GetEvaluatorPtr());
+                customSealOperations->GetSealOperations()->SubProcessedInPlace(*firstTotalCipher, *discountCipher);
 
                 customSealOperations->AddProcessedInPlace(*firstTotalCipher, *seatPriceCipher);
 
@@ -324,8 +318,7 @@ namespace yakbas::sec::test {
 
                 customSealOperations->GetEvaluatorPtr()->multiply(*coeffCipher, *unitPriceCipher,
                                                                   *secondTotalCipher);
-                customSealOperations->GetSealOperations()->SubProcessedInPlace(*secondTotalCipher, *discountCipher,
-                                                                               *customSealOperations->GetEvaluatorPtr());
+                customSealOperations->GetSealOperations()->SubProcessedInPlace(*secondTotalCipher, *discountCipher);
 
                 customSealOperations->AddProcessedInPlace(*secondTotalCipher, *seatPriceCipher);
 
@@ -349,6 +342,59 @@ namespace yakbas::sec::test {
             }
             log4cplus::deinitialize();
         }
+    }
+
+    TEST_CASE("Customization Tests") {
+        ::log4cplus::initialize();
+        ::log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
+        const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
+
+        SUBCASE("CKKS Customization Test") {
+            SealKeys keys{};
+            keys.m_schemeType = seal::scheme_type::ckks;
+            keys.m_isEncodingEnabled = true;
+
+            const auto encryptedPlain = GetRandomNumber<double>();
+            const auto firstCipher = GetUnique<CustomSealOperations>(keys)->Encrypt(encryptedPlain);
+
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+
+            auto decryptedPlain = GetAnyVariant<double>(&decryptedCipher);
+
+            CHECK(CompareWithDecimalTolerance(&encryptedPlain, &decryptedPlain) == false);
+        }
+
+        SUBCASE("BFV Customization Test") {
+            SealKeys keys{};
+            keys.m_schemeType = seal::scheme_type::bfv;
+            keys.m_isEncodingEnabled = true;
+
+            const auto encryptedPlain = GetRandomNumber<std::uint64_t>();
+            const auto firstCipher = GetUnique<CustomSealOperations>(keys)->Encrypt(encryptedPlain);
+
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+
+            auto decryptedPlain = GetAnyVariant<std::uint64_t>(&decryptedCipher);
+
+            CHECK(encryptedPlain != decryptedPlain);
+        }
+
+        SUBCASE("BGV Customization Test") {
+            SealKeys keys{};
+            keys.m_schemeType = seal::scheme_type::bgv;
+            keys.m_isEncodingEnabled = true;
+
+            const auto encryptedPlain = GetRandomNumber<std::uint64_t>();
+            const auto firstCipher = GetUnique<CustomSealOperations>(keys)->Encrypt(encryptedPlain);
+
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+
+            auto decryptedPlain = GetAnyVariant<std::uint64_t>(&decryptedCipher);
+
+            CHECK(encryptedPlain != decryptedPlain);
+        }
+
+        log4cplus::deinitialize();
     }
 
 } // yakbas

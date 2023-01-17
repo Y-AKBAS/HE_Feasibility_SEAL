@@ -39,12 +39,11 @@ namespace yakbas::sec {
 
         bool operator==(const SealInfo &rhs) const;
 
-        std::unique_ptr<seal::EncryptionParameters> m_encryptionParamsPtr;
-        std::unique_ptr<const seal::SEALContext> m_sealContextPtr;
-        std::unique_ptr<seal::KeyGenerator> m_keyGeneratorPtr;
-        std::unique_ptr<const seal::Evaluator> m_evaluatorPtr;
-        std::unique_ptr<const std::vector<seal::Modulus>> m_coefficientModulusPtr;
-        const SealKeys m_sealKeys;
+        std::unique_ptr<seal::EncryptionParameters> m_encryptionParamsPtr{nullptr};
+        std::unique_ptr<const seal::SEALContext> m_sealContextPtr{nullptr};
+        std::unique_ptr<const seal::Evaluator> m_evaluatorPtr{nullptr};
+        std::unique_ptr<const std::vector<seal::Modulus>> m_coefficientModulusPtr{nullptr};
+        const SealKeys m_sealKeys{};
     };
 
 } // yakbas

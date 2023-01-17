@@ -11,11 +11,13 @@ namespace yakbas::sec {
             : m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("CustomSealOperations"))),
               m_sealOperations(&CustomSealOperations::GetOperations(sealKeys)) {
 
+        const auto &sealInfoPtr = m_sealOperations->GetSealInfoPtr();
+        m_keyGeneratorPtr = std::make_unique<seal::KeyGenerator>(*sealInfoPtr->m_sealContextPtr);
         m_publicKeyPtr = GetUnique<seal::PublicKey>();
-        m_sealOperations->GetSealInfoPtr()->m_keyGeneratorPtr->create_public_key(*m_publicKeyPtr);
+        m_keyGeneratorPtr->create_public_key(*m_publicKeyPtr);
 
         m_secretKeyPtr = GetUnique<seal::SecretKey>(
-                m_sealOperations->GetSealInfoPtr()->m_keyGeneratorPtr->secret_key());
+                m_keyGeneratorPtr->secret_key());
 
         m_encryptorPtr = GetUnique<seal::Encryptor>(
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
@@ -25,12 +27,8 @@ namespace yakbas::sec {
                 *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr,
                 *m_secretKeyPtr);
 
-        m_evaluatorPtr = GetUnique<seal::Evaluator>(
-                *m_sealOperations->GetSealInfoPtr()->m_sealContextPtr
-        );
-
         m_relinKeysPtr = GetUnique<seal::RelinKeys>();
-        m_sealOperations->GetSealInfoPtr()->m_keyGeneratorPtr->create_relin_keys(*m_relinKeysPtr);
+        m_keyGeneratorPtr->create_relin_keys(*m_relinKeysPtr);
 
         m_publicKeyBuffer = this->PublicKeyToBuffer()->str();
         m_relinKeysBuffer = this->RelinKeyToBuffer()->str();
@@ -130,16 +128,16 @@ namespace yakbas::sec {
         return m_publicKeyBuffer;
     }
 
-    const std::unique_ptr<seal::Evaluator> &CustomSealOperations::GetEvaluatorPtr() const {
-        return m_evaluatorPtr;
+    const std::unique_ptr<const seal::Evaluator> &CustomSealOperations::GetEvaluatorPtr() const {
+        return m_sealOperations->GetSealInfoPtr()->m_evaluatorPtr;
     }
 
     void CustomSealOperations::Relinearize(seal::Ciphertext &ciphertext) {
-        SealOperations::Relinearize(ciphertext, *m_evaluatorPtr, *m_relinKeysPtr);
+        m_sealOperations->Relinearize(ciphertext, *m_relinKeysPtr);
     }
 
     void CustomSealOperations::SwitchMode(seal::Ciphertext &ciphertext) {
-        m_evaluatorPtr->mod_switch_to_next_inplace(ciphertext);
+        m_sealOperations->GetSealInfoPtr()->m_evaluatorPtr->mod_switch_to_next_inplace(ciphertext);
     }
 
     std::string CustomSealOperations::GetBufferFromCipher(seal::Ciphertext &ciphertext) {
@@ -158,12 +156,12 @@ namespace yakbas::sec {
 
     void CustomSealOperations::AddProcessedInPlace(seal::Ciphertext &processedCipher,
                                                    seal::Ciphertext &cipherToAdd) const {
-        m_sealOperations->AddProcessedInPlace(processedCipher, cipherToAdd, *m_evaluatorPtr);
+        m_sealOperations->AddProcessedInPlace(processedCipher, cipherToAdd);
     }
 
     void CustomSealOperations::SubProcessedInPlace(seal::Ciphertext &processedCipher,
                                                    seal::Ciphertext &cipherToAdd) const {
-        m_sealOperations->SubProcessedInPlace(processedCipher, cipherToAdd, *m_evaluatorPtr);
+        m_sealOperations->SubProcessedInPlace(processedCipher, cipherToAdd);
     }
 
 } // yakbas

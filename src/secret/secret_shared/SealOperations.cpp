@@ -153,11 +153,10 @@ namespace yakbas::sec {
     }
 
     void SealOperations::AddProcessedInPlace(seal::Ciphertext &processedCipher,
-                                             seal::Ciphertext &cipherToAdd,
-                                             const seal::Evaluator &evaluator) const {
+                                             seal::Ciphertext &cipherToAdd) const {
         try {
             if (m_schemeType != seal::scheme_type::ckks) {
-                evaluator.add_inplace(processedCipher, cipherToAdd);
+                m_sealInfoPtr->m_evaluatorPtr->add_inplace(processedCipher, cipherToAdd);
                 return;
             }
 
@@ -165,11 +164,11 @@ namespace yakbas::sec {
             double cipherToAddScale = std::log2(cipherToAdd.scale());
 
             if (processedCipherScale > m_scalePower) {
-                evaluator.rescale_to_next_inplace(processedCipher);
+                m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(processedCipher);
             }
 
             if (cipherToAddScale > m_scalePower) {
-                evaluator.rescale_to_next_inplace(cipherToAdd);
+                m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(cipherToAdd);
             }
 
             LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
@@ -180,19 +179,18 @@ namespace yakbas::sec {
                                "Cipher scales are being equal now. Scale: " + std::to_string(processedCipherScale));
             }
 
-            evaluator.mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
-            evaluator.add_inplace(processedCipher, cipherToAdd);
+            m_sealInfoPtr->m_evaluatorPtr->mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
+            m_sealInfoPtr->m_evaluatorPtr->add_inplace(processedCipher, cipherToAdd);
         } catch (const std::exception &exception) {
             LOG4CPLUS_ERROR(*m_logger,
                             std::string("Exception thrown in AddProcessedInPlace. Message: ") + exception.what());
         }
     }
 
-    void SealOperations::SubProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
-                                             const seal::Evaluator &evaluator) const {
+    void SealOperations::SubProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd) const {
         try {
             if (m_schemeType != seal::scheme_type::ckks) {
-                evaluator.sub_inplace(processedCipher, cipherToAdd);
+                m_sealInfoPtr->m_evaluatorPtr->sub_inplace(processedCipher, cipherToAdd);
                 return;
             }
 
@@ -200,11 +198,11 @@ namespace yakbas::sec {
             double cipherToAddScale = std::log2(cipherToAdd.scale());
 
             if (processedCipherScale > m_scalePower) {
-                evaluator.rescale_to_next_inplace(processedCipher);
+                m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(processedCipher);
             }
 
             if (cipherToAddScale > m_scalePower) {
-                evaluator.rescale_to_next_inplace(cipherToAdd);
+                m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(cipherToAdd);
             }
 
             LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
@@ -215,8 +213,8 @@ namespace yakbas::sec {
                 processedCipher.scale() = cipherToAdd.scale();
             }
 
-            evaluator.mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
-            evaluator.sub_inplace(processedCipher, cipherToAdd);
+            m_sealInfoPtr->m_evaluatorPtr->mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
+            m_sealInfoPtr->m_evaluatorPtr->sub_inplace(processedCipher, cipherToAdd);
         } catch (const std::exception &exception) {
             LOG4CPLUS_ERROR(*m_logger,
                             std::string("Exception thrown in SubProcessedInPlace. Message: ") + exception.what());
@@ -327,9 +325,8 @@ namespace yakbas::sec {
         return this->m_sealInfoPtr->m_sealKeys == rhs.m_sealInfoPtr->m_sealKeys;
     }
 
-    void SealOperations::Relinearize(seal::Ciphertext &ciphertext, const seal::Evaluator &evaluator,
-                                     const seal::RelinKeys &relinKeys) {
-        evaluator.relinearize_inplace(ciphertext, relinKeys);
+    void SealOperations::Relinearize(seal::Ciphertext &ciphertext, const seal::RelinKeys &relinKeys) const {
+        m_sealInfoPtr->m_evaluatorPtr->relinearize_inplace(ciphertext, relinKeys);
     }
 
     std::unique_ptr<seal::Ciphertext>

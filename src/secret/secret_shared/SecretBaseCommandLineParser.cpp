@@ -3,6 +3,10 @@
 
 namespace yakbas::sec {
 
+    SecretBaseCommandLineParser::SecretBaseCommandLineParser() = default;
+
+    SecretBaseCommandLineParser::~SecretBaseCommandLineParser() = default;
+
     std::pair<std::unique_ptr<SecretCommandLineInfo>, ParserResultCode>
     SecretBaseCommandLineParser::GetCommandLineInfo(const std::vector<std::string> &cmdLineArgs) {
 
@@ -21,7 +25,7 @@ namespace yakbas::sec {
         po::options_description optionsDescription;
         optionsDescription.add_options()
                 (schemeTypeName, po::value<int>(&schemeType))
-                (isEncodingEnabledName, po::bool_switch(&keys.m_isEncodingEnabled))
+                (isEncodingEnabledName, po::value<bool>(&keys.m_isEncodingEnabled))
                 (plainModulusName, po::value<int>(&keys.m_plainModulus))
                 (polyModulusDegreeName, po::value<std::size_t>(&keys.m_polyModulusDegree))
                 (scalePowerName, po::value<int>(&keys.m_scalePower))
@@ -55,9 +59,5 @@ namespace yakbas::sec {
                 std::move(commandLineInfoPtr),
                 std::move(resultCode));
     }
-
-    SecretBaseCommandLineParser::SecretBaseCommandLineParser() = default;
-
-    SecretBaseCommandLineParser::~SecretBaseCommandLineParser() = default;
 
 } // yakbas

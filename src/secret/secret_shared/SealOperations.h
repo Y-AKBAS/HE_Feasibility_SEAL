@@ -23,11 +23,9 @@ namespace yakbas::sec {
         [[nodiscard]] num_variant Decrypt(const seal::Ciphertext &cipher,
                                           seal::Decryptor &decryptor) const;
 
-        void AddProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
-                                 const seal::Evaluator &evaluator) const;
+        void AddProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd) const;
 
-        void SubProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
-                                 const seal::Evaluator &evaluator) const;
+        void SubProcessedInPlace(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd) const;
 
         void AddProcessedCiphers(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
                                  seal::Ciphertext &destination,
@@ -60,8 +58,7 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
         GetNewCipher(const std::optional<seal::parms_id_type> &parms_id) const;
 
-        static void
-        Relinearize(seal::Ciphertext &ciphertext, const seal::Evaluator &evaluator, const seal::RelinKeys &relinKeys);
+        void Relinearize(seal::Ciphertext &ciphertext, const seal::RelinKeys &relinKeys) const;
 
         bool operator==(const SealOperations &rhs) const;
 
