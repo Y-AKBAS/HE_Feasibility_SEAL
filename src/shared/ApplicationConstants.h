@@ -6,7 +6,9 @@
 
 namespace yakbas::constants {
     extern const std::string INVOICE_CLERK_CHANNEL;
-    extern const std::string MOBILITY_PROVIDER_CHANNEL;
+    extern const std::string MOBILITY_PROVIDER_CHANNEL_1;
+    extern const std::string MOBILITY_PROVIDER_CHANNEL_2;
+    extern const std::string MOBILITY_PROVIDER_CHANNEL_3;
     extern const std::string PLATFORM_CHANNEL;
     extern const std::string CLIENT_CHANNEL;
     extern const std::string TRANSPORT_CHANNEL;

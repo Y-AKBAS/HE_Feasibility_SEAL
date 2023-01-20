@@ -54,6 +54,10 @@ namespace yakbas::sec {
         return !m_publicKeyMap.empty() && !m_channelMap.empty();
     }
 
+    seal::scheme_type ClientManager::GetSchemeType() const {
+        return m_schemeType;
+    }
+
     std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
     ClientManager::SearchSecretly(const std::string &from, const std::string &to, int numberOfJourneys) const {
 
@@ -253,6 +257,124 @@ namespace yakbas::sec {
         return responsePtr;
     }
 
+    std::unique_ptr<communication::sec::BookingResponse>
+    ClientManager::BookSymmetricSecretlyOnOthers(const communication::Journey &journey) const {
+        const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::sec::BookingResponse>();
+        const auto clientWriterPtr = stubPtr->BookOnOthers(clientContextPtr.get(), responsePtr.get());
+
+        const auto &rides = journey.rides();
+
+        for (const auto &ride: rides) {
+
+            const auto requestPtr = GetUnique<communication::sec::BookingRequest>();
+            const auto &customSealOperations = m_userPtr->GetCustomSealOperations();
+            requestPtr->set_relinkeys(customSealOperations->GetRelinKeysBuffer());
+
+            int bookingType = (GetRandomNumber<int>()) % (communication::BookingType_ARRAYSIZE - 1);
+            requestPtr->set_bookingtype(static_cast<communication::BookingType>(bookingType));
+
+            const auto &coefficientVariant = AnyToNumVariant(isCKKS, &ride.coefficient());
+            const auto coefficientBuffer = customSealOperations->GetSymmetricEncryptedBuffer(coefficientVariant);
+            requestPtr->set_coefficient(*coefficientBuffer);
+
+            const auto &unitPriceVariant = AnyToNumVariant(isCKKS, &ride.transporter().unitprice());
+            const auto unitPriceBuffer = customSealOperations->GetSymmetricEncryptedBuffer(unitPriceVariant);
+            requestPtr->set_unitprice(*unitPriceBuffer);
+
+            const auto &discountVariant = AnyToNumVariant(isCKKS, &ride.discount());
+            if (GetAnyVariant<double>(&discountVariant) > 0) {
+                const auto discountBuffer = customSealOperations->GetSymmetricEncryptedBuffer(discountVariant);
+                requestPtr->set_discount(*discountBuffer);
+            }
+
+            const auto &seatPriceVariant = AnyToNumVariant(isCKKS, &ride.transporter().seatprice());
+            if (GetAnyVariant<double>(&seatPriceVariant) > 0) {
+                const auto seatPriceBuffer = customSealOperations->GetSymmetricEncryptedBuffer(seatPriceVariant);
+                requestPtr->set_seatprice(*seatPriceBuffer);
+            }
+
+            if (!clientWriterPtr->Write(*requestPtr)) {
+                throw std::bad_function_call();
+            }
+        }
+
+        clientWriterPtr->WritesDone();
+        const auto &status = clientWriterPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_TRACE(*m_logger, "Sent Symmetric Secret BookingRequests successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during Sending Symmetric Secret BookingRequests. Error message: " +
+                            status.error_message());
+        }
+
+        return responsePtr;
+    }
+
+    std::unique_ptr<communication::sec::BookingResponse>
+    ClientManager::BookSecretlyOnOthers(const communication::Journey &journey) const {
+        const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::sec::BookingResponse>();
+        const auto clientWriterPtr = stubPtr->BookOnOthers(clientContextPtr.get(), responsePtr.get());
+
+        const auto &rides = journey.rides();
+
+        for (const auto &ride: rides) {
+
+            const auto requestPtr = GetUnique<communication::sec::BookingRequest>();
+            const auto &customSealOperations = m_userPtr->GetCustomSealOperations();
+            requestPtr->set_relinkeys(customSealOperations->GetRelinKeysBuffer());
+
+            int bookingType = GetRandomNumber<int>() % (communication::BookingType_ARRAYSIZE - 1);
+            requestPtr->set_bookingtype(static_cast<communication::BookingType>(bookingType));
+
+            const auto &coefficientVariant = AnyToNumVariant(isCKKS, &ride.coefficient());
+            const auto coefficientBuffer = customSealOperations->GetEncryptedBuffer(coefficientVariant);
+            requestPtr->set_coefficient(*coefficientBuffer);
+
+            const auto &unitPriceVariant = AnyToNumVariant(isCKKS, &ride.transporter().unitprice());
+            const auto unitPriceBuffer = customSealOperations->GetEncryptedBuffer(unitPriceVariant);
+            requestPtr->set_unitprice(*unitPriceBuffer);
+
+            const auto &discountVariant = AnyToNumVariant(isCKKS, &ride.discount());
+            if (GetAnyVariant<double>(&discountVariant) > 0) {
+                const auto discountBuffer = customSealOperations->GetEncryptedBuffer(discountVariant);
+                requestPtr->set_discount(*discountBuffer);
+            }
+
+            const auto &seatPriceVariant = AnyToNumVariant(isCKKS, &ride.transporter().seatprice());
+            if (GetAnyVariant<double>(&seatPriceVariant) > 0) {
+                const auto seatPriceBuffer = customSealOperations->GetEncryptedBuffer(seatPriceVariant);
+                requestPtr->set_seatprice(*seatPriceBuffer);
+            }
+
+            if (!clientWriterPtr->Write(*requestPtr)) {
+                throw std::bad_function_call();
+            }
+        }
+
+        clientWriterPtr->WritesDone();
+        const auto &status = clientWriterPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_TRACE(*m_logger, "Sent Secret BookingRequests successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during Sending Secret BookingRequests. Error message: " +
+                            status.error_message());
+        }
+
+        return responsePtr;
+    }
+
     std::unique_ptr<communication::BookingResponse>
     ClientManager::BookSecretlyAndDecrypt(const communication::Journey &journey) const {
         const auto secretBookingResponsePtr = this->BookSecretly(journey);
@@ -262,6 +384,18 @@ namespace yakbas::sec {
     std::unique_ptr<communication::BookingResponse>
     ClientManager::BookSymmetricSecretlyAndDecrypt(const communication::Journey &journey) const {
         const auto secretBookingResponsePtr = this->BookSymmetricSecretly(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSymmetricSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSymmetricSecretlyOnOthers(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSecretlyOnOthers(journey);
         return this->MapSecretToPublic(*secretBookingResponsePtr);
     }
 
@@ -416,10 +550,6 @@ namespace yakbas::sec {
         for (const auto &pair: *sourceMapPtr) {
             targetMap.insert(pair);
         }
-    }
-
-    seal::scheme_type ClientManager::GetSchemeType() const {
-        return m_schemeType;
     }
 
 } // yakbas

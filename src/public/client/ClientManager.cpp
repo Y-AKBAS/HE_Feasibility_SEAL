@@ -117,6 +117,54 @@ namespace yakbas::pub {
         return responsePtr;
     }
 
+    std::unique_ptr<communication::BookingResponse> ClientManager::BookOnOthers(const communication::Journey &journey) {
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::BookingResponse>();
+        const auto clientWriterPtr = stubPtr->BookOnOthers(clientContextPtr.get(), responsePtr.get());
+
+        const auto &rides = journey.rides();
+
+        for (const auto &ride: rides) {
+
+            const auto requestPtr = GetUnique<communication::pub::BookingRequest>();
+
+            int bookingType = GetRandomNumber<int>() % (communication::BookingType_ARRAYSIZE - 1);
+            requestPtr->set_bookingtype(static_cast<communication::BookingType>(bookingType));
+
+            requestPtr->set_coefficient(AnyToNum<std::uint64_t>(&ride.coefficient()));
+            requestPtr->set_unitprice(AnyToNum<std::uint64_t>(&ride.transporter().unitprice()));
+
+            const auto seatPrice = AnyToNum<std::uint64_t>(&ride.transporter().seatprice());
+            if (seatPrice > 0) {
+                requestPtr->set_seatprice(seatPrice);
+            }
+
+            const auto discount = AnyToNum<std::uint64_t>(&ride.discount());
+            if (discount > 0) {
+                requestPtr->set_discount(discount);
+            }
+
+            if (!clientWriterPtr->Write(*requestPtr)) {
+                throw std::bad_function_call();
+            }
+        }
+
+        clientWriterPtr->WritesDone();
+        const auto &status = clientWriterPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Sent Public BookingRequestsOnOthers successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during Sending Public BookingRequestsOnOthers. Error message: " +
+                            status.error_message());
+        }
+
+        return responsePtr;
+    }
+
     std::unique_ptr<communication::InvoicingResponse>
     ClientManager::Pay(const communication::BookingResponse &bookingResponse) {
 

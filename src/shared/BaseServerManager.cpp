@@ -23,8 +23,7 @@ namespace yakbas {
         builder->SetMaxSendMessageSize(std::numeric_limits<int32_t>::max());
         builder->SetMaxReceiveMessageSize(std::numeric_limits<int32_t>::max());
         m_server = builder->BuildAndStart();
-        std::jthread worker(&grpc::Server::Wait, m_server.get());
-        LOG4CPLUS_DEBUG(*m_logger, "Started server on host:port: " + m_hostAndPort);
+        m_server->Wait();
     }
 
     void BaseServerManager::Shutdown() {

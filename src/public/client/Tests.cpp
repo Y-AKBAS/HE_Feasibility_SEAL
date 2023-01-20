@@ -66,6 +66,31 @@ namespace yakbas::pub::test {
                            std::to_string(passedTimeInMillisWithStop));
         }
 
+        TEST_CASE("Client Manager Public Booking Request Test") {
+
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            CHECK(ClientManager::IsInitialized());
+            Timer timer;
+            const int numberOfJourneys = 20;
+            const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
+
+            for (int i = 0; i < numberOfJourneys; ++i) {
+
+                const auto &journeyPtr = journeysVecPtr->at(i);
+                std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
+
+                const auto bookingResponsePtr = clientManagerPtr->BookOnOthers(*journeyPtr);
+
+                CHECK(AnyToNum<std::uint64_t>(&bookingResponsePtr->total()) == totalBeforeSent);
+            }
+            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "Public BookingOnOthers passed time in millis for " + std::to_string(numberOfJourneys) +
+                           " journeys: " +
+                           std::to_string(passedTimeInMillisWithStop));
+        }
+
+
         TEST_CASE("Client Manager Payment Request Test") {
 
             const auto clientManagerPtr = std::make_unique<ClientManager>();

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "BaseCommandLineInfo.h"
+#include "BaseServerManager.h"
 #include <memory>
+#include <vector>
 
 #if (DISABLE_TESTS)
 #define DOCTEST_CONFIG_DISABLE
@@ -24,6 +26,9 @@ namespace yakbas {
         virtual void DisableLogging();
 
         virtual int RunTests(int argc, char **argv);
+
+    protected:
+        std::vector<std::unique_ptr<BaseServerManager>> m_serverManagersPtr{};
     };
 
 } // yakbas

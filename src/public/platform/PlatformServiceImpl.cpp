@@ -27,7 +27,7 @@ namespace yakbas::pub {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Platform Service impl SearchForRides invoked...");
 
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL);
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
         grpc::ClientContext clientContext;
         const auto clientReaderPtr = stubPtr->SearchForRides(&clientContext, *request);
 
@@ -65,11 +65,8 @@ namespace yakbas::pub {
             const auto bookingRequestPtr = GetUnique<communication::pub::BookingRequest>();
             isReadable = reader->Read(bookingRequestPtr.get());
             if (isReadable) {
-                const static bool isSet = [&bookingRequestPtr, &response]() -> bool {
-                    response->set_invoicingclerktype(bookingRequestPtr->invoicingclerktype());
-                    response->set_bookingtype(bookingRequestPtr->bookingtype());
-                    return true;
-                }();
+                response->set_invoicingclerktype(bookingRequestPtr->invoicingclerktype());
+                response->set_bookingtype(bookingRequestPtr->bookingtype());
                 total += GetRequestTotalAndInsertSeat(*bookingRequestPtr, rideIdSeatNumberMap);
             }
         } while (isReadable);
@@ -78,6 +75,62 @@ namespace yakbas::pub {
         NumToAny(total, anyPtr);
 
         return grpc::Status::OK;
+    }
+
+    grpc::Status PlatformServiceImpl::BookOnOthers(grpc::ServerContext *context,
+                                                   grpc::ServerReader<communication::pub::BookingRequest> *reader,
+                                                   communication::BookingResponse *response) {
+
+        response->set_journey_id(GetUUID());
+        auto rideIdSeatNumberMap = response->mutable_rideidseatnumbermap();
+        std::uint64_t total{};
+
+        const std::unique_ptr<publicService::Stub> &stub_1 = m_platformClientManager->GetStub(
+                constants::MOBILITY_PROVIDER_CHANNEL_1);
+        const std::unique_ptr<publicService::Stub> &stub_2 = m_platformClientManager->GetStub(
+                constants::MOBILITY_PROVIDER_CHANNEL_2);
+
+        bool isReadable;
+        int count{};
+        do {
+            ++count;
+            const auto bookingRequestPtr = GetUnique<communication::pub::BookingRequest>();
+            isReadable = reader->Read(bookingRequestPtr.get());
+            if (isReadable) {
+                HandleIsReadable(rideIdSeatNumberMap, total, stub_1, stub_2, count, bookingRequestPtr);
+            }
+        } while (isReadable);
+
+        auto anyPtr = response->mutable_total();
+        NumToAny(total, anyPtr);
+
+        return grpc::Status::OK;
+    }
+
+    void
+    PlatformServiceImpl::HandleIsReadable(google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap,
+                                          uint64_t &total,
+                                          const std::unique_ptr<publicService::Stub> &stub_1,
+                                          const std::unique_ptr<publicService::Stub> &stub_2, int &count,
+                                          const std::unique_ptr<communication::pub::BookingRequest> &bookingRequestPtr) const {
+
+        grpc::ClientContext clientContext{};
+        communication::BookingResponse localResponse{};
+        grpc::Status localStatus{};
+
+        if (count % 2 == 0) {
+            localStatus = stub_1->BookOnMobilityProvider(&clientContext, *bookingRequestPtr, &localResponse);
+        } else {
+            localStatus = stub_2->BookOnMobilityProvider(&clientContext, *bookingRequestPtr, &localResponse);
+        }
+
+        if (localStatus.ok()) {
+            total += GetRequestTotalAndInsertSeat(*bookingRequestPtr, rideIdSeatNumberMap);
+            return;
+        }
+
+        LOG4CPLUS_ERROR(*m_logger, "Handling HandleIsReadable failed. Reason: " + localStatus.error_message());
+        throw std::bad_exception();
     }
 
     std::uint64_t PlatformServiceImpl::GetRequestTotalAndInsertSeat(const communication::pub::BookingRequest &request,
@@ -103,7 +156,7 @@ namespace yakbas::pub {
                                                       const communication::InvoicingReport *request,
                                                       communication::InvoicingResponse *response) {
 
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL);
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
         grpc::ClientContext clientContext;
         const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
 
@@ -115,6 +168,5 @@ namespace yakbas::pub {
         return status;
 
     }
-
 
 } // yakbas

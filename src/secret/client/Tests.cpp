@@ -55,7 +55,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 9;
+            const int numberOfJourneys = 8;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -83,7 +83,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 7;
+            const int numberOfJourneys = 8;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -121,6 +121,53 @@ namespace yakbas::sec::test {
             passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Secret Booking passed time in millis for " + std::to_string(numberOfJourneys) +
+                           " journeys: " +
+                           std::to_string(passedTimeInMillisWithStop));
+        }
+
+        TEST_CASE("Client Manager BookOnOthers Request Test") {
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
+            CHECK(ClientManager::IsInitialized());
+            Timer timer;
+            const int numberOfJourneys = 8;
+            const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
+
+            for (int i = 0; i < numberOfJourneys; ++i) {
+                const auto &journeyPtr = journeysVecPtr->at(i);
+                double totalBeforeSent = findTotal(*journeyPtr, isCKKS);
+                const auto bookingResponsePtr = clientManagerPtr->BookSecretlyOnOthersAndDecrypt(*journeyPtr);
+
+                const double total = AnyToNum(isCKKS, &bookingResponsePtr->total());
+                if (isCKKS) {
+                    CHECK(CompareWithDecimalTolerance(&total, &totalBeforeSent));
+                } else {
+                    CHECK(total == totalBeforeSent);
+                }
+            }
+            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "BookSecretlyOnOthersAndDecrypt passed time in millis for " +
+                           std::to_string(numberOfJourneys) +
+                           " journeys: " +
+                           std::to_string(passedTimeInMillisWithStop));
+
+            timer.start();
+            for (int i = 0; i < numberOfJourneys; ++i) {
+                const auto &journeyPtr = journeysVecPtr->at(i);
+                double totalBeforeSent = findTotal(*journeyPtr, isCKKS);
+                const auto bookingResponsePtr = clientManagerPtr->BookSymmetricSecretlyOnOthersAndDecrypt(*journeyPtr);
+
+                const double total = AnyToNum(isCKKS, &bookingResponsePtr->total());
+                if (isCKKS) {
+                    CHECK(CompareWithDecimalTolerance(&total, &totalBeforeSent));
+                } else {
+                    CHECK(total == totalBeforeSent);
+                }
+            }
+            passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger,
+                           "BookSymmetricSecretlyOnOthersAndDecrypt passed time in millis for " + std::to_string(numberOfJourneys) +
                            " journeys: " +
                            std::to_string(passedTimeInMillisWithStop));
         }
