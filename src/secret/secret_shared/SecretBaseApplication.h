@@ -12,8 +12,6 @@ namespace yakbas::sec {
         [[nodiscard]] static std::unique_ptr<SecretCommandLineInfo>
         HandleCommandLine(int argc, char **argv, const std::string &&loggerInstance);
 
-    protected:
-        std::vector<std::unique_ptr<BaseServerManager>> m_serverManagersPtr{};
     };
 
 } // yakbas

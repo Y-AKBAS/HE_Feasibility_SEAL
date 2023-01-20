@@ -20,6 +20,9 @@ namespace yakbas::pub {
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         Book(const communication::Journey &journey);
 
+        [[nodiscard]] std::unique_ptr<communication::BookingResponse>
+        BookOnOthers(const communication::Journey &journey);
+
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse);
 

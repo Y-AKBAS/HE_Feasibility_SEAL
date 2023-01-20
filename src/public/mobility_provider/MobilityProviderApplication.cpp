@@ -33,14 +33,32 @@ namespace yakbas::pub {
         }
 
         const std::string portUrl = publicCmdLineInfoPtr->m_portUrl.empty() ?
-                                    PUBLIC_MOBILITY_PROVIDER_SERVER_PORT : publicCmdLineInfoPtr->m_portUrl;
+                                    PUBLIC_MOBILITY_PROVIDER_SERVER_PORT_1 : publicCmdLineInfoPtr->m_portUrl;
 
-        const auto serverManager = GetUnique<MobilityProviderServerManager>(
-                GetShared<MobilityProviderServiceImpl>(),
+        std::unique_ptr<MobilityProviderServerManager> serverManager_1 = GetUnique<MobilityProviderServerManager>(
+                GetShared<MobilityProviderServiceImpl>("Public Mobility Provider Service Impl 1"),
                 portUrl,
-                "Public Mobility Provider Server Manager");
+                "Public Mobility Provider Server Manager 1");
 
-        serverManager->Init();
+        std::unique_ptr<MobilityProviderServerManager> serverManager_2 = GetUnique<MobilityProviderServerManager>(
+                GetShared<MobilityProviderServiceImpl>("Public Mobility Provider Service Impl 2"),
+                PUBLIC_MOBILITY_PROVIDER_SERVER_PORT_2,
+                "Public Mobility Provider Server Manager 2");
+
+        m_serverManagersPtr.push_back(std::move(serverManager_1));
+        m_serverManagersPtr.push_back(std::move(serverManager_2));
+
+        std::vector<std::jthread> threadVec{m_serverManagersPtr.size()};
+
+        const auto &logger = log4cplus::Logger::getInstance("Secret Mobility Provider Application Logger");
+        for (const auto &ptr: m_serverManagersPtr) {
+            threadVec.emplace_back(&MobilityProviderServerManager::Init, ptr.get());
+        }
+
+        LOG4CPLUS_INFO(logger, "Mobility Provider Servers will run...");
+        for (auto &thread: threadVec) {
+            thread.join();
+        }
     }
 
 } // yakbas

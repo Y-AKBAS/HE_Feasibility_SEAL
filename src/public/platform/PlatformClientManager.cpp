@@ -10,17 +10,17 @@ namespace yakbas::pub {
 
         std::call_once(m_isInitialized, [this]() {
             LOG4CPLUS_DEBUG(*m_logger, "Public Platform Client Manager is being initialized...");
-            PlatformClientManager::CreateChannels({
-                                                          {constants::MOBILITY_PROVIDER_CHANNEL,
-                                                           PUBLIC_MOBILITY_PROVIDER_SERVER_PORT}
-                                                  });
+            const std::map<std::string, std::string> namePortPair{
+                    {constants::MOBILITY_PROVIDER_CHANNEL_1, PUBLIC_MOBILITY_PROVIDER_SERVER_PORT_1},
+                    {constants::MOBILITY_PROVIDER_CHANNEL_2, PUBLIC_MOBILITY_PROVIDER_SERVER_PORT_2},
+                    {constants::MOBILITY_PROVIDER_CHANNEL_3, PUBLIC_MOBILITY_PROVIDER_SERVER_PORT_3}
+            };
+            PlatformClientManager::CreateChannels(namePortPair);
         });
-
     }
 
     PlatformClientManager::~PlatformClientManager() = default;
 
     std::once_flag PlatformClientManager::m_isInitialized{};
-
 
 } // yakbas

@@ -10,6 +10,8 @@ namespace yakbas::pub {
     class PlatformServiceImpl final : public communication::pub::PublicCommunicationService::Service {
 
     public:
+        using publicService = communication::pub::PublicCommunicationService;
+
         PlatformServiceImpl();
 
         grpc::Status CreateInvoice(grpc::ServerContext *context, const communication::InvoicingRequest *request,
@@ -22,6 +24,10 @@ namespace yakbas::pub {
         Book(::grpc::ServerContext *context, ::grpc::ServerReader<::communication::pub::BookingRequest> *reader,
              ::communication::BookingResponse *response) override;
 
+        grpc::Status
+        BookOnOthers(::grpc::ServerContext *context, ::grpc::ServerReader<::communication::pub::BookingRequest> *reader,
+                     ::communication::BookingResponse *response) override;
+
         grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
                                      communication::InvoicingResponse *response) override;
 
@@ -33,6 +39,10 @@ namespace yakbas::pub {
         GetRequestTotalAndInsertSeat(const communication::pub::BookingRequest &request,
                                      google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap);
 
+        void HandleIsReadable(google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap, uint64_t &total,
+                              const std::unique_ptr<publicService::Stub> &stub_1,
+                              const std::unique_ptr<publicService::Stub> &stub_2, int &count,
+                              const std::unique_ptr<communication::pub::BookingRequest> &bookingRequestPtr) const;
     };
 
 

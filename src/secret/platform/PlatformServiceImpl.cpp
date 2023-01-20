@@ -177,7 +177,7 @@ namespace yakbas::sec {
             return;
         }
 
-        LOG4CPLUS_ERROR(*m_logger, "Handling isReadable failed. Reason: " + localStatus.error_message());
+        LOG4CPLUS_ERROR(*m_logger, "Handling HandleIsReadable failed. Reason: " + localStatus.error_message());
         throw std::bad_exception();
     }
 
