@@ -3,7 +3,9 @@
 
 namespace yakbas::constants {
     const std::string INVOICE_CLERK_CHANNEL = "invoiceClerkChannel";
-    const std::string MOBILITY_PROVIDER_CHANNEL = "mobilityProviderChannel";
+    const std::string MOBILITY_PROVIDER_CHANNEL_1 = "mobilityProviderChannel_1";
+    const std::string MOBILITY_PROVIDER_CHANNEL_2 = "mobilityProviderChannel_2";
+    const std::string MOBILITY_PROVIDER_CHANNEL_3 = "mobilityProviderChannel_3";
     const std::string PLATFORM_CHANNEL = "platformChannel";
     const std::string CLIENT_CHANNEL = "clientChannel";
     const std::string TRANSPORT_CHANNEL = "transportChannel";

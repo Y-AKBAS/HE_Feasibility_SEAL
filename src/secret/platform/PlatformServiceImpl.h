@@ -11,6 +11,8 @@ namespace yakbas::sec {
     class PlatformServiceImpl final : public communication::sec::SecretCommunicationService::Service {
 
     public:
+        using secretService = communication::sec::SecretCommunicationService;
+
         explicit PlatformServiceImpl(const SealKeys &sealKeys = {});
 
         grpc::Status
@@ -24,18 +26,28 @@ namespace yakbas::sec {
         Book(grpc::ServerContext *context, grpc::ServerReader<communication::sec::BookingRequest> *reader,
              communication::sec::BookingResponse *response) override;
 
+        grpc::Status
+        BookOnOthers(::grpc::ServerContext *context, ::grpc::ServerReader<::communication::sec::BookingRequest> *reader,
+                     ::communication::sec::BookingResponse *response) override;
+
         grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
                                      communication::InvoicingResponse *response) override;
 
     private:
-        const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};
-        const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
-        const std::unique_ptr<PlatformClientManager> m_platformClientManager{nullptr};
-        seal::scheme_type m_schemeType;
-
         [[nodiscard]] std::unique_ptr<seal::Ciphertext>
         GetRequestTotalAndInsertSeat(const communication::sec::BookingRequest &request,
                                      google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const;
+
+        const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};
+        const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
+        const std::unique_ptr<PlatformClientManager> m_platformClientManager{nullptr};
+        const seal::scheme_type m_schemeType{};
+
+        void
+        handleIsReadable(const std::unique_ptr<secretService::Stub> &stub_1,
+                         const std::unique_ptr<secretService::Stub> &stub_2,
+                         std::vector<std::unique_ptr<seal::Ciphertext>> &requestTotalCiphers, int count,
+                         const std::unique_ptr<communication::sec::BookingRequest> &bookingRequestPtr) const;
     };
 
 }// yakbas

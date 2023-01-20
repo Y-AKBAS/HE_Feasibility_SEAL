@@ -3,6 +3,8 @@
 
 #include <utility>
 #include "PlatformServiceImpl.h"
+#include "SecretBaseClientManager.h"
+#include "SecretCommunication.grpc.pb.h"
 
 namespace yakbas::sec {
     using namespace yakbas::util;
@@ -11,9 +13,8 @@ namespace yakbas::sec {
             : m_customSealOperationsPtr(std::make_unique<CustomSealOperations>(sealKeys)),
               m_platformClientManager(std::make_unique<PlatformClientManager>()),
               m_logger(std::make_unique<log4cplus::Logger>(
-                      log4cplus::Logger::getInstance("Secret Platform Service Impl"))) {
-        m_schemeType = m_customSealOperationsPtr->GetSealOperations()->GetSealInfoPtr()->m_sealKeys.m_schemeType;
-    }
+                      log4cplus::Logger::getInstance("Secret Platform Service Impl"))),
+              m_schemeType(sealKeys.m_schemeType) {}
 
     grpc::Status PlatformServiceImpl::SearchForSecretRides(grpc::ServerContext *context,
                                                            const communication::sec::SearchRequest *request,
@@ -21,7 +22,7 @@ namespace yakbas::sec {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Platform Service impl SearchForSecretRides invoked...");
 
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL);
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
         grpc::ClientContext clientContext;
         const auto clientReaderPtr = stubPtr->SearchForSecretRides(&clientContext, *request);
 
@@ -52,7 +53,7 @@ namespace yakbas::sec {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Platform Service impl SearchForRides invoked...");
 
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL);
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
         grpc::ClientContext clientContext;
         const auto clientReaderPtr = stubPtr->SearchForRides(&clientContext, *request);
 
@@ -90,13 +91,13 @@ namespace yakbas::sec {
             const auto bookingRequestPtr = GetUnique<communication::sec::BookingRequest>();
             isReadable = reader->Read(bookingRequestPtr.get());
             if (isReadable) {
-                const static bool isSet = [&bookingRequestPtr, &response]() -> bool {
-                    response->set_invoicingclerktype(bookingRequestPtr->invoicingclerktype());
-                    response->set_bookingtype(bookingRequestPtr->bookingtype());
-                    return true;
-                }();
-                auto requestTotalPtr = GetRequestTotalAndInsertSeat(*bookingRequestPtr, rideIdSeatNumberMap);
-                requestTotalCiphers.push_back(std::move(requestTotalPtr));
+                response->set_invoicingclerktype(bookingRequestPtr->invoicingclerktype());
+                response->set_bookingtype(bookingRequestPtr->bookingtype());
+                if (auto requestTotalPtr = GetRequestTotalAndInsertSeat(*bookingRequestPtr, rideIdSeatNumberMap)) {
+                    requestTotalCiphers.push_back(std::move(requestTotalPtr));
+                } else {
+                    return {grpc::StatusCode::INTERNAL, "Secret Platform Ciphertext computation failed..."};
+                }
             }
         } while (isReadable);
 
@@ -116,20 +117,68 @@ namespace yakbas::sec {
         return grpc::Status::OK;
     }
 
-    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
-                                                      const communication::InvoicingReport *request,
-                                                      communication::InvoicingResponse *response) {
+    grpc::Status PlatformServiceImpl::BookOnOthers(grpc::ServerContext *context,
+                                                   grpc::ServerReader<communication::sec::BookingRequest> *reader,
+                                                   communication::sec::BookingResponse *response) {
+        response->set_journey_id(GetUUID());
 
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL);
-        grpc::ClientContext clientContext;
-        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
+        const std::unique_ptr<secretService::Stub> &stub_1 = m_platformClientManager->GetStub(
+                constants::MOBILITY_PROVIDER_CHANNEL_1);
+        const std::unique_ptr<secretService::Stub> &stub_2 = m_platformClientManager->GetStub(
+                constants::MOBILITY_PROVIDER_CHANNEL_2);
 
-        if (!status.ok()) {
-            throw std::runtime_error("Reporting secret invoice failed in Secret Platform");
+        std::vector<std::unique_ptr<seal::Ciphertext>> requestTotalCiphers{};
+        bool isReadable;
+        int count{};
+        do {
+            ++count;
+            const auto bookingRequestPtr = GetUnique<communication::sec::BookingRequest>();
+            isReadable = reader->Read(bookingRequestPtr.get());
+            if (isReadable) {
+                handleIsReadable(stub_1, stub_2, requestTotalCiphers, count, bookingRequestPtr);
+            }
+        } while (isReadable);
+
+        auto &totalCipherPtr = requestTotalCiphers.at(0);
+        if (requestTotalCiphers.size() > 1) {
+            for (int i = 1; i < requestTotalCiphers.size(); ++i) {
+                m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *requestTotalCiphers.at(i));
+            }
         }
 
-        response->set_status(communication::StatusCode::SUCCESSFUL);
-        return status;
+        if (m_schemeType != seal::scheme_type::ckks) {
+            m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+        }
+        const auto &buffer = CustomSealOperations::GetBufferFromCipher(*totalCipherPtr);
+        response->set_total(buffer);
+
+        return grpc::Status::OK;
+    }
+
+    void PlatformServiceImpl::handleIsReadable(const std::unique_ptr<secretService::Stub> &stub_1,
+                                               const std::unique_ptr<secretService::Stub> &stub_2,
+                                               std::vector<std::unique_ptr<seal::Ciphertext>> &requestTotalCiphers,
+                                               int count,
+                                               const std::unique_ptr<communication::sec::BookingRequest> &bookingRequestPtr) const {
+        grpc::ClientContext clientContext{};
+        communication::sec::BookingResponse localResponse{};
+        grpc::Status localStatus{};
+
+        if (count % 2 == 0) {
+            localStatus = stub_1->BookOnMobilityProvider(&clientContext, *bookingRequestPtr, &localResponse);
+        } else {
+            localStatus = stub_2->BookOnMobilityProvider(&clientContext, *bookingRequestPtr, &localResponse);
+        }
+
+        if (localStatus.ok()) {
+            requestTotalCiphers.push_back(
+                    m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(localResponse.total()))
+            );
+            return;
+        }
+
+        LOG4CPLUS_ERROR(*m_logger, "Handling isReadable failed. Reason: " + localStatus.error_message());
+        throw std::bad_exception();
     }
 
     std::unique_ptr<seal::Ciphertext>
@@ -175,8 +224,24 @@ namespace yakbas::sec {
         } catch (const std::exception &exception) {
             LOG4CPLUS_ERROR(*m_logger,
                             std::string("Error occurred while getting request total. Message: ") + exception.what());
-            throw exception;
+            return nullptr;
         }
+    }
+
+    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
+                                                      const communication::InvoicingReport *request,
+                                                      communication::InvoicingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
+        grpc::ClientContext clientContext;
+        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            throw std::runtime_error("Reporting secret invoice failed in Secret Platform");
+        }
+
+        response->set_status(communication::StatusCode::SUCCESSFUL);
+        return status;
     }
 
 } // yakbas

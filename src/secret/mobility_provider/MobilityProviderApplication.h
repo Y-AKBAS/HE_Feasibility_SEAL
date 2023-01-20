@@ -1,3 +1,4 @@
+#pragma once
 
 #include "IApplication.h"
 #include "SecretBaseApplication.h"
