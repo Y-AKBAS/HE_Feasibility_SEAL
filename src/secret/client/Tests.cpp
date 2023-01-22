@@ -167,9 +167,25 @@ namespace yakbas::sec::test {
             }
             passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
-                           "BookSymmetricSecretlyOnOthersAndDecrypt passed time in millis for " + std::to_string(numberOfJourneys) +
+                           "BookSymmetricSecretlyOnOthersAndDecrypt passed time in millis for " +
+                           std::to_string(numberOfJourneys) +
                            " journeys: " +
                            std::to_string(passedTimeInMillisWithStop));
+        }
+
+        TEST_CASE("Client Manager Send And Stop Using Request Test") {
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+
+            Timer timer{};
+            for (int i = 0; i < 50; ++i) {
+                auto startUsingResponsePtr = clientManagerPtr->SendStartUsingRequest(true);
+                CHECK(startUsingResponsePtr->status() == communication::SUCCESSFUL);
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                auto endUsingResponsePtr = clientManagerPtr->SendEndUsingRequestAndDecrypt(true);
+                CHECK(endUsingResponsePtr->status() == communication::SUCCESSFUL);
+            }
+            auto passedTime = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger, "Passed time in start-end using requests: " + std::to_string(passedTime));
         }
 
         TEST_CASE("Client Manager Payment Request Test") {

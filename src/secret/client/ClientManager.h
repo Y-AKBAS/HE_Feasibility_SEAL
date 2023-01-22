@@ -4,6 +4,7 @@
 #include "SecretCommunication.grpc.pb.h"
 #include "SecretUser.h"
 #include "SecretBaseClientManager.h"
+#include "Timer.h"
 
 namespace yakbas::sec {
 
@@ -45,6 +46,13 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const;
 
+        [[nodiscard]] std::unique_ptr<communication::StartUsingResponse> SendStartUsingRequest(bool isSymmetric) const;
+
+        [[nodiscard]] std::unique_ptr<communication::sec::EndUsingResponse> SendEndUsingRequest(bool isSymmetric) const;
+
+        [[nodiscard]] std::unique_ptr<communication::EndUsingResponse>
+        SendEndUsingRequestAndDecrypt(bool isSymmetric) const;
+
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse) const;
 
@@ -67,15 +75,18 @@ namespace yakbas::sec {
         static void MapRideAndSeatNumberMap(google::protobuf::Map<std::string, int32_t> &targetMap,
                                             const google::protobuf::Map<std::string, int32_t> *sourceMapPtr);
 
+        [[nodiscard]] std::unique_ptr<std::string> GetEncryptedCurrentTimeMillis(bool isSymmetric) const;
+
+        [[nodiscard]] std::unique_ptr<communication::EndUsingResponse>
+        MapSecretToPublic(const std::unique_ptr<communication::sec::EndUsingResponse> &responsePtr) const;
+
+        const seal::scheme_type m_schemeType;
         const std::unique_ptr<SecretUser> m_userPtr{nullptr};
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
-        seal::scheme_type m_schemeType;
-
-    private:
+        const std::unique_ptr<Timer> m_timerPtr{nullptr};
 
         static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
         static std::once_flag m_isInitialized;
-
     };
 
 } // yakbas

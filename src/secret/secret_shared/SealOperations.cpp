@@ -161,6 +161,9 @@ namespace yakbas::sec {
             double processedCipherScale = std::log2(processedCipher.scale());
             double cipherToAddScale = std::log2(cipherToAdd.scale());
 
+            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
+            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
+
             if (processedCipherScale > m_scalePower) {
                 m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(processedCipher);
             }
@@ -169,8 +172,11 @@ namespace yakbas::sec {
                 m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(cipherToAdd);
             }
 
-            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
-            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
+            LOG4CPLUS_INFO(*m_logger, "After rescaling processedCipher scale: " +
+                                      std::to_string(std::log2(processedCipher.scale())));
+            LOG4CPLUS_INFO(*m_logger,
+                           "After rescaling cipherToAdd scale: " + std::to_string(std::log2(cipherToAdd.scale())));
+
             if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 5)) {
                 processedCipher.scale() = cipherToAdd.scale();
                 LOG4CPLUS_INFO(*m_logger,
@@ -195,6 +201,9 @@ namespace yakbas::sec {
             double processedCipherScale = std::log2(processedCipher.scale());
             double cipherToAddScale = std::log2(cipherToAdd.scale());
 
+            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
+            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
+
             if (processedCipherScale > m_scalePower) {
                 m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(processedCipher);
             }
@@ -203,8 +212,11 @@ namespace yakbas::sec {
                 m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(cipherToAdd);
             }
 
-            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
-            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
+            LOG4CPLUS_INFO(*m_logger, "After rescaling processedCipher scale: " +
+                                      std::to_string(std::log2(processedCipher.scale())));
+            LOG4CPLUS_INFO(*m_logger,
+                           "After rescaling cipherToAdd scale: " + std::to_string(std::log2(cipherToAdd.scale())));
+
             if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 5)) {
                 LOG4CPLUS_INFO(*m_logger,
                                "Cipher scales are being equal now. Scale: " + std::to_string(processedCipherScale));

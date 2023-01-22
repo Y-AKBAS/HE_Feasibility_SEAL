@@ -72,7 +72,7 @@ namespace yakbas::sec {
                     seal::CoeffModulus::BFVDefault(m_sealKeys.m_polyModulusDegree));
             if (m_sealKeys.m_isEncodingEnabled) {
                 m_encryptionParamsPtr->set_plain_modulus(
-                        seal::PlainModulus::Batching(m_sealKeys.m_polyModulusDegree, 20));
+                        seal::PlainModulus::Batching(m_sealKeys.m_polyModulusDegree, 60));
             } else {
                 m_encryptionParamsPtr->set_plain_modulus(m_sealKeys.m_plainModulus);
             }

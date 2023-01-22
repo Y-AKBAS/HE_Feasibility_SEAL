@@ -11,6 +11,8 @@ service PublicCommunicationService {
   rpc BookOnOthers(stream BookingRequest) returns (BookingResponse);
   rpc BookOnMobilityProvider(BookingRequest) returns (BookingResponse);
   rpc ReportInvoicing(InvoicingReport) returns (InvoicingResponse);
+  rpc StartUsing(StartUsingRequest) returns (StartUsingResponse);
+  rpc EndUsing(EndUsingRequest) returns (EndUsingResponse);
 }
 
 message BookingRequest {

@@ -13,18 +13,19 @@ namespace yakbas::sec {
 
     ClientManager::ClientManager(const SealKeys &sealKeys)
             : m_userPtr(ClientGenerator::GenerateSecretUser(sealKeys)),
-              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))) {
+              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))),
+              m_schemeType(sealKeys.m_schemeType),
+              m_timerPtr(std::make_unique<Timer>()) {
 
         std::call_once(m_isInitialized, [this]() {
             LOG4CPLUS_DEBUG(*m_logger, "Secret Client Manager is being initialized...");
             ClientManager::CreateChannels(
                     {{constants::INVOICE_CLERK_CHANNEL, SECRET_INVOICE_CLERK_SERVER_PORT},
-                     {constants::PLATFORM_CHANNEL,      SECRET_PLATFORM_SERVER_PORT}}
+                     {constants::PLATFORM_CHANNEL,      SECRET_PLATFORM_SERVER_PORT},
+                     {constants::TRANSPORT_CHANNEL,     SECRET_TRANSPORTER_SERVER_PORT}}
             );
             this->GetPublicKey();
         });
-
-        m_schemeType = m_userPtr->GetCustomSealOperations()->GetSealOperations()->GetSealInfoPtr()->m_sealKeys.m_schemeType;
     }
 
     std::map<std::string, const std::shared_ptr<seal::PublicKey>> ClientManager::m_publicKeyMap{};
@@ -137,6 +138,142 @@ namespace yakbas::sec {
         return journeyVecPtr;
     }
 
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSecretlyAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSecretly(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSymmetricSecretlyAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSymmetricSecretly(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSymmetricSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSymmetricSecretlyOnOthers(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSecretlyOnOthers(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::EndUsingResponse>
+    ClientManager::SendEndUsingRequestAndDecrypt(bool isSymmetric) const {
+        const auto responsePtr = this->SendEndUsingRequest(isSymmetric);
+        return this->MapSecretToPublic(responsePtr);
+    }
+
+    std::unique_ptr<communication::StartUsingResponse>
+    ClientManager::SendStartUsingRequest(const bool isSymmetric) const {
+        const std::string &userId = m_userPtr->GetId();
+        const auto encryptedTimeMillisPtr = GetEncryptedCurrentTimeMillis(isSymmetric);
+
+        grpc::ClientContext clientContext;
+        auto responsePtr = GetUnique<communication::StartUsingResponse>();
+        auto requestPtr = GetUnique<communication::sec::StartUsingRequest>();
+        requestPtr->set_user_id(userId);
+        requestPtr->set_start_time_in_millis(*encryptedTimeMillisPtr);
+
+        const auto status = this->GetStub(constants::TRANSPORT_CHANNEL)->StartUsing(&clientContext, *requestPtr,
+                                                                                    responsePtr.get());
+        if (status.ok()) {
+            LOG4CPLUS_DEBUG(*m_logger, "Start using request sent successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger, "Sending start using request failed. Error: " + status.error_message());
+            throw std::runtime_error("Sending start using request failed. Error: " + status.error_message());
+        }
+
+        return responsePtr;
+    }
+
+    std::unique_ptr<communication::sec::EndUsingResponse>
+    ClientManager::SendEndUsingRequest(const bool isSymmetric) const {
+        const std::string &userId = m_userPtr->GetId();
+        const auto encryptedTimeMillisPtr = GetEncryptedCurrentTimeMillis(isSymmetric);
+        const bool isCkks = m_schemeType == seal::scheme_type::ckks;
+
+        grpc::ClientContext clientContext{};
+        auto responsePtr = GetUnique<communication::sec::EndUsingResponse>();
+
+        const auto randomNumber = isCkks ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
+        std::unique_ptr<std::string> unitePricePtr{nullptr};
+        if (isSymmetric) {
+            unitePricePtr = m_userPtr->GetCustomSealOperations()->GetSymmetricEncryptedBuffer(randomNumber);
+        } else {
+            unitePricePtr = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(randomNumber);
+        }
+
+        auto requestPtr = GetUnique<communication::sec::EndUsingRequest>();
+
+        requestPtr->set_user_id(userId);
+        requestPtr->set_end_time_in_millis(*encryptedTimeMillisPtr);
+        requestPtr->set_unit_price(*unitePricePtr);
+
+        const auto status = this->GetStub(constants::PLATFORM_CHANNEL)->EndUsing(&clientContext, *requestPtr,
+                                                                                 responsePtr.get());
+        if (status.ok()) {
+            LOG4CPLUS_DEBUG(*m_logger, "End using request sent successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger, "Sending end using request failed. Error: " + status.error_message());
+            throw std::runtime_error("Sending end using request failed. Error: " + status.error_message());
+        }
+
+        return responsePtr;
+    }
+
+    std::unique_ptr<communication::InvoicingResponse>
+    ClientManager::Pay(const communication::BookingResponse &bookingResponse) const {
+
+        const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
+
+        const auto stubPtr = this->GetStub(constants::INVOICE_CLERK_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto invoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
+
+        const auto invoicingRequestPtr = GetUnique<communication::InvoicingRequest>();
+        const auto &variant = AnyToNumVariant(isCKKS, &bookingResponse.total());
+        invoicingRequestPtr->set_price(GetAnyVariant<double>(&variant));
+        const auto protoUserPtr = invoicingRequestPtr->mutable_user();
+        m_userPtr->ToProto(protoUserPtr);
+
+        const grpc::Status &status = stubPtr->CreateInvoice(clientContextPtr.get(), *invoicingRequestPtr,
+                                                            invoicingResponsePtr.get());
+        if (status.ok()) {
+            LOG4CPLUS_INFO(*m_logger, "Sent InvoicingRequest successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during creating InvoicingRequest. Error message: " +
+                            status.error_message());
+        }
+
+        return invoicingResponsePtr;
+    }
+
+    communication::StatusCode
+    ClientManager::ReportInvoicing(const communication::InvoicingResponse &invoicingResponse,
+                                   const communication::BookingResponse &bookingResponse) const {
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto invoicingReport = GetUnique<communication::InvoicingReport>();
+
+        invoicingReport->set_bookingtype(bookingResponse.bookingtype());
+        invoicingReport->set_userid(m_userPtr->GetId());
+        invoicingReport->set_journeyid(bookingResponse.journey_id());
+
+        auto rideAndSeatNumberMapPtr = invoicingReport->mutable_rideidseatnumbermap();
+        MapRideAndSeatNumberMap(*rideAndSeatNumberMapPtr, &bookingResponse.rideidseatnumbermap());
+
+        auto newInvoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
+        stubPtr->ReportInvoicing(clientContextPtr.get(), *invoicingReport, newInvoicingResponsePtr.get());
+        return newInvoicingResponsePtr->status();
+    }
+
     std::unique_ptr<communication::sec::BookingResponse>
     ClientManager::BookSecretly(const communication::Journey &journey) const {
 
@@ -187,7 +324,7 @@ namespace yakbas::sec {
         const auto &status = clientWriterPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_TRACE(*m_logger, "Sent Secret BookingRequests successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Sent Secret BookingRequests successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during Sending Secret BookingRequests. Error message: " +
@@ -375,76 +512,27 @@ namespace yakbas::sec {
         return responsePtr;
     }
 
-    std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSecretlyAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSecretly(journey);
-        return this->MapSecretToPublic(*secretBookingResponsePtr);
-    }
-
-    std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSymmetricSecretlyAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSymmetricSecretly(journey);
-        return this->MapSecretToPublic(*secretBookingResponsePtr);
-    }
-
-    std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSymmetricSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSymmetricSecretlyOnOthers(journey);
-        return this->MapSecretToPublic(*secretBookingResponsePtr);
-    }
-
-    std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSecretlyOnOthers(journey);
-        return this->MapSecretToPublic(*secretBookingResponsePtr);
-    }
-
-    std::unique_ptr<communication::InvoicingResponse>
-    ClientManager::Pay(const communication::BookingResponse &bookingResponse) const {
+    std::unique_ptr<std::string> ClientManager::GetEncryptedCurrentTimeMillis(const bool isSymmetric) const {
+        std::unique_ptr<std::string> encryptedTimeMillisPtr{nullptr};
+        const uint64_t timeMillis = m_timerPtr->GetCurrentTimeMillis();
 
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
-
-        const auto stubPtr = this->GetStub(constants::INVOICE_CLERK_CHANNEL);
-        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
-        auto invoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
-
-        const auto invoicingRequestPtr = GetUnique<communication::InvoicingRequest>();
-        const auto &variant = AnyToNumVariant(isCKKS, &bookingResponse.total());
-        invoicingRequestPtr->set_price(GetAnyVariant<double>(&variant));
-        const auto protoUserPtr = invoicingRequestPtr->mutable_user();
-        m_userPtr->ToProto(protoUserPtr);
-
-        const grpc::Status &status = stubPtr->CreateInvoice(clientContextPtr.get(), *invoicingRequestPtr,
-                                                            invoicingResponsePtr.get());
-        if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Sent InvoicingRequest successfully...");
+        if (!isCKKS) {
+            if (isSymmetric) {
+                encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetSymmetricEncryptedBuffer(timeMillis);
+            } else {
+                encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(timeMillis);
+            }
         } else {
-            LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during creating InvoicingRequest. Error message: " +
-                            status.error_message());
+            if (isSymmetric) {
+                encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetSymmetricEncryptedBuffer(
+                        static_cast<double>(timeMillis));
+            } else {
+                encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(
+                        static_cast<double>(timeMillis));
+            }
         }
-
-        return invoicingResponsePtr;
-    }
-
-    communication::StatusCode
-    ClientManager::ReportInvoicing(const communication::InvoicingResponse &invoicingResponse,
-                                   const communication::BookingResponse &bookingResponse) const {
-
-        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
-        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
-        auto invoicingReport = GetUnique<communication::InvoicingReport>();
-
-        invoicingReport->set_bookingtype(bookingResponse.bookingtype());
-        invoicingReport->set_userid(m_userPtr->GetId());
-        invoicingReport->set_journeyid(bookingResponse.journey_id());
-
-        auto rideAndSeatNumberMapPtr = invoicingReport->mutable_rideidseatnumbermap();
-        MapRideAndSeatNumberMap(*rideAndSeatNumberMapPtr, &bookingResponse.rideidseatnumbermap());
-
-        auto newInvoicingResponsePtr = GetUnique<communication::InvoicingResponse>();
-        stubPtr->ReportInvoicing(clientContextPtr.get(), *invoicingReport, newInvoicingResponsePtr.get());
-        return newInvoicingResponsePtr->status();
+        return encryptedTimeMillisPtr;
     }
 
     std::unique_ptr<communication::Journey>
@@ -540,6 +628,22 @@ namespace yakbas::sec {
             NumVariantToAny(&totalVar, publicResponsePtr->mutable_total());
         } catch (const std::exception &e) {
             LOG4CPLUS_ERROR(*m_logger, "Error occurred during decryption.\nError Message: " + std::string(e.what()));
+        }
+
+        return publicResponsePtr;
+    }
+
+    std::unique_ptr<communication::EndUsingResponse>
+    ClientManager::MapSecretToPublic(const std::unique_ptr<communication::sec::EndUsingResponse> &responsePtr) const {
+        auto publicResponsePtr = GetUnique<communication::EndUsingResponse>();
+        publicResponsePtr->set_status(responsePtr->status());
+        const auto &total = responsePtr->total();
+        if (!total.empty()) {
+            auto totalVar = m_userPtr->GetCustomSealOperations()->DecryptFromBuffer(
+                    GetUniqueStream(total));
+            NumVariantToAny(&totalVar, publicResponsePtr->mutable_total());
+        } else {
+            throw std::logic_error("total cannot be empty");
         }
 
         return publicResponsePtr;

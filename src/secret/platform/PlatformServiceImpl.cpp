@@ -3,7 +3,6 @@
 
 #include <utility>
 #include "PlatformServiceImpl.h"
-#include "SecretBaseClientManager.h"
 #include "SecretCommunication.grpc.pb.h"
 
 namespace yakbas::sec {
@@ -15,6 +14,8 @@ namespace yakbas::sec {
               m_logger(std::make_unique<log4cplus::Logger>(
                       log4cplus::Logger::getInstance("Secret Platform Service Impl"))),
               m_schemeType(sealKeys.m_schemeType) {}
+
+    std::map<std::string, std::pair<std::string, std::unique_ptr<seal::Ciphertext>>> PlatformServiceImpl::m_startTimeMap{};
 
     grpc::Status PlatformServiceImpl::SearchForSecretRides(grpc::ServerContext *context,
                                                            const communication::sec::SearchRequest *request,
@@ -155,6 +156,83 @@ namespace yakbas::sec {
         return grpc::Status::OK;
     }
 
+    grpc::Status PlatformServiceImpl::StartUsing(grpc::ServerContext *context,
+                                                 const communication::sec::StartUsingRequest *request,
+                                                 communication::StartUsingResponse *response) {
+        try {
+            auto startTimeInMillisCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(
+                    GetUniqueStream(request->start_time_in_millis()));
+
+            const auto insertionResult = m_startTimeMap.insert(
+                    {request->user_id(),
+                     {request->transporter_id(), std::move(startTimeInMillisCipherPtr)}
+                    });
+
+            if (insertionResult.second) {
+                response->set_status(communication::SUCCESSFUL);
+                return grpc::Status::OK;
+            }
+            return {grpc::StatusCode::DATA_LOSS, "Info insertion failed..."};
+        } catch (std::exception &e) {
+            response->set_status(communication::StatusCode::FAILED);
+            return {grpc::StatusCode::INTERNAL, e.what()};
+        }
+    }
+
+    grpc::Status
+    PlatformServiceImpl::EndUsing(grpc::ServerContext *context, const communication::sec::EndUsingRequest *request,
+                                  communication::sec::EndUsingResponse *response) {
+
+        const auto startTimeCipherIt = m_startTimeMap.find(request->user_id());
+
+        if (startTimeCipherIt == m_startTimeMap.end()) {
+            response->set_status(communication::StatusCode::FAILED);
+            return {grpc::StatusCode::NOT_FOUND, "Cannot find UserId-TransporterId"};
+        }
+
+        try {
+            auto endTimeInMillisCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(
+                    GetUniqueStream(request->end_time_in_millis()));
+
+            m_customSealOperationsPtr->GetEvaluatorPtr()->sub_inplace(*endTimeInMillisCipherPtr,
+                                                                      *startTimeCipherIt->second.second);
+
+            auto unitPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(
+                    GetUniqueStream(request->unit_price()));
+
+            m_customSealOperationsPtr->GetEvaluatorPtr()->multiply_inplace(*endTimeInMillisCipherPtr,
+                                                                           *unitPriceCipherPtr);
+
+            if (m_schemeType != seal::scheme_type::ckks) {
+                m_customSealOperationsPtr->SwitchMode(*endTimeInMillisCipherPtr);
+            }
+
+            response->set_total(m_customSealOperationsPtr->GetBufferFromCipher(*endTimeInMillisCipherPtr));
+            response->set_status(communication::StatusCode::SUCCESSFUL);
+            m_startTimeMap.erase(startTimeCipherIt);
+            return grpc::Status::OK;
+        } catch (std::exception &e) {
+            response->set_status(communication::StatusCode::FAILED);
+            return {grpc::StatusCode::INTERNAL, e.what()};
+        }
+    }
+
+    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
+                                                      const communication::InvoicingReport *request,
+                                                      communication::InvoicingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
+        grpc::ClientContext clientContext;
+        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            throw std::runtime_error("Reporting secret invoice failed in Secret Platform");
+        }
+
+        response->set_status(communication::StatusCode::SUCCESSFUL);
+        return status;
+    }
+
     void PlatformServiceImpl::handleIsReadable(const std::unique_ptr<secretService::Stub> &stub_1,
                                                const std::unique_ptr<secretService::Stub> &stub_2,
                                                std::vector<std::unique_ptr<seal::Ciphertext>> &requestTotalCiphers,
@@ -226,22 +304,6 @@ namespace yakbas::sec {
                             std::string("Error occurred while getting request total. Message: ") + exception.what());
             return nullptr;
         }
-    }
-
-    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
-                                                      const communication::InvoicingReport *request,
-                                                      communication::InvoicingResponse *response) {
-
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
-        grpc::ClientContext clientContext;
-        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
-
-        if (!status.ok()) {
-            throw std::runtime_error("Reporting secret invoice failed in Secret Platform");
-        }
-
-        response->set_status(communication::StatusCode::SUCCESSFUL);
-        return status;
     }
 
 } // yakbas
