@@ -177,7 +177,7 @@ namespace yakbas::sec::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
 
             Timer timer{};
-            for (int i = 0; i < 50; ++i) {
+            for (int i = 0; i < 10; ++i) {
                 auto startUsingResponsePtr = clientManagerPtr->SendStartUsingRequest(true);
                 CHECK(startUsingResponsePtr->status() == communication::SUCCESSFUL);
                 std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -185,6 +185,18 @@ namespace yakbas::sec::test {
                 CHECK(endUsingResponsePtr->status() == communication::SUCCESSFUL);
             }
             auto passedTime = timer.PassedTimeInMillisWithStop();
+            LOG4CPLUS_INFO(*logger, "Passed time in start-end using symmetric encrytpted requests: " +
+                                    std::to_string(passedTime));
+
+            timer.start();
+            for (int i = 0; i < 10; ++i) {
+                auto startUsingResponsePtr = clientManagerPtr->SendStartUsingRequest(false);
+                CHECK(startUsingResponsePtr->status() == communication::SUCCESSFUL);
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                auto endUsingResponsePtr = clientManagerPtr->SendEndUsingRequestAndDecrypt(false);
+                CHECK(endUsingResponsePtr->status() == communication::SUCCESSFUL);
+            }
+            passedTime = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger, "Passed time in start-end using requests: " + std::to_string(passedTime));
         }
 
