@@ -514,22 +514,24 @@ namespace yakbas::sec {
 
     std::unique_ptr<std::string> ClientManager::GetEncryptedCurrentTimeMillis(const bool isSymmetric) const {
         std::unique_ptr<std::string> encryptedTimeMillisPtr{nullptr};
-        const uint64_t timeMillis = m_timerPtr->GetCurrentTimeMillis();
+        const std::chrono::duration timeSinceEpoch = std::chrono::system_clock::now().time_since_epoch();
+        const uint64_t minutes = std::chrono::duration_cast<std::chrono::minutes>(timeSinceEpoch).count();
+        //const uint64_t minutes = m_timerPtr->GetCurrentTimeMillis();
 
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
         if (!isCKKS) {
             if (isSymmetric) {
-                encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetSymmetricEncryptedBuffer(timeMillis);
+                encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetSymmetricEncryptedBuffer(minutes);
             } else {
-                encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(timeMillis);
+                encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(minutes);
             }
         } else {
             if (isSymmetric) {
                 encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetSymmetricEncryptedBuffer(
-                        static_cast<double>(timeMillis));
+                        static_cast<double>(minutes));
             } else {
                 encryptedTimeMillisPtr = m_userPtr->GetCustomSealOperations()->GetEncryptedBuffer(
-                        static_cast<double>(timeMillis));
+                        static_cast<double>(minutes));
             }
         }
         return encryptedTimeMillisPtr;

@@ -8,6 +8,7 @@
 #if (!DISABLE_TESTS)
 
 #include "CustomSealOperations.h"
+#include "Timer.h"
 #include <memory>
 #include <log4cplus/configurator.h>
 
@@ -394,6 +395,46 @@ namespace yakbas::sec::test {
         }
 
         log4cplus::deinitialize();
+    }
+
+    TEST_CASE("Dummy") {
+        ::log4cplus::initialize();
+        ::log4cplus::PropertyConfigurator::doConfigure(DEFAULT_LOG_CONFIG_FILE_NAME);
+        const auto logger = util::GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("TestLogger"));
+
+        try {
+
+            SealKeys sealKeys{};
+            sealKeys.m_isEncodingEnabled = true;
+            sealKeys.m_schemeType = seal::scheme_type::ckks;
+
+            const auto sealOperations = GetUnique<CustomSealOperations>(sealKeys);
+
+            std::uint64_t startMillis = Timer::GetCurrentTimeMillis();
+            auto startCipherPtr = sealOperations->Encrypt(startMillis);
+
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            const auto unitPrice = GetRandomNumberVariant<double>();
+            std::uint64_t endMillis = Timer::GetCurrentTimeMillis();
+            auto priceCipher = sealOperations->Encrypt(unitPrice);
+            auto endCipher = sealOperations->Encrypt(endMillis);
+
+            sealOperations->GetEvaluatorPtr()->sub_inplace(*endCipher, *startCipherPtr);
+            sealOperations->GetEvaluatorPtr()->multiply_inplace(*endCipher, *priceCipher);
+
+            auto resultVar = sealOperations->Decrypt(*endCipher);
+            auto cipherResult = GetAnyVariant<double>(&resultVar);
+
+            auto plainResult = (endMillis - startMillis) * GetAnyVariant<double>(&unitPrice);
+
+            CHECK(CompareWithDecimalTolerance(&cipherResult, &plainResult));
+
+        } catch(std::exception &e) {
+            LOG4CPLUS_ERROR(*logger, e.what());
+        }
+
+        ::log4cplus::deinitialize();
     }
 
 } // yakbas

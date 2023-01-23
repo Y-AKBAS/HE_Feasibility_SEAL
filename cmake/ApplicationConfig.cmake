@@ -26,6 +26,6 @@ add_compile_definitions(${PUBLIC_PREFIX}MOBILITY_PROVIDER_SERVER_PORT_3="${LOCAL
 add_compile_definitions(DISABLE_TESTS=false)
 add_compile_definitions(SEAL_SCHEME_TYPE=0x3)
 add_compile_definitions(SEAL_POLY_MODULUS_DEGREE=16384)
-add_compile_definitions(SEAL_PLAIN_MODULUS_DEGREE=2048)
+add_compile_definitions(SEAL_PLAIN_MODULUS_DEGREE=1024)
 add_compile_definitions(ENCODING_ENABLED=false)
 add_compile_definitions(CKKS_SCALE_POWER=40)
