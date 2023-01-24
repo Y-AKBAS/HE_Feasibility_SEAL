@@ -31,15 +31,12 @@ namespace yakbas::sec {
             return this->EncodeAndEncrypt(num, encryptor);
         }
 
-        if (const auto value = std::get_if<std::uint64_t>(&num)) {
-            const std::string hexString = seal::util::uint_to_hex_string(value, std::size_t(1));
-            seal::Plaintext plaintext(hexString);
-            auto cipherText = GetUnique<seal::Ciphertext>();
-            encryptor.encrypt(plaintext, *cipherText);
-            return cipherText;
-        }
-
-        throw std::invalid_argument("Type mismatch! It should be std::uint64_t for encryption");
+        const auto value = GetAnyVariant<std::uint64_t>(&num);
+        const std::string hexString = seal::util::uint_to_hex_string(&value, std::size_t(1));
+        seal::Plaintext plaintext(hexString);
+        auto cipherText = GetUnique<seal::Ciphertext>();
+        encryptor.encrypt(plaintext, *cipherText);
+        return cipherText;
     }
 
     std::unique_ptr<seal::Ciphertext>
@@ -49,13 +46,13 @@ namespace yakbas::sec {
         auto cipherText = GetUnique<seal::Ciphertext>();
         seal::Plaintext plaintext;
         if (m_schemeType == seal::scheme_type::ckks) {
-            m_ckksEncoder->encode(std::get<double>(num), m_scale, plaintext);
+            m_ckksEncoder->encode(GetAnyVariant<double>(&num), m_scale, plaintext);
             encryptor.encrypt(plaintext, *cipherText);
             return cipherText;
         }
 
         std::vector<std::uint64_t> vec(m_batchEncoder->slot_count(), 0ULL);
-        vec.at(0) = std::get<std::uint64_t>(num);
+        vec.at(0) = GetAnyVariant<std::uint64_t>(&num);
         m_batchEncoder->encode(vec, plaintext);
         encryptor.encrypt(plaintext, *cipherText);
 
@@ -69,7 +66,8 @@ namespace yakbas::sec {
             return this->EncodeAndEncryptSymmetric(num, encryptor);
         }
 
-        const std::string hexString = seal::util::uint_to_hex_string(&std::get<std::uint64_t>(num), std::size_t(1));
+        const auto value = GetAnyVariant<std::uint64_t>(&num);
+        const std::string hexString = seal::util::uint_to_hex_string(&value, std::size_t(1));
         const auto plainTextToEncrypt = GetUnique<seal::Plaintext>(hexString);
         auto cipherText = GetUnique<seal::Ciphertext>();
         encryptor.encrypt_symmetric(*plainTextToEncrypt, *cipherText);
@@ -83,13 +81,13 @@ namespace yakbas::sec {
         auto cipherText = GetUnique<seal::Ciphertext>();
         seal::Plaintext plaintext;
         if (m_schemeType == seal::scheme_type::ckks) {
-            m_ckksEncoder->encode(std::get<double>(num), m_scale, plaintext);
+            m_ckksEncoder->encode(GetAnyVariant<double>(&num), m_scale, plaintext);
             encryptor.encrypt_symmetric(plaintext, *cipherText);
             return cipherText;
         }
 
         std::vector<std::uint64_t> vec(m_batchEncoder->slot_count(), 0ULL);
-        vec.at(0) = std::get<std::uint64_t>(num);
+        vec.at(0) = GetAnyVariant<std::uint64_t>(&num);
         m_batchEncoder->encode(vec, plaintext);
         encryptor.encrypt_symmetric(plaintext, *cipherText);
 

@@ -30,9 +30,11 @@ namespace yakbas {
 
         static std::chrono::system_clock::time_point GetSystemTimePoint();
 
-        static long long int GetCurrentTimeNanos();
+        static std::uint64_t GetCurrentTimeNanos();
 
-        static long long int GetCurrentTimeMillis();
+        static std::uint64_t GetCurrentTimeMillis();
+
+        static std::uint64_t GetCurrentTimeMinutes();
 
         static std::unique_ptr<google::protobuf::Timestamp> GetTimestamp();
 

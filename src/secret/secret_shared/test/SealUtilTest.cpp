@@ -405,18 +405,19 @@ namespace yakbas::sec::test {
         try {
 
             SealKeys sealKeys{};
-            sealKeys.m_isEncodingEnabled = true;
-            sealKeys.m_schemeType = seal::scheme_type::ckks;
+            sealKeys.m_schemeType = seal::scheme_type::bfv;
+            sealKeys.m_isEncodingEnabled = false;
+            sealKeys.m_plainModulus = 100000000;
 
             const auto sealOperations = GetUnique<CustomSealOperations>(sealKeys);
 
-            std::uint64_t startMillis = Timer::GetCurrentTimeMillis();
+            std::uint64_t startMillis = Timer::GetCurrentTimeMinutes();
+            std::cout << startMillis << std::endl;
             auto startCipherPtr = sealOperations->Encrypt(startMillis);
-
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
-            const auto unitPrice = GetRandomNumberVariant<double>();
-            std::uint64_t endMillis = Timer::GetCurrentTimeMillis();
+            const auto unitPrice = GetRandomNumberVariant<std::uint64_t>();
+            std::uint64_t endMillis = Timer::GetCurrentTimeMinutes() + 18;
             auto priceCipher = sealOperations->Encrypt(unitPrice);
             auto endCipher = sealOperations->Encrypt(endMillis);
 
@@ -424,13 +425,19 @@ namespace yakbas::sec::test {
             sealOperations->GetEvaluatorPtr()->multiply_inplace(*endCipher, *priceCipher);
 
             auto resultVar = sealOperations->Decrypt(*endCipher);
-            auto cipherResult = GetAnyVariant<double>(&resultVar);
+            auto cipherResult = GetAnyVariant<std::uint64_t>(&resultVar);
 
-            auto plainResult = (endMillis - startMillis) * GetAnyVariant<double>(&unitPrice);
+            const uint64_t unitPriceNum = GetAnyVariant<std::uint64_t>(&unitPrice);
+            auto plainResult = (endMillis - startMillis) * unitPriceNum;
+            LOG4CPLUS_INFO(*logger, "startTime: " + std::to_string(startMillis) + " endTime: " +
+                                    std::to_string(endMillis) + " unitPrice: " + std::to_string(unitPriceNum));
+            LOG4CPLUS_INFO(*logger, "cipherResult: " + std::to_string(cipherResult) + " plainResult: " +
+                                    std::to_string(plainResult));
 
             CHECK(CompareWithDecimalTolerance(&cipherResult, &plainResult));
 
-        } catch(std::exception &e) {
+        } catch (std::exception &e) {
+            CHECK(false);
             LOG4CPLUS_ERROR(*logger, e.what());
         }
 

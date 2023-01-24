@@ -514,9 +514,7 @@ namespace yakbas::sec {
 
     std::unique_ptr<std::string> ClientManager::GetEncryptedCurrentTimeMillis(const bool isSymmetric) const {
         std::unique_ptr<std::string> encryptedTimeMillisPtr{nullptr};
-        const std::chrono::duration timeSinceEpoch = std::chrono::system_clock::now().time_since_epoch();
-        const uint64_t minutes = std::chrono::duration_cast<std::chrono::minutes>(timeSinceEpoch).count();
-        //const uint64_t minutes = m_timerPtr->GetCurrentTimeMillis();
+        const uint64_t minutes = Timer::GetCurrentTimeMinutes();
 
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
         if (!isCKKS) {

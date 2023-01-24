@@ -40,12 +40,17 @@ namespace yakbas {
         return system::now();
     }
 
-    long long int Timer::GetCurrentTimeNanos() {
+    std::uint64_t Timer::GetCurrentTimeNanos() {
         return system::now().time_since_epoch().count();
     }
 
-    long long int Timer::GetCurrentTimeMillis() {
+    std::uint64_t Timer::GetCurrentTimeMillis() {
         return std::chrono::duration_cast<std::chrono::milliseconds>(
+                system::now().time_since_epoch()).count();
+    }
+
+    std::uint64_t Timer::GetCurrentTimeMinutes() {
+        return std::chrono::duration_cast<std::chrono::minutes>(
                 system::now().time_since_epoch()).count();
     }
 
