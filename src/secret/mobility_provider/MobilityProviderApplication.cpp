@@ -13,8 +13,9 @@ namespace yakbas::sec {
     void MobilityProviderApplication::Run(int argc, char **argv) {
         try {
             EnableLogging();
-            RunTests(argc, argv);
             auto commandLinePtr = HandleCommandLine(argc, argv, "Secret Mobility Provider Application");
+            CustomSealOperations::GetOperations(commandLinePtr->m_sealKeys);
+            RunTests(argc, argv);
             this->StartServer(commandLinePtr.get());
         } catch (const std::exception &e) {
             const auto &logger = log4cplus::Logger::getInstance("Secret Mobility Provider Exception Logger");

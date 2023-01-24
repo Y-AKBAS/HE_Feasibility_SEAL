@@ -3,6 +3,7 @@
 #include "ClientServerManager.h"
 #include "ClientServiceImpl.h"
 #include "Utils.h"
+#include "CustomSealOperations.h"
 
 namespace yakbas::sec {
     using namespace yakbas::util;
@@ -12,8 +13,9 @@ namespace yakbas::sec {
     void ClientApplication::Run(int argc, char **argv) {
         try {
             EnableLogging();
-            RunTests(argc, argv);
             auto commandLinePtr = HandleCommandLine(argc, argv, "Secret Client Application");
+            CustomSealOperations::GetOperations(commandLinePtr->m_sealKeys);
+            RunTests(argc, argv);
             this->StartServer(commandLinePtr.get());
         } catch (std::exception &e) {
             const auto logger = log4cplus::Logger::getInstance("Secret Client Exception Logger");

@@ -10,13 +10,13 @@ namespace yakbas::sec {
     std::pair<std::unique_ptr<SecretCommandLineInfo>, ParserResultCode>
     SecretBaseCommandLineParser::GetCommandLineInfo(const std::vector<std::string> &cmdLineArgs) {
 
-        const constexpr char *schemeTypeName = "schemeType,st";
-        const constexpr char *plainModulusName = "plainModulus,pm";
-        const constexpr char *polyModulusDegreeName = "polyModulusDegree,pmd";
-        const constexpr char *isEncodingEnabledName = "encodingEnabled,ee";
-        const constexpr char *scalePowerName = "scalePower,sp";
-        const constexpr char *numberOfRequestsName = "numberOfRequests,nor";
-        const constexpr char *portUrlName = "portUrl,pu";
+        constexpr const char *schemeTypeName = "schemeType,st";
+        constexpr const char *plainModulusName = "plainModulus,pm";
+        constexpr const char *polyModulusDegreeName = "polyModulusDegree,pmd";
+        constexpr const char *isEncodingEnabledName = "encodingEnabled,ee";
+        constexpr const char *scalePowerName = "scalePower,sp";
+        constexpr const char *numberOfRequestsName = "numberOfRequests,nor";
+        constexpr const char *portUrlName = "portUrl,pu";
 
         auto commandLineInfoPtr = std::make_unique<SecretCommandLineInfo>();
         auto &keys = commandLineInfoPtr->m_sealKeys;
