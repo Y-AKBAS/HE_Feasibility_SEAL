@@ -11,8 +11,7 @@ namespace yakbas::sec {
 
     ClientManager::ClientManager(const SealKeys &sealKeys)
             : m_userPtr(ClientGenerator::GenerateSecretUser(sealKeys)),
-              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))),
-              m_schemeType(sealKeys.m_schemeType){
+              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))) {
 
         std::call_once(m_isInitialized, [this]() {
             LOG4CPLUS_DEBUG(*m_logger, "Secret Client Manager is being initialized...");
@@ -22,6 +21,7 @@ namespace yakbas::sec {
             );
             this->GetPublicKey();
         });
+        m_schemeType = m_userPtr->GetCustomSealOperations()->GetSealOperations()->GetSealInfoPtr()->m_sealKeys.m_schemeType;
     }
 
     std::map<std::string, const std::shared_ptr<seal::PublicKey>> ClientManager::m_publicKeyMap{};

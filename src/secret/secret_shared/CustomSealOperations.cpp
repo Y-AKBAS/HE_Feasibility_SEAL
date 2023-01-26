@@ -8,7 +8,7 @@ namespace yakbas::sec {
 
     CustomSealOperations::CustomSealOperations(const SealKeys &sealKeys, bool isDefaultOperations)
             : m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("CustomSealOperations"))),
-              m_sealOperations(&CustomSealOperations::GetOperations(sealKeys)) {
+              m_sealOperations(&CustomSealOperations::GetOperations(sealKeys, isDefaultOperations)) {
 
         const auto &sealInfoPtr = m_sealOperations->GetSealInfoPtr();
         m_keyGeneratorPtr = std::make_unique<seal::KeyGenerator>(*sealInfoPtr->m_sealContextPtr);
@@ -44,6 +44,7 @@ namespace yakbas::sec {
         std::lock_guard<std::mutex> guard{m_mutex};
 
         if (!operations.empty() && isDefault) {
+            LOG4CPLUS_DEBUG(*logger, "Found existing SealKeys. They will be returned...");
             return *operations.at(0);
         }
 
@@ -123,7 +124,7 @@ namespace yakbas::sec {
 
     std::unique_ptr<seal::Encryptor>
     CustomSealOperations::CreateNewEncryptor(const seal::PublicKey &publicKey, const SealKeys &sealKeys) {
-        return GetUnique<seal::Encryptor>(*GetOperations(sealKeys).GetSealInfoPtr()->m_sealContextPtr,
+        return GetUnique<seal::Encryptor>(*GetOperations(sealKeys, false).GetSealInfoPtr()->m_sealContextPtr,
                                           publicKey);
     }
 

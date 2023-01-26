@@ -356,7 +356,7 @@ namespace yakbas::sec::test {
             const auto encryptedPlain = GetRandomNumber<double>();
             const auto firstCipher = GetUnique<CustomSealOperations>(keys, false)->Encrypt(encryptedPlain);
 
-            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys, false)->Decrypt(*firstCipher);
 
             auto decryptedPlain = GetAnyVariant<double>(&decryptedCipher);
 
@@ -371,7 +371,7 @@ namespace yakbas::sec::test {
             const auto encryptedPlain = GetRandomNumber<std::uint64_t>();
             const auto firstCipher = GetUnique<CustomSealOperations>(keys, false)->Encrypt(encryptedPlain);
 
-            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys, false)->Decrypt(*firstCipher);
 
             auto decryptedPlain = GetAnyVariant<std::uint64_t>(&decryptedCipher);
 
@@ -386,7 +386,7 @@ namespace yakbas::sec::test {
             const auto encryptedPlain = GetRandomNumber<std::uint64_t>();
             const auto firstCipher = GetUnique<CustomSealOperations>(keys, false)->Encrypt(encryptedPlain);
 
-            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys, false)->Decrypt(*firstCipher);
 
             auto decryptedPlain = GetAnyVariant<std::uint64_t>(&decryptedCipher);
 
