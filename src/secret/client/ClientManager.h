@@ -22,28 +22,28 @@ namespace yakbas::sec {
         Search(const std::string &from, const std::string &to, int numberOfJourneys = 10) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSecretly(const communication::Journey &journey) const;
+        BookSecretlyOnPlatform(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSymmetricSecretly(const communication::Journey &journey) const;
+        BookSymmetricSecretlyOnPlatform(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookSecretlyAndDecrypt(const communication::Journey &journey) const;
+        BookSecretlyOnPlatformAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookSymmetricSecretlyAndDecrypt(const communication::Journey &journey) const;
+        BookSymmetricSecretlyOnPlatformAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSymmetricSecretlyOnOthers(const communication::Journey &journey) const;
+        BookSymmetricSecretlyOnMobilityProviders(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookSymmetricSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const;
+        BookSymmetricSecretlyOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSecretlyOnOthers(const communication::Journey &journey) const;
+        BookSecretlyOnMobilityProviders(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const;
+        BookSecretlyOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse) const;

@@ -78,9 +78,9 @@ namespace yakbas::sec {
         return status;
     }
 
-    grpc::Status PlatformServiceImpl::Book(grpc::ServerContext *context,
-                                           grpc::ServerReader<communication::sec::BookingRequest> *reader,
-                                           communication::sec::BookingResponse *response) {
+    grpc::Status PlatformServiceImpl::BookOnPlatform(grpc::ServerContext *context,
+                                                     grpc::ServerReader<communication::sec::BookingRequest> *reader,
+                                                     communication::sec::BookingResponse *response) {
 
         response->set_journey_id(GetUUID());
         auto rideIdSeatNumberMap = response->mutable_rideidseatnumbermap();
@@ -117,9 +117,9 @@ namespace yakbas::sec {
         return grpc::Status::OK;
     }
 
-    grpc::Status PlatformServiceImpl::BookOnOthers(grpc::ServerContext *context,
-                                                   grpc::ServerReader<communication::sec::BookingRequest> *reader,
-                                                   communication::sec::BookingResponse *response) {
+    grpc::Status PlatformServiceImpl::BookOnMobilityProviders(grpc::ServerContext *context,
+                                                              grpc::ServerReader<communication::sec::BookingRequest> *reader,
+                                                              communication::sec::BookingResponse *response) {
         response->set_journey_id(GetUUID());
 
         const std::unique_ptr<secretService::Stub> &stub_1 = m_platformClientManager->GetStub(
