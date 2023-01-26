@@ -1,15 +1,14 @@
 
 #include <log4cplus/loggingmacros.h>
 #include "CustomSealOperations.h"
-#include "Utils.h"
 
 namespace yakbas::sec {
 
     using namespace yakbas::util;
 
-    CustomSealOperations::CustomSealOperations(const SealKeys &sealKeys)
+    CustomSealOperations::CustomSealOperations(const SealKeys &sealKeys, bool isDefaultOperations)
             : m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("CustomSealOperations"))),
-              m_sealOperations(&CustomSealOperations::GetOperations(sealKeys)) {
+              m_sealOperations(&CustomSealOperations::GetOperations(sealKeys, isDefaultOperations)) {
 
         const auto &sealInfoPtr = m_sealOperations->GetSealInfoPtr();
         m_keyGeneratorPtr = std::make_unique<seal::KeyGenerator>(*sealInfoPtr->m_sealContextPtr);
@@ -36,13 +35,18 @@ namespace yakbas::sec {
 
     // No worries. Doesn't cause memory leak :)
     const SealOperations &
-    CustomSealOperations::GetOperations(const SealKeys &sealKeys) {
+    CustomSealOperations::GetOperations(const SealKeys &sealKeys, bool isDefault) {
         static const auto logger
                 = GetUnique<log4cplus::Logger>(log4cplus::Logger::getInstance("GetOperations Logger"));
         static std::vector<const SealOperations *> operations{};
 
         static std::mutex m_mutex{};
         std::lock_guard<std::mutex> guard{m_mutex};
+
+        if (!operations.empty() && isDefault) {
+            LOG4CPLUS_DEBUG(*logger, "Found existing SealKeys. They will be returned...");
+            return *operations.at(0);
+        }
 
         const auto it = std::ranges::find_if(operations, [&sealKeys](const SealOperations *operationsPtr) {
             return operationsPtr->GetSealInfoPtr()->m_sealKeys == sealKeys;
@@ -120,7 +124,7 @@ namespace yakbas::sec {
 
     std::unique_ptr<seal::Encryptor>
     CustomSealOperations::CreateNewEncryptor(const seal::PublicKey &publicKey, const SealKeys &sealKeys) {
-        return GetUnique<seal::Encryptor>(*GetOperations(sealKeys).GetSealInfoPtr()->m_sealContextPtr,
+        return GetUnique<seal::Encryptor>(*GetOperations(sealKeys, false).GetSealInfoPtr()->m_sealContextPtr,
                                           publicKey);
     }
 

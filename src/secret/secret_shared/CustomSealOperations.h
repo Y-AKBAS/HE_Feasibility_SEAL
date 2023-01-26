@@ -9,9 +9,9 @@ namespace yakbas::sec {
     class CustomSealOperations {
     public:
 
-        explicit CustomSealOperations(const SealKeys &sealKeys = {});
+        explicit CustomSealOperations(const SealKeys &sealKeys = {}, bool isDefaultOperations = true);
 
-        static const SealOperations &GetOperations(const SealKeys &sealKeys = {});
+        static const SealOperations &GetOperations(const SealKeys &sealKeys = {}, bool isDefault = true);
 
         [[nodiscard]] static std::unique_ptr<seal::Encryptor>
         CreateNewEncryptor(const seal::PublicKey &publicKey, const SealKeys &sealKeys = {});

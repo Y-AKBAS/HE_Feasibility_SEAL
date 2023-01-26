@@ -2,9 +2,7 @@
 #include <log4cplus/loggingmacros.h>
 #include "ClientManager.h"
 #include "ClientGenerator.h"
-#include "ApplicationConstants.h"
 #include "SecretCommunication.pb.h"
-#include "Utils.h"
 
 namespace yakbas::sec {
     using namespace yakbas::util;
@@ -23,7 +21,6 @@ namespace yakbas::sec {
             );
             this->GetPublicKey();
         });
-
         m_schemeType = m_userPtr->GetCustomSealOperations()->GetSealOperations()->GetSealInfoPtr()->m_sealKeys.m_schemeType;
     }
 

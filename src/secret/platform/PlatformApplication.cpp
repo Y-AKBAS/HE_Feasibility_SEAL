@@ -15,8 +15,9 @@ namespace yakbas::sec {
     void PlatformApplication::Run(int argc, char **argv) {
         try {
             EnableLogging();
-            RunTests(argc, argv);
             auto commandLinePtr = HandleCommandLine(argc, argv, "Secret Platform Application");
+            CustomSealOperations::GetOperations(commandLinePtr->m_sealKeys);
+            RunTests(argc, argv);
             this->StartServer(commandLinePtr.get());
         } catch (const std::exception &e) {
             const auto &logger = log4cplus::Logger::getInstance("Secret Platform Exception Logger");

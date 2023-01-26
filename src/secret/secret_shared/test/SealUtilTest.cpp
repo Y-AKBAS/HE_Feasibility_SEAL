@@ -107,7 +107,7 @@ namespace yakbas::sec::test {
                 keys.m_schemeType = seal::scheme_type::ckks;
                 keys.m_isEncodingEnabled = true;
 
-                const auto customSealOperations = GetUnique<CustomSealOperations>(keys);
+                const auto customSealOperations = GetUnique<CustomSealOperations>(keys, false);
 
                 const auto num = GetRandomNumber<double>();
 
@@ -133,7 +133,7 @@ namespace yakbas::sec::test {
                 keys.m_schemeType = seal::scheme_type::bfv;
                 keys.m_isEncodingEnabled = true;
 
-                const auto customSealOperations = GetUnique<CustomSealOperations>(keys);
+                const auto customSealOperations = GetUnique<CustomSealOperations>(keys, false);
 
                 const auto num = GetRandomNumber<std::uint64_t>();
 
@@ -160,7 +160,7 @@ namespace yakbas::sec::test {
                 keys.m_schemeType = seal::scheme_type::bfv;
                 keys.m_isEncodingEnabled = false;
 
-                const auto customSealOperations = GetUnique<CustomSealOperations>(keys);
+                const auto customSealOperations = GetUnique<CustomSealOperations>(keys, false);
 
                 const auto num = GetRandomNumber<std::uint64_t>();
 
@@ -187,7 +187,7 @@ namespace yakbas::sec::test {
                 keys.m_schemeType = seal::scheme_type::bgv;
                 keys.m_isEncodingEnabled = true;
 
-                const auto customSealOperations = GetUnique<CustomSealOperations>(keys);
+                const auto customSealOperations = GetUnique<CustomSealOperations>(keys, false);
 
                 const auto num = GetRandomNumber<std::uint64_t>();
 
@@ -214,7 +214,7 @@ namespace yakbas::sec::test {
                 keys.m_schemeType = seal::scheme_type::bgv;
                 keys.m_isEncodingEnabled = false;
 
-                const auto customSealOperations = GetUnique<CustomSealOperations>(keys);
+                const auto customSealOperations = GetUnique<CustomSealOperations>(keys, false);
 
                 const auto num = GetRandomNumber<std::uint64_t>();
 
@@ -282,7 +282,7 @@ namespace yakbas::sec::test {
                 keys.m_schemeType = seal::scheme_type::ckks;
                 keys.m_isEncodingEnabled = true;
 
-                const auto customSealOperations = GetUnique<CustomSealOperations>(keys);
+                const auto customSealOperations = GetUnique<CustomSealOperations>(keys, false);
                 const auto variant = GetRandomNumberVariant<double>();
                 const auto num = GetAnyVariant<double>(&variant);
                 const auto expectedResult = num * num + num - num;
@@ -354,9 +354,9 @@ namespace yakbas::sec::test {
             keys.m_isEncodingEnabled = true;
 
             const auto encryptedPlain = GetRandomNumber<double>();
-            const auto firstCipher = GetUnique<CustomSealOperations>(keys)->Encrypt(encryptedPlain);
+            const auto firstCipher = GetUnique<CustomSealOperations>(keys, false)->Encrypt(encryptedPlain);
 
-            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys, false)->Decrypt(*firstCipher);
 
             auto decryptedPlain = GetAnyVariant<double>(&decryptedCipher);
 
@@ -369,9 +369,9 @@ namespace yakbas::sec::test {
             keys.m_isEncodingEnabled = true;
 
             const auto encryptedPlain = GetRandomNumber<std::uint64_t>();
-            const auto firstCipher = GetUnique<CustomSealOperations>(keys)->Encrypt(encryptedPlain);
+            const auto firstCipher = GetUnique<CustomSealOperations>(keys, false)->Encrypt(encryptedPlain);
 
-            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys, false)->Decrypt(*firstCipher);
 
             auto decryptedPlain = GetAnyVariant<std::uint64_t>(&decryptedCipher);
 
@@ -384,9 +384,9 @@ namespace yakbas::sec::test {
             keys.m_isEncodingEnabled = true;
 
             const auto encryptedPlain = GetRandomNumber<std::uint64_t>();
-            const auto firstCipher = GetUnique<CustomSealOperations>(keys)->Encrypt(encryptedPlain);
+            const auto firstCipher = GetUnique<CustomSealOperations>(keys, false)->Encrypt(encryptedPlain);
 
-            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys)->Decrypt(*firstCipher);
+            const num_variant &decryptedCipher = GetUnique<CustomSealOperations>(keys, false)->Decrypt(*firstCipher);
 
             auto decryptedPlain = GetAnyVariant<std::uint64_t>(&decryptedCipher);
 
