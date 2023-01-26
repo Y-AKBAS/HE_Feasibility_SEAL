@@ -134,15 +134,39 @@ namespace yakbas::sec {
         return journeyVecPtr;
     }
 
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSecretlyOnPlatformAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSecretlyOnPlatform(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSymmetricSecretlyOnPlatformAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSymmetricSecretlyOnPlatform(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSymmetricSecretlyOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSymmetricSecretlyOnMobilityProviders(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookSecretlyOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSecretlyOnMobilityProviders(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
     std::unique_ptr<communication::sec::BookingResponse>
-    ClientManager::BookSecretly(const communication::Journey &journey) const {
+    ClientManager::BookSecretlyOnPlatform(const communication::Journey &journey) const {
 
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
         const auto clientContextPtr = GetUnique<grpc::ClientContext>();
         auto responsePtr = GetUnique<communication::sec::BookingResponse>();
-        const auto clientWriterPtr = stubPtr->Book(clientContextPtr.get(), responsePtr.get());
+        const auto clientWriterPtr = stubPtr->BookOnPlatform(clientContextPtr.get(), responsePtr.get());
 
         const auto &rides = journey.rides();
 
@@ -195,14 +219,14 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<communication::sec::BookingResponse>
-    ClientManager::BookSymmetricSecretly(const communication::Journey &journey) const {
+    ClientManager::BookSymmetricSecretlyOnPlatform(const communication::Journey &journey) const {
 
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
         const auto clientContextPtr = GetUnique<grpc::ClientContext>();
         auto responsePtr = GetUnique<communication::sec::BookingResponse>();
-        const auto clientWriterPtr = stubPtr->Book(clientContextPtr.get(), responsePtr.get());
+        const auto clientWriterPtr = stubPtr->BookOnPlatform(clientContextPtr.get(), responsePtr.get());
 
         const auto &rides = journey.rides();
 
@@ -255,13 +279,13 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<communication::sec::BookingResponse>
-    ClientManager::BookSymmetricSecretlyOnOthers(const communication::Journey &journey) const {
+    ClientManager::BookSymmetricSecretlyOnMobilityProviders(const communication::Journey &journey) const {
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
         const auto clientContextPtr = GetUnique<grpc::ClientContext>();
         auto responsePtr = GetUnique<communication::sec::BookingResponse>();
-        const auto clientWriterPtr = stubPtr->BookOnOthers(clientContextPtr.get(), responsePtr.get());
+        const auto clientWriterPtr = stubPtr->BookOnMobilityProviders(clientContextPtr.get(), responsePtr.get());
 
         const auto &rides = journey.rides();
 
@@ -314,13 +338,13 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<communication::sec::BookingResponse>
-    ClientManager::BookSecretlyOnOthers(const communication::Journey &journey) const {
+    ClientManager::BookSecretlyOnMobilityProviders(const communication::Journey &journey) const {
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
         const auto clientContextPtr = GetUnique<grpc::ClientContext>();
         auto responsePtr = GetUnique<communication::sec::BookingResponse>();
-        const auto clientWriterPtr = stubPtr->BookOnOthers(clientContextPtr.get(), responsePtr.get());
+        const auto clientWriterPtr = stubPtr->BookOnMobilityProviders(clientContextPtr.get(), responsePtr.get());
 
         const auto &rides = journey.rides();
 
@@ -370,30 +394,6 @@ namespace yakbas::sec {
         }
 
         return responsePtr;
-    }
-
-    std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSecretlyAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSecretly(journey);
-        return this->MapSecretToPublic(*secretBookingResponsePtr);
-    }
-
-    std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSymmetricSecretlyAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSymmetricSecretly(journey);
-        return this->MapSecretToPublic(*secretBookingResponsePtr);
-    }
-
-    std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSymmetricSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSymmetricSecretlyOnOthers(journey);
-        return this->MapSecretToPublic(*secretBookingResponsePtr);
-    }
-
-    std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSecretlyOnOthersAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSecretlyOnOthers(journey);
-        return this->MapSecretToPublic(*secretBookingResponsePtr);
     }
 
     std::unique_ptr<communication::InvoicingResponse>

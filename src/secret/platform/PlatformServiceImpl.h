@@ -23,12 +23,12 @@ namespace yakbas::sec {
                                     grpc::ServerWriter<communication::Journey> *writer) override;
 
         grpc::Status
-        Book(grpc::ServerContext *context, grpc::ServerReader<communication::sec::BookingRequest> *reader,
-             communication::sec::BookingResponse *response) override;
+        BookOnPlatform(grpc::ServerContext *context, grpc::ServerReader<communication::sec::BookingRequest> *reader,
+                       communication::sec::BookingResponse *response) override;
 
         grpc::Status
-        BookOnOthers(::grpc::ServerContext *context, ::grpc::ServerReader<::communication::sec::BookingRequest> *reader,
-                     ::communication::sec::BookingResponse *response) override;
+        BookOnMobilityProviders(grpc::ServerContext *context, grpc::ServerReader<communication::sec::BookingRequest> *reader,
+                                communication::sec::BookingResponse *response) override;
 
         grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
                                      communication::InvoicingResponse *response) override;
