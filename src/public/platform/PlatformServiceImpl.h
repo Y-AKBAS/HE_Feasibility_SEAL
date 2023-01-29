@@ -21,12 +21,13 @@ namespace yakbas::pub {
                                     grpc::ServerWriter<communication::Journey> *writer) override;
 
         grpc::Status
-        Book(::grpc::ServerContext *context, ::grpc::ServerReader<::communication::pub::BookingRequest> *reader,
-             ::communication::BookingResponse *response) override;
+        BookOnPlatform(grpc::ServerContext *context, grpc::ServerReader<communication::pub::BookingRequest> *reader,
+                       communication::BookingResponse *response) override;
 
         grpc::Status
-        BookOnOthers(::grpc::ServerContext *context, ::grpc::ServerReader<::communication::pub::BookingRequest> *reader,
-                     ::communication::BookingResponse *response) override;
+        BookOnMobilityProviders(grpc::ServerContext *context,
+                                grpc::ServerReader<communication::pub::BookingRequest> *reader,
+                                communication::BookingResponse *response) override;
 
         grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
                                      communication::InvoicingResponse *response) override;

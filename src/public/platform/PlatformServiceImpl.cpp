@@ -52,9 +52,9 @@ namespace yakbas::pub {
         return status;
     }
 
-    grpc::Status PlatformServiceImpl::Book(grpc::ServerContext *context,
-                                           grpc::ServerReader<communication::pub::BookingRequest> *reader,
-                                           communication::BookingResponse *response) {
+    grpc::Status PlatformServiceImpl::BookOnPlatform(grpc::ServerContext *context,
+                                                     grpc::ServerReader<communication::pub::BookingRequest> *reader,
+                                                     communication::BookingResponse *response) {
 
         response->set_journey_id(GetUUID());
         auto rideIdSeatNumberMap = response->mutable_rideidseatnumbermap();
@@ -77,9 +77,9 @@ namespace yakbas::pub {
         return grpc::Status::OK;
     }
 
-    grpc::Status PlatformServiceImpl::BookOnOthers(grpc::ServerContext *context,
-                                                   grpc::ServerReader<communication::pub::BookingRequest> *reader,
-                                                   communication::BookingResponse *response) {
+    grpc::Status PlatformServiceImpl::BookOnMobilityProviders(grpc::ServerContext *context,
+                                                              grpc::ServerReader<communication::pub::BookingRequest> *reader,
+                                                              communication::BookingResponse *response) {
 
         response->set_journey_id(GetUUID());
         auto rideIdSeatNumberMap = response->mutable_rideidseatnumbermap();
@@ -166,7 +166,6 @@ namespace yakbas::pub {
 
         response->set_status(communication::StatusCode::SUCCESSFUL);
         return status;
-
     }
 
 } // yakbas

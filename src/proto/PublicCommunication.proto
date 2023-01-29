@@ -7,9 +7,9 @@ package communication.pub;
 service PublicCommunicationService {
   rpc CreateInvoice(InvoicingRequest) returns (InvoicingResponse);
   rpc SearchForRides(communication.SearchRequest) returns (stream communication.Journey);
-  rpc Book(stream BookingRequest) returns (communication.BookingResponse);
-  rpc BookOnOthers(stream BookingRequest) returns (BookingResponse);
-  rpc BookOnMobilityProvider(BookingRequest) returns (BookingResponse);
+  rpc BookOnPlatform(stream BookingRequest) returns (BookingResponse);
+  rpc BookOnMobilityProviders(stream BookingRequest) returns (BookingResponse); // for clients
+  rpc BookOnMobilityProvider(BookingRequest) returns (BookingResponse); // For platform
   rpc ReportInvoicing(InvoicingReport) returns (InvoicingResponse);
 }
 

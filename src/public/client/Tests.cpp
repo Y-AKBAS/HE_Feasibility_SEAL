@@ -55,7 +55,7 @@ namespace yakbas::pub::test {
                 const auto &journeyPtr = journeysVecPtr->at(i);
                 std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
 
-                const auto bookingResponsePtr = clientManagerPtr->Book(*journeyPtr);
+                const auto bookingResponsePtr = clientManagerPtr->BookOnPlatform(*journeyPtr);
 
                 CHECK(AnyToNum<std::uint64_t>(&bookingResponsePtr->total()) == totalBeforeSent);
             }
@@ -79,7 +79,7 @@ namespace yakbas::pub::test {
                 const auto &journeyPtr = journeysVecPtr->at(i);
                 std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
 
-                const auto bookingResponsePtr = clientManagerPtr->BookOnOthers(*journeyPtr);
+                const auto bookingResponsePtr = clientManagerPtr->BookOnMobilityProviders(*journeyPtr);
 
                 CHECK(AnyToNum<std::uint64_t>(&bookingResponsePtr->total()) == totalBeforeSent);
             }
@@ -103,7 +103,7 @@ namespace yakbas::pub::test {
             const auto &journeyPtr = journeysVecPtr->at(index);
 
             std::uint64_t totalBeforeSent = findTotal(*journeyPtr);
-            const auto bookingResponsePtr = clientManagerPtr->Book(*journeyPtr);
+            const auto bookingResponsePtr = clientManagerPtr->BookOnPlatform(*journeyPtr);
             CHECK(AnyToNum<std::uint64_t>(&bookingResponsePtr->total()) == totalBeforeSent);
 
             const auto invoicingResponsePtr = clientManagerPtr->Pay(*bookingResponsePtr);

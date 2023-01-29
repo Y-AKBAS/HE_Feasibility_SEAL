@@ -1,9 +1,11 @@
 
 aux_source_directory(. SOURCE_FILES)
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-#target_link_directories(${PROJECT_NAME} PRIVATE ${Boost_LIBRARY_DIR})
+set(TARGET_NAME benchmark)
+add_executable(${TARGET_NAME} ${SOURCE_FILES})
+target_link_libraries(${TARGET_NAME} PUBLIC ${SHARED_LIBS} publicClientLibrary secretClientLibrary)
+target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-
-target_link_libraries(${PROJECT_NAME} PRIVATE SEAL::seal)
+PLACE_LOG_CONFIG(${TARGET_NAME}
+        CONFIG_FILE_DIR "${DEFAULT_LOG_CONFIGURER}"
+        )

@@ -1,12 +1,21 @@
 #pragma once
 
+#include "IApplication.h"
+#include "secret/secret_shared/SecretCommandLineInfo.h"
+
 namespace yakbas {
 
-    class Application {
+    class Application : public IApplication {
 
     public:
-        static void Run();
-    private:
+        ~Application() override = default;
+
+        void StartServer(BaseCommandLineInfo *commandLineInfoPtr) override;
+
+        void Run(int argc, char **argv) override;
+
+        void Benchmark(const sec::SecretCommandLineInfo &commandLineInfo);
+
     };
 
 } // yakbas

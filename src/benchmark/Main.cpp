@@ -1,6 +1,7 @@
 #include "Application.h"
 
-int main() {
-    yakbas::Application::Run();
+int main(int argc, char **argv) {
+    yakbas::Application application;
+    application.Run(argc, argv);
     return 0;
 }
