@@ -69,12 +69,12 @@ namespace yakbas::pub {
     }
 
     std::unique_ptr<communication::BookingResponse>
-    ClientManager::Book(const communication::Journey &journey) {
+    ClientManager::BookOnPlatform(const communication::Journey &journey) {
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
         const auto clientContextPtr = GetUnique<grpc::ClientContext>();
         auto responsePtr = GetUnique<communication::BookingResponse>();
-        const auto clientWriterPtr = stubPtr->Book(clientContextPtr.get(), responsePtr.get());
+        const auto clientWriterPtr = stubPtr->BookOnPlatform(clientContextPtr.get(), responsePtr.get());
 
         const auto &rides = journey.rides();
 
@@ -117,12 +117,13 @@ namespace yakbas::pub {
         return responsePtr;
     }
 
-    std::unique_ptr<communication::BookingResponse> ClientManager::BookOnOthers(const communication::Journey &journey) {
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookOnMobilityProviders(const communication::Journey &journey) {
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
         const auto clientContextPtr = GetUnique<grpc::ClientContext>();
         auto responsePtr = GetUnique<communication::BookingResponse>();
-        const auto clientWriterPtr = stubPtr->BookOnOthers(clientContextPtr.get(), responsePtr.get());
+        const auto clientWriterPtr = stubPtr->BookOnMobilityProviders(clientContextPtr.get(), responsePtr.get());
 
         const auto &rides = journey.rides();
 

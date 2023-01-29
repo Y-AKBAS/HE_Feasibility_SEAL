@@ -18,10 +18,10 @@ namespace yakbas::pub {
         Search(const std::string &from, const std::string &to, int numberOfJourneys);
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        Book(const communication::Journey &journey);
+        BookOnPlatform(const communication::Journey &journey);
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookOnOthers(const communication::Journey &journey);
+        BookOnMobilityProviders(const communication::Journey &journey);
 
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse);
