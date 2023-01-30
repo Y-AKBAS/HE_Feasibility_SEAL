@@ -21,4 +21,4 @@ function runApplications {
     cd $root
 }
 
-runApplications
+runApplications()

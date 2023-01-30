@@ -31,7 +31,7 @@ Start-Process -NoNewWindow ".\secretPlatform.exe" -ArgumentList $schemeArg,$batc
 cd $root
 Start-Sleep -Seconds 10
 cd "$secretPath\client\"
-Start-Process -NoNewWindow ".\secretClient.exe" -ArgumentList $schemeArg,$batchingEnabledArg 
+#Start-Process -NoNewWindow ".\secretClient.exe" -ArgumentList $schemeArg,$batchingEnabledArg 
 
 cd $root
 }
