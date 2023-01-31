@@ -22,28 +22,30 @@ namespace yakbas::sec {
         Search(const std::string &from, const std::string &to, int numberOfJourneys = 10) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSecretlyOnPlatform(const communication::Journey &journey) const;
+        BookOnPlatform(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSymmetricSecretlyOnPlatform(const communication::Journey &journey) const;
+        BookSymmetricOnPlatform(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookSecretlyOnPlatformAndDecrypt(const communication::Journey &journey) const;
+        BookOnPlatformAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookSymmetricSecretlyOnPlatformAndDecrypt(const communication::Journey &journey) const;
+        BookSymmetricOnPlatformAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSymmetricSecretlyOnMobilityProviders(const communication::Journey &journey) const;
+        BookSymmetricOnMobilityProviders(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookSymmetricSecretlyOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
+        BookSymmetricOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSecretlyOnMobilityProviders(const communication::Journey &journey) const;
+        BookOnMobilityProviders(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookSecretlyOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
+        BookOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
+
+        void SendStartUsingRequest() const;
 
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse) const;
@@ -71,10 +73,9 @@ namespace yakbas::sec {
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
         seal::scheme_type m_schemeType;
 
-    private:
-
         static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
         static std::once_flag m_isInitialized;
+        static std::map<std::string, std::unique_ptr<seal::Ciphertext>> m_transporterUsageMap;
 
     };
 

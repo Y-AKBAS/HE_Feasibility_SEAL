@@ -26,6 +26,7 @@ namespace yakbas::sec {
 
     std::map<std::string, const std::shared_ptr<seal::PublicKey>> ClientManager::m_publicKeyMap{};
     std::once_flag ClientManager::m_isInitialized{};
+    std::map<std::string, std::unique_ptr<seal::Ciphertext>> ClientManager::m_transporterUsageMap{};
 
     void ClientManager::GetPublicKey() const {
 
@@ -135,31 +136,31 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSecretlyOnPlatformAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSecretlyOnPlatform(journey);
+    ClientManager::BookOnPlatformAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookOnPlatform(journey);
         return this->MapSecretToPublic(*secretBookingResponsePtr);
     }
 
     std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSymmetricSecretlyOnPlatformAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSymmetricSecretlyOnPlatform(journey);
+    ClientManager::BookSymmetricOnPlatformAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSymmetricOnPlatform(journey);
         return this->MapSecretToPublic(*secretBookingResponsePtr);
     }
 
     std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSymmetricSecretlyOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSymmetricSecretlyOnMobilityProviders(journey);
+    ClientManager::BookSymmetricOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookSymmetricOnMobilityProviders(journey);
         return this->MapSecretToPublic(*secretBookingResponsePtr);
     }
 
     std::unique_ptr<communication::BookingResponse>
-    ClientManager::BookSecretlyOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const {
-        const auto secretBookingResponsePtr = this->BookSecretlyOnMobilityProviders(journey);
+    ClientManager::BookOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = this->BookOnMobilityProviders(journey);
         return this->MapSecretToPublic(*secretBookingResponsePtr);
     }
 
     std::unique_ptr<communication::sec::BookingResponse>
-    ClientManager::BookSecretlyOnPlatform(const communication::Journey &journey) const {
+    ClientManager::BookOnPlatform(const communication::Journey &journey) const {
 
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
 
@@ -219,7 +220,7 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<communication::sec::BookingResponse>
-    ClientManager::BookSymmetricSecretlyOnPlatform(const communication::Journey &journey) const {
+    ClientManager::BookSymmetricOnPlatform(const communication::Journey &journey) const {
 
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
 
@@ -279,7 +280,7 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<communication::sec::BookingResponse>
-    ClientManager::BookSymmetricSecretlyOnMobilityProviders(const communication::Journey &journey) const {
+    ClientManager::BookSymmetricOnMobilityProviders(const communication::Journey &journey) const {
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
@@ -338,7 +339,7 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<communication::sec::BookingResponse>
-    ClientManager::BookSecretlyOnMobilityProviders(const communication::Journey &journey) const {
+    ClientManager::BookOnMobilityProviders(const communication::Journey &journey) const {
         const bool isCKKS = m_schemeType == seal::scheme_type::ckks;
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
@@ -394,6 +395,28 @@ namespace yakbas::sec {
         }
 
         return responsePtr;
+    }
+
+    void ClientManager::SendStartUsingRequest() const {
+        const std::string transporterId = util::GetUUID();
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::sec::StartUsingResponse>();
+        auto requestPtr = GetUnique<communication::StartUsingRequest>();
+        requestPtr->set_user_id(this->m_userPtr->GetId());
+        requestPtr->set_transporter_id(transporterId);
+
+        this->GetStub(constants::PLATFORM_CHANNEL)->StartUsing(clientContextPtr.get(),
+                                                               *requestPtr, responsePtr.get());
+
+        if (responsePtr->status() == communication::FAILED) {
+            const auto errorMessage = "Failed sending start using request";
+            LOG4CPLUS_ERROR(*m_logger, errorMessage);
+            throw std::runtime_error(errorMessage);
+        }
+
+        auto cipherPtr = m_userPtr->GetCustomSealOperations()->GetCipherFromBuffer(
+                GetUniqueStream(responsePtr->start_time_in_minutes()));
+        m_transporterUsageMap.insert({transporterId, std::move(cipherPtr)});
     }
 
     std::unique_ptr<communication::InvoicingResponse>

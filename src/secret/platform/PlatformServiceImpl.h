@@ -30,6 +30,9 @@ namespace yakbas::sec {
         BookOnMobilityProviders(grpc::ServerContext *context, grpc::ServerReader<communication::sec::BookingRequest> *reader,
                                 communication::sec::BookingResponse *response) override;
 
+        grpc::Status StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
+                                communication::sec::StartUsingResponse *response) override;
+
         grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
                                      communication::InvoicingResponse *response) override;
 

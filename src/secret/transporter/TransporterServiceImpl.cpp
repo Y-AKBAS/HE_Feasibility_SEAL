@@ -8,4 +8,11 @@ namespace yakbas::sec {
               m_logger(std::make_unique<log4cplus::Logger>(
                       log4cplus::Logger::getInstance("Secret Transporter Service Impl"))) {}
 
+    grpc::Status TransporterServiceImpl::StartUsing(grpc::ServerContext *context,
+                                                    const communication::StartUsingRequest *request,
+                                                    communication::sec::StartUsingResponse *response) {
+
+        return grpc::Status::OK;
+    }
+
 } // yakbas

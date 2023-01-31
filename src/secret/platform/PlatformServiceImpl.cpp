@@ -244,4 +244,21 @@ namespace yakbas::sec {
         return status;
     }
 
+    grpc::Status
+    PlatformServiceImpl::StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
+                                    communication::sec::StartUsingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
+        grpc::ClientContext clientContext;
+
+        const auto status = stubPtr->StartUsing(&clientContext, *request, response);
+
+        if (!status.ok()){
+            throw std::runtime_error("Start Using Request failed in Secret Platform");
+        }
+
+        response->set_status(communication::SUCCESSFUL);
+        return grpc::Status::OK;
+    }
+
 } // yakbas

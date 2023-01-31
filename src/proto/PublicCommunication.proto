@@ -10,6 +10,9 @@ service PublicCommunicationService {
   rpc BookOnPlatform(stream BookingRequest) returns (BookingResponse);
   rpc BookOnMobilityProviders(stream BookingRequest) returns (BookingResponse); // for clients
   rpc BookOnMobilityProvider(BookingRequest) returns (BookingResponse); // For platform
+  rpc StartUsing(StartUsingRequest) returns (StartUsingResponse);
+  rpc EndUsing(EndUsingRequest) returns (EndUsingResponse);
+  rpc ReportUsageTotal(UsageTotalReportRequest) returns (UsageTotalReportResponse);
   rpc ReportInvoicing(InvoicingReport) returns (InvoicingResponse);
 }
 

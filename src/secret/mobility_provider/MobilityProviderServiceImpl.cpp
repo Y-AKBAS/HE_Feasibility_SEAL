@@ -6,11 +6,16 @@
 namespace yakbas::sec {
     using namespace yakbas::util;
 
+    std::string FindLoggerName(const std::string &loggerInstance) {
+        const char &i = loggerInstance.at(loggerInstance.size() - 1);
+        return "Secret Mobility Provider Client Manager" + std::to_string(i);
+    }
+
     MobilityProviderServiceImpl::MobilityProviderServiceImpl(const std::string &&loggerInstance,
                                                              const SealKeys &sealKeys)
             : m_customSealOperationsPtr(std::make_unique<CustomSealOperations>(sealKeys)),
-              m_logger(std::make_unique<log4cplus::Logger>(
-                      log4cplus::Logger::getInstance(loggerInstance))),
+              m_clientManager(std::make_unique<MobilityProviderClientManager>(FindLoggerName(loggerInstance))),
+              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance(loggerInstance))),
               m_schemeType(sealKeys.m_schemeType) {}
 
     grpc::Status MobilityProviderServiceImpl::SearchForSecretRides(grpc::ServerContext *context,
@@ -109,6 +114,23 @@ namespace yakbas::sec {
                             std::string("Error occurred while getting request total. Message: ") + exception.what());
             return nullptr;
         }
+    }
+
+    grpc::Status MobilityProviderServiceImpl::StartUsing(grpc::ServerContext *context,
+                                                         const communication::StartUsingRequest *request,
+                                                         communication::sec::StartUsingResponse *response) {
+
+        const auto stubPtr = m_clientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
+        grpc::ClientContext clientContext;
+
+        const auto status = stubPtr->StartUsing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            throw std::runtime_error("Start Using Request failed in " + m_logger->getName());
+        }
+
+        response->set_status(communication::SUCCESSFUL);
+        return grpc::Status::OK;
     }
 
 } // yakbas
