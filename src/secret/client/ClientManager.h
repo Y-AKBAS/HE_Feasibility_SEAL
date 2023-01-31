@@ -45,7 +45,9 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
 
-        void SendStartUsingRequest() const;
+        void SendStartUsingRequest();
+        void SendEndUsingRequest();
+        void SendUsageTotal(const std::string &total);
 
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse) const;
@@ -71,11 +73,11 @@ namespace yakbas::sec {
 
         const std::unique_ptr<SecretUser> m_userPtr{nullptr};
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
-        seal::scheme_type m_schemeType;
+        std::map<std::string, std::unique_ptr<seal::Ciphertext>> m_transporterUsageMap{};
 
+        seal::scheme_type m_schemeType;
         static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
         static std::once_flag m_isInitialized;
-        static std::map<std::string, std::unique_ptr<seal::Ciphertext>> m_transporterUsageMap;
 
     };
 

@@ -2,7 +2,7 @@ $root = Get-Item -Path ".\"
 $secretPath = Get-Item -Path "$root\cmake-build-debug\src\secret"
 
 $scheme = 3
-$batchingEnabled = "false"
+$batchingEnabled = "true"
 
 $schemeArg = "--st $scheme"
 $batchingEnabledArg = "--ee $batchingEnabled"

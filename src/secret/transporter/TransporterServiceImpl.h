@@ -13,8 +13,11 @@ namespace yakbas::sec {
     public:
         explicit TransporterServiceImpl(const SealKeys &sealKeys = {});
 
-        grpc::Status StartUsing(::grpc::ServerContext *context, const ::communication::StartUsingRequest *request,
-                                ::communication::sec::StartUsingResponse *response) override;
+        grpc::Status StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
+                                communication::sec::StartUsingResponse *response) override;
+
+        grpc::Status EndUsing(::grpc::ServerContext *context, const ::communication::EndUsingRequest *request,
+                              ::communication::sec::EndUsingResponse *response) override;
 
     private:
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};

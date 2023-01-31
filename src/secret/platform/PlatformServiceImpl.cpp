@@ -155,6 +155,52 @@ namespace yakbas::sec {
         return grpc::Status::OK;
     }
 
+    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
+                                                      const communication::InvoicingReport *request,
+                                                      communication::InvoicingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
+        grpc::ClientContext clientContext;
+        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            throw std::runtime_error("Reporting secret invoice failed in Secret Platform");
+        }
+
+        response->set_status(communication::StatusCode::SUCCESSFUL);
+        return status;
+    }
+
+    grpc::Status
+    PlatformServiceImpl::StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
+                                    communication::sec::StartUsingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
+        grpc::ClientContext clientContext;
+
+        return stubPtr->StartUsing(&clientContext, *request, response);
+    }
+
+    grpc::Status
+    PlatformServiceImpl::EndUsing(grpc::ServerContext *context, const communication::EndUsingRequest *request,
+                                  communication::sec::EndUsingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
+        grpc::ClientContext clientContext;
+
+        return stubPtr->EndUsing(&clientContext, *request, response);
+    }
+
+    grpc::Status PlatformServiceImpl::ReportUsageTotal(grpc::ServerContext *context,
+                                                       const communication::sec::UsageTotalReportRequest *request,
+                                                       communication::UsageTotalReportResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
+        grpc::ClientContext clientContext;
+
+        return stubPtr->ReportUsageTotal(&clientContext, *request, response);
+    }
+
     void PlatformServiceImpl::handleIsReadable(const std::unique_ptr<secretService::Stub> &stub_1,
                                                const std::unique_ptr<secretService::Stub> &stub_2,
                                                std::vector<std::unique_ptr<seal::Ciphertext>> &requestTotalCiphers,
@@ -178,7 +224,7 @@ namespace yakbas::sec {
         }
 
         LOG4CPLUS_ERROR(*m_logger, "Handling HandleIsReadable failed. Reason: " + localStatus.error_message());
-        throw std::bad_exception();
+        throw std::runtime_error(localStatus.error_message());
     }
 
     std::unique_ptr<seal::Ciphertext>
@@ -226,39 +272,6 @@ namespace yakbas::sec {
                             std::string("Error occurred while getting request total. Message: ") + exception.what());
             return nullptr;
         }
-    }
-
-    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
-                                                      const communication::InvoicingReport *request,
-                                                      communication::InvoicingResponse *response) {
-
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
-        grpc::ClientContext clientContext;
-        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
-
-        if (!status.ok()) {
-            throw std::runtime_error("Reporting secret invoice failed in Secret Platform");
-        }
-
-        response->set_status(communication::StatusCode::SUCCESSFUL);
-        return status;
-    }
-
-    grpc::Status
-    PlatformServiceImpl::StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
-                                    communication::sec::StartUsingResponse *response) {
-
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
-        grpc::ClientContext clientContext;
-
-        const auto status = stubPtr->StartUsing(&clientContext, *request, response);
-
-        if (!status.ok()){
-            throw std::runtime_error("Start Using Request failed in Secret Platform");
-        }
-
-        response->set_status(communication::SUCCESSFUL);
-        return grpc::Status::OK;
     }
 
 } // yakbas

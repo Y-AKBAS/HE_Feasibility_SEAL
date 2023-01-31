@@ -73,7 +73,7 @@ namespace yakbas::sec::test {
                 }
             }
 
-            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Secret Booking passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
         }
@@ -98,7 +98,7 @@ namespace yakbas::sec::test {
                     CHECK(total == totalBeforeSent);
                 }
             }
-            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Secret Symmetric Secret Booking passed time in millis for " +
                            std::to_string(numberOfJourneys) +
@@ -145,7 +145,7 @@ namespace yakbas::sec::test {
                     CHECK(total == totalBeforeSent);
                 }
             }
-            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "BookOnMobilityProvidersAndDecrypt passed time in millis for " +
                            std::to_string(numberOfJourneys) +
@@ -168,9 +168,23 @@ namespace yakbas::sec::test {
             }
             passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
-                           "BookSymmetricOnMobilityProvidersAndDecrypt passed time in millis for " + std::to_string(numberOfJourneys) +
+                           "BookSymmetricOnMobilityProvidersAndDecrypt passed time in millis for " +
+                           std::to_string(numberOfJourneys) +
                            " journeys: " +
                            std::to_string(passedTimeInMillisWithStop));
+        }
+
+        TEST_CASE("Usage Tests") {
+            Timer timer;
+            try {
+                const auto clientManagerPtr = std::make_unique<ClientManager>();
+                clientManagerPtr->SendStartUsingRequest();
+                clientManagerPtr->SendEndUsingRequest();
+                LOG4CPLUS_INFO(*logger, "Usage tests passed time in millis: " +
+                                        std::to_string(timer.PassedTimeInMillisWithStop()));
+            } catch (std::exception &exception) {
+                CHECK(false);
+            }
         }
 
         TEST_CASE("Client Manager Payment Request Test") {
@@ -201,7 +215,7 @@ namespace yakbas::sec::test {
             const auto reportInvoicingCode = clientManagerPtr->ReportInvoicing(*invoicingResponsePtr,
                                                                                *bookingResponsePtr);
             CHECK(reportInvoicingCode == communication::StatusCode::SUCCESSFUL);
-            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Payment Request passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
         }

@@ -11,7 +11,8 @@ namespace yakbas::sec {
 
     ClientManager::ClientManager(const SealKeys &sealKeys)
             : m_userPtr(ClientGenerator::GenerateSecretUser(sealKeys)),
-              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))) {
+              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance("SecretClientManager"))),
+              m_transporterUsageMap{} {
 
         std::call_once(m_isInitialized, [this]() {
             LOG4CPLUS_DEBUG(*m_logger, "Secret Client Manager is being initialized...");
@@ -26,7 +27,6 @@ namespace yakbas::sec {
 
     std::map<std::string, const std::shared_ptr<seal::PublicKey>> ClientManager::m_publicKeyMap{};
     std::once_flag ClientManager::m_isInitialized{};
-    std::map<std::string, std::unique_ptr<seal::Ciphertext>> ClientManager::m_transporterUsageMap{};
 
     void ClientManager::GetPublicKey() const {
 
@@ -397,7 +397,8 @@ namespace yakbas::sec {
         return responsePtr;
     }
 
-    void ClientManager::SendStartUsingRequest() const {
+    void ClientManager::SendStartUsingRequest() {
+
         const std::string transporterId = util::GetUUID();
         const auto clientContextPtr = GetUnique<grpc::ClientContext>();
         auto responsePtr = GetUnique<communication::sec::StartUsingResponse>();
@@ -405,10 +406,9 @@ namespace yakbas::sec {
         requestPtr->set_user_id(this->m_userPtr->GetId());
         requestPtr->set_transporter_id(transporterId);
 
-        this->GetStub(constants::PLATFORM_CHANNEL)->StartUsing(clientContextPtr.get(),
-                                                               *requestPtr, responsePtr.get());
-
-        if (responsePtr->status() == communication::FAILED) {
+        const auto &status = this->GetStub(constants::PLATFORM_CHANNEL)->StartUsing(clientContextPtr.get(),
+                                                                                    *requestPtr, responsePtr.get());
+        if (!status.ok()) {
             const auto errorMessage = "Failed sending start using request";
             LOG4CPLUS_ERROR(*m_logger, errorMessage);
             throw std::runtime_error(errorMessage);
@@ -417,6 +417,54 @@ namespace yakbas::sec {
         auto cipherPtr = m_userPtr->GetCustomSealOperations()->GetCipherFromBuffer(
                 GetUniqueStream(responsePtr->start_time_in_minutes()));
         m_transporterUsageMap.insert({transporterId, std::move(cipherPtr)});
+    }
+
+    void ClientManager::SendEndUsingRequest() {
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::sec::EndUsingResponse>();
+        const auto requestPtr = GetUnique<communication::EndUsingRequest>();
+
+        requestPtr->set_user_id(m_userPtr->GetId());
+        requestPtr->set_transporter_id(m_transporterUsageMap.begin()->first);
+
+        const auto status = this->GetStub(constants::PLATFORM_CHANNEL)->EndUsing(clientContextPtr.get(), *requestPtr,
+                                                                                 responsePtr.get());
+        if (!status.ok()) {
+            LOG4CPLUS_ERROR(*m_logger, "End using request failed...");
+            throw std::runtime_error(status.error_message());
+        }
+        const auto &evaluatorPtr = m_userPtr->GetCustomSealOperations()->GetEvaluatorPtr();
+
+        auto endTimeInMins = m_userPtr->GetCustomSealOperations()->GetCipherFromBuffer(
+                GetUniqueStream(responsePtr->end_time_in_minutes()));
+        auto unitPrice = m_userPtr->GetCustomSealOperations()->GetCipherFromBuffer(
+                GetUniqueStream(responsePtr->unit_price()));
+
+        evaluatorPtr->sub_inplace(*endTimeInMins, *m_transporterUsageMap.begin()->second);
+        evaluatorPtr->multiply_inplace(*endTimeInMins, *unitPrice);
+
+        this->SendUsageTotal(this->m_userPtr->GetCustomSealOperations()->GetBufferFromCipher(*endTimeInMins));
+    }
+
+    void ClientManager::SendUsageTotal(const std::string &total) {
+
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        const auto requestPtr = GetUnique<communication::sec::UsageTotalReportRequest>();
+        const auto responsePtr = GetUnique<communication::UsageTotalReportResponse>();
+
+        requestPtr->set_transporter_id(m_transporterUsageMap.begin()->first);
+        requestPtr->set_user_id(this->m_userPtr->GetId());
+        requestPtr->set_total(total);
+
+        const auto &status = this->GetStub(constants::PLATFORM_CHANNEL)->ReportUsageTotal(clientContextPtr.get(),
+                                                                                          *requestPtr,
+                                                                                          responsePtr.get());
+        if (!status.ok()) {
+            LOG4CPLUS_ERROR(*m_logger, "Sending usage total failed");
+            throw std::runtime_error(status.error_message());
+        }
+
+        m_transporterUsageMap.clear();
     }
 
     std::unique_ptr<communication::InvoicingResponse>

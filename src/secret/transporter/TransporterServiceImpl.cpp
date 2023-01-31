@@ -15,4 +15,11 @@ namespace yakbas::sec {
         return grpc::Status::OK;
     }
 
+    grpc::Status
+    TransporterServiceImpl::EndUsing(grpc::ServerContext *context, const communication::EndUsingRequest *request,
+                                     communication::sec::EndUsingResponse *response) {
+
+        return grpc::Status::OK;
+    }
+
 } // yakbas

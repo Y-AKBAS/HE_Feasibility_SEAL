@@ -27,6 +27,13 @@ namespace yakbas::sec {
         grpc::Status StartUsing(::grpc::ServerContext *context, const ::communication::StartUsingRequest *request,
                                 ::communication::sec::StartUsingResponse *response) override;
 
+        grpc::Status EndUsing(::grpc::ServerContext *context, const ::communication::EndUsingRequest *request,
+                              ::communication::sec::EndUsingResponse *response) override;
+
+        grpc::Status
+        ReportUsageTotal(::grpc::ServerContext *context, const ::communication::sec::UsageTotalReportRequest *request,
+                         ::communication::UsageTotalReportResponse *response) override;
+
         grpc::Status ReportInvoicing(::grpc::ServerContext *context, const ::communication::InvoicingReport *request,
                                      ::communication::InvoicingResponse *response) override;
 
