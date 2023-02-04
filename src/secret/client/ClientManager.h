@@ -21,33 +21,21 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
         Search(const std::string &from, const std::string &to, int numberOfJourneys = 10) const;
 
-        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookOnPlatform(const communication::Journey &journey) const;
-
-        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSymmetricOnPlatform(const communication::Journey &journey) const;
-
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookOnPlatformAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookSymmetricOnPlatformAndDecrypt(const communication::Journey &journey) const;
 
-        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookSymmetricOnMobilityProviders(const communication::Journey &journey) const;
-
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookSymmetricOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
-
-        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookOnMobilityProviders(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
 
         void SendStartUsingRequest();
+
         void SendEndUsingRequest();
-        void SendUsageTotal(const std::string &total);
 
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse) const;
@@ -61,6 +49,20 @@ namespace yakbas::sec {
         static bool IsInitialized();
 
     private:
+
+        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
+        BookOnPlatform(const communication::Journey &journey) const;
+
+        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
+        BookSymmetricOnPlatform(const communication::Journey &journey) const;
+
+        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
+        BookOnMobilityProviders(const communication::Journey &journey) const;
+
+        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
+        BookSymmetricOnMobilityProviders(const communication::Journey &journey) const;
+
+        void SendUsageTotal(const std::string &total);
 
         [[nodiscard]] std::unique_ptr<communication::Journey>
         MapSecretToPublic(const communication::sec::Journey &secretJourney) const;
