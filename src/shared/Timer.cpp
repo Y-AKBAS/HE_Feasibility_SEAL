@@ -8,7 +8,8 @@ namespace yakbas {
 
     Timer::~Timer() = default;
 
-    const std::uint64_t Timer::APP_EPOCH = 27919925; // as of 31.01.2023 21:05
+    const std::uint64_t Timer::APP_EPOCH = std::chrono::duration_cast<std::chrono::minutes>(
+            system::now().time_since_epoch()).count() - 1;
 
     void Timer::clear() {
         m_begin = m_end = steady::now();

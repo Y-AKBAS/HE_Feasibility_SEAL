@@ -32,6 +32,16 @@ namespace yakbas::pub {
         grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
                                      communication::InvoicingResponse *response) override;
 
+        grpc::Status StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
+                                communication::StartUsingResponse *response) override;
+
+        grpc::Status EndUsing(grpc::ServerContext *context, const communication::EndUsingRequest *request,
+                              communication::EndUsingResponse *response) override;
+
+        grpc::Status
+        ReportUsageTotal(grpc::ServerContext *context, const communication::UsageTotalReportRequest *request,
+                         communication::UsageTotalReportResponse *response) override;
+
     private:
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
         const std::unique_ptr<PlatformClientManager> m_platformClientManager{nullptr};

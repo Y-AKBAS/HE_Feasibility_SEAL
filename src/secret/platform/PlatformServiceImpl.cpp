@@ -174,31 +174,25 @@ namespace yakbas::sec {
     grpc::Status
     PlatformServiceImpl::StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
                                     communication::sec::StartUsingResponse *response) {
-
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
         grpc::ClientContext clientContext;
-
-        return stubPtr->StartUsing(&clientContext, *request, response);
+        return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->StartUsing(&clientContext,
+                                                                                                    *request, response);
     }
 
     grpc::Status
     PlatformServiceImpl::EndUsing(grpc::ServerContext *context, const communication::EndUsingRequest *request,
                                   communication::sec::EndUsingResponse *response) {
-
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
         grpc::ClientContext clientContext;
-
-        return stubPtr->EndUsing(&clientContext, *request, response);
+        return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->EndUsing(&clientContext,
+                                                                                                  *request, response);
     }
 
     grpc::Status PlatformServiceImpl::ReportUsageTotal(grpc::ServerContext *context,
                                                        const communication::sec::UsageTotalReportRequest *request,
                                                        communication::UsageTotalReportResponse *response) {
-
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2);
         grpc::ClientContext clientContext;
-
-        return stubPtr->ReportUsageTotal(&clientContext, *request, response);
+        return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->ReportUsageTotal(
+                &clientContext, *request, response);
     }
 
     void PlatformServiceImpl::handleIsReadable(const std::unique_ptr<secretService::Stub> &stub_1,

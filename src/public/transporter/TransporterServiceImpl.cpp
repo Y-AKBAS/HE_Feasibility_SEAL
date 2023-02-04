@@ -4,11 +4,15 @@
 namespace yakbas::pub {
     TransporterServiceImpl::TransporterServiceImpl() = default;
 
-    grpc::Status TransporterServiceImpl::CreateInvoice(grpc::ServerContext *context,
-                                                       const communication::InvoicingRequest *request,
-                                                       communication::InvoicingResponse *response) {
+    grpc::Status TransporterServiceImpl::StartUsing(grpc::ServerContext *context,
+                                                    const communication::StartUsingRequest *request,
+                                                    communication::StartUsingResponse *response) {
+        return grpc::Status::OK;
+    }
 
-        // Implementation comes here
-        return Service::CreateInvoice(context, request, response);
+    grpc::Status
+    TransporterServiceImpl::EndUsing(grpc::ServerContext *context, const communication::EndUsingRequest *request,
+                                     communication::EndUsingResponse *response) {
+        return grpc::Status::OK;
     }
 } // yakbas

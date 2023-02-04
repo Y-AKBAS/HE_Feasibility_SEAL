@@ -107,6 +107,22 @@ namespace yakbas::pub {
         return grpc::Status::OK;
     }
 
+    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
+                                                      const communication::InvoicingReport *request,
+                                                      communication::InvoicingResponse *response) {
+
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
+        grpc::ClientContext clientContext;
+        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            throw std::runtime_error("Reporting public invoice failed in Secret Platform");
+        }
+
+        response->set_status(communication::StatusCode::SUCCESSFUL);
+        return status;
+    }
+
     void
     PlatformServiceImpl::HandleIsReadable(google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap,
                                           uint64_t &total,
@@ -152,20 +168,28 @@ namespace yakbas::pub {
         return requestTotal;
     }
 
-    grpc::Status PlatformServiceImpl::ReportInvoicing(grpc::ServerContext *context,
-                                                      const communication::InvoicingReport *request,
-                                                      communication::InvoicingResponse *response) {
-
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
+    grpc::Status
+    PlatformServiceImpl::StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
+                                    communication::StartUsingResponse *response) {
         grpc::ClientContext clientContext;
-        const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
+        return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->StartUsing(&clientContext,
+                                                                                                    *request, response);
+    }
 
-        if (!status.ok()) {
-            throw std::runtime_error("Reporting public invoice failed in Secret Platform");
-        }
+    grpc::Status
+    PlatformServiceImpl::EndUsing(grpc::ServerContext *context, const communication::EndUsingRequest *request,
+                                  communication::EndUsingResponse *response) {
+        grpc::ClientContext clientContext;
+        return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->EndUsing(&clientContext,
+                                                                                                  *request, response);
+    }
 
-        response->set_status(communication::StatusCode::SUCCESSFUL);
-        return status;
+    grpc::Status PlatformServiceImpl::ReportUsageTotal(grpc::ServerContext *context,
+                                                       const communication::UsageTotalReportRequest *request,
+                                                       communication::UsageTotalReportResponse *response) {
+        grpc::ClientContext clientContext;
+        return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->ReportUsageTotal(
+                &clientContext, *request, response);
     }
 
 } // yakbas

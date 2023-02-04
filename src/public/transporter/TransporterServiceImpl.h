@@ -10,8 +10,11 @@ namespace yakbas::pub {
     public:
         TransporterServiceImpl();
 
-        grpc::Status CreateInvoice(::grpc::ServerContext *context, const ::communication::InvoicingRequest *request,
-                                   ::communication::InvoicingResponse *response) override;
+        grpc::Status StartUsing(grpc::ServerContext *context, const communication::StartUsingRequest *request,
+                                communication::StartUsingResponse *response) override;
+
+        grpc::Status EndUsing(grpc::ServerContext *context, const communication::EndUsingRequest *request,
+                              communication::EndUsingResponse *response) override;
     };
 
 }// yakbas

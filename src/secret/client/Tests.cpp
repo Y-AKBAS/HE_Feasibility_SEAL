@@ -176,19 +176,24 @@ namespace yakbas::sec::test {
 
         TEST_CASE("Usage Tests") {
             Timer timer;
-            try {
-                const auto clientManagerPtr = std::make_unique<ClientManager>();
-                clientManagerPtr->SendStartUsingRequest();
-                clientManagerPtr->SendEndUsingRequest();
-                LOG4CPLUS_INFO(*logger, "Usage tests passed time in millis: " +
-                                        std::to_string(timer.PassedTimeInMillisWithStop()));
-            } catch (std::exception &exception) {
-                CHECK(false);
+            int numberOfRequests = 5;
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            for (int i = 0; i < numberOfRequests; ++i) {
+                try {
+                    clientManagerPtr->SendStartUsingRequest();
+                    clientManagerPtr->SendEndUsingRequest();
+                } catch (std::exception &exception) {
+                    LOG4CPLUS_ERROR(*logger,
+                                    std::string("Error occurred during Usage Tests. Message: ") + exception.what());
+                    CHECK(false);
+                }
             }
+            LOG4CPLUS_INFO(*logger, "Usage tests passed time in millis: " +
+                                    std::to_string(timer.PassedTimeInMillisWithStop()) +
+                                    " for " + std::to_string(numberOfRequests) + " requests.");
         }
 
         TEST_CASE("Client Manager Payment Request Test") {
-
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());

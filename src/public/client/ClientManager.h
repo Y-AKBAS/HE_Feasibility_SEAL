@@ -5,6 +5,7 @@
 #include "PublicUser.h"
 #include "PublicCommunication.grpc.pb.h"
 #include "PublicBaseClientManager.h"
+#include "Utils.h"
 
 
 namespace yakbas::pub {
@@ -23,6 +24,12 @@ namespace yakbas::pub {
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookOnMobilityProviders(const communication::Journey &journey);
 
+        void SendStartUsingRequest();
+
+        void SendEndUsingRequest();
+
+        void SendUsageTotal(const std::uint64_t total);
+
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse);
 
@@ -35,6 +42,7 @@ namespace yakbas::pub {
     private:
         const std::unique_ptr<PublicUser> m_userPtr{nullptr};
         std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
+        std::map<std::string, std::uint64_t> m_transporterUsageMap{};
 
         static std::once_flag m_isInitialized;
 
