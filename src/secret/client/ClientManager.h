@@ -35,7 +35,11 @@ namespace yakbas::sec {
 
         void SendStartUsingRequest();
 
+        void SendStartUsingRequestSymmetric();
+
         void SendEndUsingRequest();
+
+        void SendEndUsingRequestSymmetric();
 
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse) const;

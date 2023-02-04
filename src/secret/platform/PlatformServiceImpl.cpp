@@ -179,12 +179,30 @@ namespace yakbas::sec {
                                                                                                     *request, response);
     }
 
+    grpc::Status PlatformServiceImpl::StartUsingSymmetric(grpc::ServerContext *context,
+                                                          const communication::StartUsingRequest *request,
+                                                          communication::sec::StartUsingResponse *response) {
+        grpc::ClientContext clientContext;
+        return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->StartUsingSymmetric(
+                &clientContext,
+                *request, response);
+    }
+
     grpc::Status
     PlatformServiceImpl::EndUsing(grpc::ServerContext *context, const communication::EndUsingRequest *request,
                                   communication::sec::EndUsingResponse *response) {
         grpc::ClientContext clientContext;
         return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->EndUsing(&clientContext,
                                                                                                   *request, response);
+    }
+
+    grpc::Status PlatformServiceImpl::EndUsingSymmetric(grpc::ServerContext *context,
+                                                        const communication::EndUsingRequest *request,
+                                                        communication::sec::EndUsingResponse *response) {
+        grpc::ClientContext clientContext;
+        return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->EndUsingSymmetric(
+                &clientContext,
+                *request, response);
     }
 
     grpc::Status PlatformServiceImpl::ReportUsageTotal(grpc::ServerContext *context,

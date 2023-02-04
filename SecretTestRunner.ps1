@@ -6,6 +6,7 @@ $batchingEnabled = "false"
 
 $schemeArg = "--st $scheme"
 $batchingEnabledArg = "--ee $batchingEnabled"
+$benchmarkArgs "--benchmark_format={console|json} --benchmark_out_format={json|console} --benchmark_out=$root"
 
 function runApplications {
     [CmdletBinding()]
@@ -31,7 +32,7 @@ Start-Process -NoNewWindow ".\secretPlatform.exe" -ArgumentList $schemeArg,$batc
 cd $root
 Start-Sleep -Seconds 10
 cd "$secretPath\client\"
-#Start-Process -NoNewWindow ".\secretClient.exe" -ArgumentList $schemeArg,$batchingEnabledArg 
+Start-Process -NoNewWindow ".\secretClient.exe" -ArgumentList $schemeArg,$batchingEnabledArg 
 
 cd $root
 }

@@ -176,7 +176,7 @@ namespace yakbas::sec::test {
 
         TEST_CASE("Usage Tests") {
             Timer timer;
-            int numberOfRequests = 5;
+            int numberOfRequests = 7;
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             for (int i = 0; i < numberOfRequests; ++i) {
                 try {
@@ -189,6 +189,26 @@ namespace yakbas::sec::test {
                 }
             }
             LOG4CPLUS_INFO(*logger, "Usage tests passed time in millis: " +
+                                    std::to_string(timer.PassedTimeInMillisWithStop()) +
+                                    " for " + std::to_string(numberOfRequests) + " requests.");
+        }
+
+        TEST_CASE("Symmetric Usage Tests") {
+            Timer timer;
+            int numberOfRequests = 7;
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            for (int i = 0; i < numberOfRequests; ++i) {
+                try {
+                    clientManagerPtr->SendStartUsingRequestSymmetric();
+                    clientManagerPtr->SendEndUsingRequestSymmetric();
+                } catch (std::exception &exception) {
+                    LOG4CPLUS_ERROR(*logger,
+                                    std::string("Error occurred during Symmetric Usage Tests. Message: ") +
+                                    exception.what());
+                    CHECK(false);
+                }
+            }
+            LOG4CPLUS_INFO(*logger, "Symmetric Usage tests passed time in millis: " +
                                     std::to_string(timer.PassedTimeInMillisWithStop()) +
                                     " for " + std::to_string(numberOfRequests) + " requests.");
         }
