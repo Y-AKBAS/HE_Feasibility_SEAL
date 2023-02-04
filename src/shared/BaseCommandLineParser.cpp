@@ -22,6 +22,7 @@ namespace yakbas {
                     po::command_line_parser(cmdLineArgs)
                             .options(optionsDescription)
                             .style(m_style)
+                            .allow_unregistered()
                             .positional(positionalOptionsDescription);
 
             po::store(parser.run(), vm);
@@ -45,6 +46,7 @@ namespace yakbas {
             auto parser =
                     po::command_line_parser(cmdLineArgs)
                             .options(optionsDescription)
+                            .allow_unregistered()
                             .style(m_style);
 
             po::store(parser.run(), vm);

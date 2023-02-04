@@ -6,7 +6,6 @@ $batchingEnabled = "false"
 
 $schemeArg = "--st $scheme"
 $batchingEnabledArg = "--ee $batchingEnabled"
-$benchmarkArgs "--benchmark_format={console|json} --benchmark_out_format={json|console} --benchmark_out=$root"
 
 function runApplications {
     [CmdletBinding()]

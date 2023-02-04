@@ -13,7 +13,6 @@ function runApplications {
     Start-Sleep -Seconds 3
     cd "$publicPath\platform\"
     Start-Process -NoNewWindow ".\publicPlatform.exe"
-    cd $root
     Start-Sleep -Seconds 5
     cd "$publicPath\client\"
     Start-Process -NoNewWindow ".\publicClient.exe"
@@ -21,4 +20,4 @@ function runApplications {
     cd $root
 }
 
-runApplications()
+runApplications
