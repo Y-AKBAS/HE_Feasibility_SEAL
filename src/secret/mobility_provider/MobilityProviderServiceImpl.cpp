@@ -2,15 +2,21 @@
 #include <log4cplus/loggingmacros.h>
 #include "MobilityProviderServiceImpl.h"
 #include "MobilityProviderGenerator.h"
+#include "Timer.h"
 
 namespace yakbas::sec {
     using namespace yakbas::util;
 
+    std::string FindLoggerName(const std::string &loggerInstance) {
+        const char &i = loggerInstance.at(loggerInstance.size() - 1);
+        return "Secret Mobility Provider Client Manager " + std::to_string(i);
+    }
+
     MobilityProviderServiceImpl::MobilityProviderServiceImpl(const std::string &&loggerInstance,
                                                              const SealKeys &sealKeys)
             : m_customSealOperationsPtr(std::make_unique<CustomSealOperations>(sealKeys)),
-              m_logger(std::make_unique<log4cplus::Logger>(
-                      log4cplus::Logger::getInstance(loggerInstance))),
+              m_clientManager(std::make_unique<MobilityProviderClientManager>(FindLoggerName(loggerInstance))),
+              m_logger(std::make_unique<log4cplus::Logger>(log4cplus::Logger::getInstance(loggerInstance))),
               m_schemeType(sealKeys.m_schemeType) {}
 
     grpc::Status MobilityProviderServiceImpl::SearchForSecretRides(grpc::ServerContext *context,
@@ -62,6 +68,70 @@ namespace yakbas::sec {
         }
 
         return {grpc::StatusCode::INTERNAL, m_logger->getName() + " Ciphertext computation failed..."};
+    }
+
+    grpc::Status MobilityProviderServiceImpl::StartUsing(grpc::ServerContext *context,
+                                                         const communication::StartUsingRequest *request,
+                                                         communication::sec::StartUsingResponse *response) {
+
+        const auto stubPtr = m_clientManager->GetStub(constants::TRANSPORT_CHANNEL);
+        grpc::ClientContext clientContext;
+
+        const auto status = stubPtr->StartUsing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            response->set_status(communication::FAILED);
+            throw std::runtime_error("Start Using Request failed in " + m_logger->getName());
+        }
+
+        const auto &bufferPtr = m_customSealOperationsPtr->GetEncryptedBuffer(
+                Timer::GetCurrentTimeMinutes());
+
+        response->set_status(communication::SUCCESSFUL);
+        response->set_start_time_in_minutes(*bufferPtr);
+        return grpc::Status::OK;
+    }
+
+    grpc::Status MobilityProviderServiceImpl::EndUsing(grpc::ServerContext *context,
+                                                       const communication::EndUsingRequest *request,
+                                                       communication::sec::EndUsingResponse *response) {
+
+        const auto stubPtr = m_clientManager->GetStub(constants::TRANSPORT_CHANNEL);
+        grpc::ClientContext clientContext;
+
+        const auto status = stubPtr->EndUsing(&clientContext, *request, response);
+
+        if (!status.ok()) {
+            throw std::runtime_error("End Using Request failed in " + m_logger->getName());
+        }
+
+        const auto &currentTimeBufferPtr = m_customSealOperationsPtr->GetEncryptedBuffer(
+                Timer::GetCurrentTimeMinutes() + util::GetRandomNumber<int>());
+
+        const auto &unitPriceBufferPtr = m_customSealOperationsPtr->GetEncryptedBuffer(
+                util::GetRandomNumberVariant<std::uint64_t>()
+        );
+
+        response->set_end_time_in_minutes(*currentTimeBufferPtr);
+        response->set_unit_price(*unitPriceBufferPtr);
+
+        return grpc::Status::OK;
+    }
+
+    grpc::Status MobilityProviderServiceImpl::ReportUsageTotal(grpc::ServerContext *context,
+                                                               const communication::sec::UsageTotalReportRequest *request,
+                                                               communication::UsageTotalReportResponse *response) {
+        try {
+            const num_variant &variant = m_customSealOperationsPtr->DecryptFromBuffer(
+                    GetUniqueStream(request->total()));
+            LOG4CPLUS_INFO(*m_logger, std::string("Decrypted report usage total: ") +
+                                       std::to_string(GetAnyVariant<double>(&variant)));
+        } catch (std::exception &e) {
+            LOG4CPLUS_ERROR(*m_logger, std::string("Exception during decryption. Message: ") + e.what());
+            throw std::runtime_error(e.what());
+        }
+
+        return grpc::Status::OK;
     }
 
     std::unique_ptr<seal::Ciphertext>

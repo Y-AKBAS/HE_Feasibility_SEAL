@@ -90,6 +90,24 @@ namespace yakbas::pub::test {
                            std::to_string(passedTimeInMillisWithStop));
         }
 
+        TEST_CASE("Usage Tests") {
+            Timer timer;
+            int numberOfRequests = 15;
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            for (int i = 0; i < numberOfRequests; ++i) {
+                try {
+                    clientManagerPtr->SendStartUsingRequest();
+                    clientManagerPtr->SendEndUsingRequest();
+                } catch (std::exception &exception) {
+                    LOG4CPLUS_ERROR(*logger,
+                                    std::string("Error occurred during Usage Tests. Message: ") + exception.what());
+                    CHECK(false);
+                }
+            }
+            LOG4CPLUS_INFO(*logger, "Usage tests passed time in millis: " +
+                                    std::to_string(timer.PassedTimeInMillisWithStop()) +
+                                    " for " + std::to_string(numberOfRequests) + " requests.");
+        }
 
         TEST_CASE("Client Manager Payment Request Test") {
 

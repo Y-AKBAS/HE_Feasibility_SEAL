@@ -8,6 +8,9 @@ namespace yakbas {
 
     Timer::~Timer() = default;
 
+    const std::uint64_t Timer::APP_EPOCH = std::chrono::duration_cast<std::chrono::minutes>(
+            system::now().time_since_epoch()).count() - 1;
+
     void Timer::clear() {
         m_begin = m_end = steady::now();
     }
@@ -20,14 +23,14 @@ namespace yakbas {
         m_end = steady::now();
     }
 
-    long long Timer::PassedTimeInMillisWithoutStop() const {
+    std::uint64_t Timer::PassedTimeInMillisWithoutStop() const {
         if (m_end <= m_begin) {
             return 0.0;
         }
         return std::chrono::duration_cast<std::chrono::milliseconds>(m_end - m_begin).count();
     }
 
-    long long Timer::PassedTimeInMillisWithStop() {
+    std::uint64_t Timer::PassedTimeInMillisWithStop() {
         this->stop();
         return this->PassedTimeInMillisWithoutStop();
     }
@@ -40,21 +43,26 @@ namespace yakbas {
         return system::now();
     }
 
-    long long int Timer::GetCurrentTimeNanos() {
+    std::uint64_t Timer::GetCurrentTimeNanos() {
         return system::now().time_since_epoch().count();
     }
 
-    long long int Timer::GetCurrentTimeMillis() {
+    std::uint64_t Timer::GetCurrentTimeMillis() {
         return std::chrono::duration_cast<std::chrono::milliseconds>(
                 system::now().time_since_epoch()).count();
     }
 
-    void Timer::extraction(std::ostream &os) const {
-        os << PassedTimeInMillisWithoutStop();
+    std::uint64_t Timer::GetCurrentTimeMinutes() {
+        return std::chrono::duration_cast<std::chrono::minutes>(
+                system::now().time_since_epoch()).count() - APP_EPOCH;
     }
 
     std::unique_ptr<google::protobuf::Timestamp> Timer::GetTimestamp() {
         return std::make_unique<google::protobuf::Timestamp>(proto_util::GetCurrentTime());
+    }
+
+    void Timer::extraction(std::ostream &os) const {
+        os << PassedTimeInMillisWithoutStop();
     }
 
     std::ostream &operator<<(std::ostream &os, const Timer &timer) {

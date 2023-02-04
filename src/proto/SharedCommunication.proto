@@ -68,6 +68,37 @@ message InvoicingReport {
   StatusCode status = 5;
 }
 
+message StartUsingRequest {
+  string transporter_id = 1;
+  string user_id = 2;
+}
+
+message StartUsingResponse {
+  string transporter_id = 1;
+  uint64 start_time_in_minutes = 2;
+  StatusCode status = 3;
+}
+
+message EndUsingRequest {
+  string transporter_id = 1;
+  string user_id = 2;
+}
+
+message EndUsingResponse {
+  uint64 end_time_in_minutes = 3;
+  google.protobuf.Any unit_price = 4;
+}
+
+message UsageTotalReportRequest {
+  string transporter_id = 1;
+  string user_id = 2;
+  google.protobuf.Any total = 3;
+}
+
+message UsageTotalReportResponse {
+  StatusCode status = 1;
+}
+
 message ProtoUser {
   string id = 1;
   string firstName = 2;

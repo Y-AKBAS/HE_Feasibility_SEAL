@@ -4,6 +4,7 @@
 #include <log4cplus/logger.h>
 #include "SecretCommunication.grpc.pb.h"
 #include "CustomSealOperations.h"
+#include "MobilityProviderClientManager.h"
 
 namespace yakbas::sec {
 
@@ -19,12 +20,22 @@ namespace yakbas::sec {
         grpc::Status SearchForRides(grpc::ServerContext *context, const communication::SearchRequest *request,
                                     grpc::ServerWriter<communication::Journey> *writer) override;
 
-        grpc::Status ReportInvoicing(::grpc::ServerContext *context, const ::communication::InvoicingReport *request,
-                                     ::communication::InvoicingResponse *response) override;
-
         grpc::Status
         BookOnMobilityProvider(grpc::ServerContext *context, const communication::sec::BookingRequest *request,
                                communication::sec::BookingResponse *response) override;
+
+        grpc::Status StartUsing(::grpc::ServerContext *context, const ::communication::StartUsingRequest *request,
+                                ::communication::sec::StartUsingResponse *response) override;
+
+        grpc::Status EndUsing(::grpc::ServerContext *context, const ::communication::EndUsingRequest *request,
+                              ::communication::sec::EndUsingResponse *response) override;
+
+        grpc::Status
+        ReportUsageTotal(::grpc::ServerContext *context, const ::communication::sec::UsageTotalReportRequest *request,
+                         ::communication::UsageTotalReportResponse *response) override;
+
+        grpc::Status ReportInvoicing(::grpc::ServerContext *context, const ::communication::InvoicingReport *request,
+                                     ::communication::InvoicingResponse *response) override;
 
     private:
 
@@ -33,6 +44,7 @@ namespace yakbas::sec {
                                      google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const;
 
         const std::unique_ptr<CustomSealOperations> m_customSealOperationsPtr{nullptr};
+        const std::unique_ptr<MobilityProviderClientManager> m_clientManager{};
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
         const seal::scheme_type m_schemeType{};
     };

@@ -27,6 +27,6 @@ namespace yakbas::sec {
         return !m_channelMap.empty();
     }
 
-    void PlatformClientManager::GetPublicKey() const {}
+    void PlatformClientManager::GetPublicKey() const {throw std::bad_function_call();}
 
 } // yakbas

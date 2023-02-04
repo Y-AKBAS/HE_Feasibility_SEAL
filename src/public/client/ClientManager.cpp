@@ -166,6 +166,65 @@ namespace yakbas::pub {
         return responsePtr;
     }
 
+    void ClientManager::SendStartUsingRequest() {
+        const std::string transporterId = util::GetUUID();
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::StartUsingResponse>();
+        auto requestPtr = GetUnique<communication::StartUsingRequest>();
+        requestPtr->set_user_id(this->m_userPtr->GetId());
+        requestPtr->set_transporter_id(transporterId);
+
+        const auto &status = this->GetStub(constants::PLATFORM_CHANNEL)->StartUsing(clientContextPtr.get(),
+                                                                                    *requestPtr, responsePtr.get());
+        if (!status.ok()) {
+            const auto errorMessage = "Failed sending start using request";
+            LOG4CPLUS_ERROR(*m_logger, errorMessage);
+            throw std::runtime_error(errorMessage);
+        }
+
+        m_transporterUsageMap.insert({transporterId, responsePtr->start_time_in_minutes()});
+    }
+
+    void ClientManager::SendEndUsingRequest() {
+
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::EndUsingResponse>();
+        const auto requestPtr = GetUnique<communication::EndUsingRequest>();
+
+        requestPtr->set_user_id(m_userPtr->GetId());
+        requestPtr->set_transporter_id(m_transporterUsageMap.begin()->first);
+
+        const auto status = this->GetStub(constants::PLATFORM_CHANNEL)->EndUsing(clientContextPtr.get(), *requestPtr,
+                                                                                 responsePtr.get());
+        if (!status.ok()) {
+            LOG4CPLUS_ERROR(*m_logger, "End using request failed...");
+            throw std::runtime_error(status.error_message());
+        }
+
+        auto passedMins = responsePtr->end_time_in_minutes() - m_transporterUsageMap.begin()->second;
+        this->SendUsageTotal(passedMins * AnyToNum<std::uint64_t>(&responsePtr->unit_price()));
+    }
+
+    void ClientManager::SendUsageTotal(const std::uint64_t total) {
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        const auto requestPtr = GetUnique<communication::UsageTotalReportRequest>();
+        const auto responsePtr = GetUnique<communication::UsageTotalReportResponse>();
+
+        requestPtr->set_transporter_id(m_transporterUsageMap.begin()->first);
+        requestPtr->set_user_id(this->m_userPtr->GetId());
+        NumToAny<std::uint64_t>(total, requestPtr->mutable_total());
+
+        const auto &status = this->GetStub(constants::PLATFORM_CHANNEL)->ReportUsageTotal(clientContextPtr.get(),
+                                                                                          *requestPtr,
+                                                                                          responsePtr.get());
+        if (!status.ok()) {
+            LOG4CPLUS_ERROR(*m_logger, "Sending usage total failed");
+            throw std::runtime_error(status.error_message());
+        }
+
+        m_transporterUsageMap.clear();
+    }
+
     std::unique_ptr<communication::InvoicingResponse>
     ClientManager::Pay(const communication::BookingResponse &bookingResponse) {
 
