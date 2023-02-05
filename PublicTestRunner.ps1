@@ -1,5 +1,6 @@
 $root = Get-Item -Path ".\"
-$publicPath = Get-Item -Path "$root\cmake-build-debug\src\public"
+$debugOrRelease = "release"
+$publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
 
 function runApplications {
     cd "$publicPath\invoice_clerk\"
