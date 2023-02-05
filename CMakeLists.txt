@@ -5,6 +5,7 @@ project(HE_Feasibility_SEAL
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED 23)
+set(VCPKG_BUILD_TYPE release)
 
 get_filename_component(VCPKG_CMAKE_DIR "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ABSOLUTE)
 include(${VCPKG_CMAKE_DIR})

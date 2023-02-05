@@ -59,7 +59,7 @@ namespace yakbas::sec {
             threadVec.emplace_back(&MobilityProviderServerManager::Init, ptr.get());
         }
 
-        LOG4CPLUS_INFO(logger, "Mobility Provider Servers will run...");
+        LOG4CPLUS_INFO(logger, "Secret Mobility Provider Servers will run...");
         for (auto &thread: threadVec) {
             thread.join();
         }

@@ -87,7 +87,7 @@ namespace yakbas::sec {
         const grpc::Status &status = readerPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during SearchSecretly(). Error message: " + status.error_message());
@@ -126,7 +126,7 @@ namespace yakbas::sec {
         const grpc::Status &status = readerPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during Search(). Error message: " + status.error_message());
@@ -419,6 +419,29 @@ namespace yakbas::sec {
         m_transporterUsageMap.insert({transporterId, std::move(cipherPtr)});
     }
 
+    void ClientManager::SendStartUsingRequestSymmetric() {
+
+        const std::string transporterId = util::GetUUID();
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::sec::StartUsingResponse>();
+        auto requestPtr = GetUnique<communication::StartUsingRequest>();
+        requestPtr->set_user_id(this->m_userPtr->GetId());
+        requestPtr->set_transporter_id(transporterId);
+
+        const auto &status = this->GetStub(constants::PLATFORM_CHANNEL)->StartUsingSymmetric(clientContextPtr.get(),
+                                                                                             *requestPtr,
+                                                                                             responsePtr.get());
+        if (!status.ok()) {
+            const auto errorMessage = "Failed sending start using symmetric request";
+            LOG4CPLUS_ERROR(*m_logger, errorMessage);
+            throw std::runtime_error(errorMessage);
+        }
+
+        auto cipherPtr = m_userPtr->GetCustomSealOperations()->GetCipherFromBuffer(
+                GetUniqueStream(responsePtr->start_time_in_minutes()));
+        m_transporterUsageMap.insert({transporterId, std::move(cipherPtr)});
+    }
+
     void ClientManager::SendEndUsingRequest() {
         const auto clientContextPtr = GetUnique<grpc::ClientContext>();
         auto responsePtr = GetUnique<communication::sec::EndUsingResponse>();
@@ -430,7 +453,35 @@ namespace yakbas::sec {
         const auto status = this->GetStub(constants::PLATFORM_CHANNEL)->EndUsing(clientContextPtr.get(), *requestPtr,
                                                                                  responsePtr.get());
         if (!status.ok()) {
-            LOG4CPLUS_ERROR(*m_logger, "End using request failed...");
+            LOG4CPLUS_ERROR(*m_logger, "End using symmetric request failed...");
+            throw std::runtime_error(status.error_message());
+        }
+        const auto &evaluatorPtr = m_userPtr->GetCustomSealOperations()->GetEvaluatorPtr();
+
+        auto endTimeInMins = m_userPtr->GetCustomSealOperations()->GetCipherFromBuffer(
+                GetUniqueStream(responsePtr->end_time_in_minutes()));
+        auto unitPrice = m_userPtr->GetCustomSealOperations()->GetCipherFromBuffer(
+                GetUniqueStream(responsePtr->unit_price()));
+
+        evaluatorPtr->sub_inplace(*endTimeInMins, *m_transporterUsageMap.begin()->second);
+        evaluatorPtr->multiply_inplace(*endTimeInMins, *unitPrice);
+
+        this->SendUsageTotal(this->m_userPtr->GetCustomSealOperations()->GetBufferFromCipher(*endTimeInMins));
+    }
+
+    void ClientManager::SendEndUsingRequestSymmetric() {
+        const auto clientContextPtr = GetUnique<grpc::ClientContext>();
+        auto responsePtr = GetUnique<communication::sec::EndUsingResponse>();
+        const auto requestPtr = GetUnique<communication::EndUsingRequest>();
+
+        requestPtr->set_user_id(m_userPtr->GetId());
+        requestPtr->set_transporter_id(m_transporterUsageMap.begin()->first);
+
+        const auto status = this->GetStub(constants::PLATFORM_CHANNEL)->EndUsingSymmetric(clientContextPtr.get(),
+                                                                                          *requestPtr,
+                                                                                          responsePtr.get());
+        if (!status.ok()) {
+            LOG4CPLUS_ERROR(*m_logger, "End using symmetric request failed...");
             throw std::runtime_error(status.error_message());
         }
         const auto &evaluatorPtr = m_userPtr->GetCustomSealOperations()->GetEvaluatorPtr();
@@ -485,7 +536,7 @@ namespace yakbas::sec {
         const grpc::Status &status = stubPtr->CreateInvoice(clientContextPtr.get(), *invoicingRequestPtr,
                                                             invoicingResponsePtr.get());
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Sent InvoicingRequest successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Sent InvoicingRequest successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during creating InvoicingRequest. Error message: " +

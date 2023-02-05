@@ -74,11 +74,9 @@ namespace yakbas::sec {
                                                          const communication::StartUsingRequest *request,
                                                          communication::sec::StartUsingResponse *response) {
 
-        const auto stubPtr = m_clientManager->GetStub(constants::TRANSPORT_CHANNEL);
         grpc::ClientContext clientContext;
-
-        const auto status = stubPtr->StartUsing(&clientContext, *request, response);
-
+        const auto status = m_clientManager->GetStub(constants::TRANSPORT_CHANNEL)->StartUsing(&clientContext, *request,
+                                                                                               response);
         if (!status.ok()) {
             response->set_status(communication::FAILED);
             throw std::runtime_error("Start Using Request failed in " + m_logger->getName());
@@ -92,15 +90,31 @@ namespace yakbas::sec {
         return grpc::Status::OK;
     }
 
+    grpc::Status MobilityProviderServiceImpl::StartUsingSymmetric(grpc::ServerContext *context,
+                                                                  const communication::StartUsingRequest *request,
+                                                                  communication::sec::StartUsingResponse *response) {
+        grpc::ClientContext clientContext;
+        const auto status = m_clientManager->GetStub(constants::TRANSPORT_CHANNEL)->StartUsing(&clientContext, *request,
+                                                                                               response);
+        if (!status.ok()) {
+            response->set_status(communication::FAILED);
+            throw std::runtime_error("Start Using Symmetric Request failed in " + m_logger->getName());
+        }
+
+        const auto &bufferPtr = m_customSealOperationsPtr->GetSymmetricEncryptedBuffer(
+                Timer::GetCurrentTimeMinutes());
+
+        response->set_status(communication::SUCCESSFUL);
+        response->set_start_time_in_minutes(*bufferPtr);
+        return grpc::Status::OK;
+    }
+
     grpc::Status MobilityProviderServiceImpl::EndUsing(grpc::ServerContext *context,
                                                        const communication::EndUsingRequest *request,
                                                        communication::sec::EndUsingResponse *response) {
-
-        const auto stubPtr = m_clientManager->GetStub(constants::TRANSPORT_CHANNEL);
         grpc::ClientContext clientContext;
-
-        const auto status = stubPtr->EndUsing(&clientContext, *request, response);
-
+        const auto status = m_clientManager->GetStub(constants::TRANSPORT_CHANNEL)->EndUsing(&clientContext, *request,
+                                                                                             response);
         if (!status.ok()) {
             throw std::runtime_error("End Using Request failed in " + m_logger->getName());
         }
@@ -118,14 +132,37 @@ namespace yakbas::sec {
         return grpc::Status::OK;
     }
 
+    grpc::Status MobilityProviderServiceImpl::EndUsingSymmetric(grpc::ServerContext *context,
+                                                                const communication::EndUsingRequest *request,
+                                                                communication::sec::EndUsingResponse *response) {
+        grpc::ClientContext clientContext;
+        const auto status = m_clientManager->GetStub(constants::TRANSPORT_CHANNEL)->EndUsing(&clientContext, *request,
+                                                                                             response);
+        if (!status.ok()) {
+            throw std::runtime_error("End Using Symmetric Request failed in " + m_logger->getName());
+        }
+
+        const auto &currentTimeBufferPtr = m_customSealOperationsPtr->GetSymmetricEncryptedBuffer(
+                Timer::GetCurrentTimeMinutes() + util::GetRandomNumber<int>());
+
+        const auto &unitPriceBufferPtr = m_customSealOperationsPtr->GetSymmetricEncryptedBuffer(
+                util::GetRandomNumberVariant<std::uint64_t>()
+        );
+
+        response->set_end_time_in_minutes(*currentTimeBufferPtr);
+        response->set_unit_price(*unitPriceBufferPtr);
+
+        return grpc::Status::OK;
+    }
+
     grpc::Status MobilityProviderServiceImpl::ReportUsageTotal(grpc::ServerContext *context,
                                                                const communication::sec::UsageTotalReportRequest *request,
                                                                communication::UsageTotalReportResponse *response) {
         try {
             const num_variant &variant = m_customSealOperationsPtr->DecryptFromBuffer(
                     GetUniqueStream(request->total()));
-            LOG4CPLUS_INFO(*m_logger, std::string("Decrypted report usage total: ") +
-                                       std::to_string(GetAnyVariant<double>(&variant)));
+            LOG4CPLUS_TRACE(*m_logger, std::string("Decrypted report usage total: ") +
+                                      std::to_string(GetAnyVariant<double>(&variant)));
         } catch (std::exception &e) {
             LOG4CPLUS_ERROR(*m_logger, std::string("Exception during decryption. Message: ") + e.what());
             throw std::runtime_error(e.what());

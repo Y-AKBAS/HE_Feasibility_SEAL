@@ -1,5 +1,6 @@
 $root = Get-Item -Path ".\"
-$publicPath = Get-Item -Path "$root\cmake-build-debug\src\public"
+$debugOrRelease = "release"
+$publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
 
 function runApplications {
     cd "$publicPath\invoice_clerk\"
@@ -13,7 +14,6 @@ function runApplications {
     Start-Sleep -Seconds 3
     cd "$publicPath\platform\"
     Start-Process -NoNewWindow ".\publicPlatform.exe"
-    cd $root
     Start-Sleep -Seconds 5
     cd "$publicPath\client\"
     Start-Process -NoNewWindow ".\publicClient.exe"

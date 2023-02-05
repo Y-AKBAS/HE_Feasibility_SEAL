@@ -38,6 +38,13 @@ namespace yakbas::sec {
                               communication::sec::EndUsingResponse *response) override;
 
         grpc::Status
+        StartUsingSymmetric(grpc::ServerContext *context, const communication::StartUsingRequest *request,
+                            communication::sec::StartUsingResponse *response) override;
+
+        grpc::Status EndUsingSymmetric(grpc::ServerContext *context, const communication::EndUsingRequest *request,
+                                       communication::sec::EndUsingResponse *response) override;
+
+        grpc::Status
         ReportUsageTotal(::grpc::ServerContext *context, const ::communication::sec::UsageTotalReportRequest *request,
                          ::communication::UsageTotalReportResponse *response) override;
 

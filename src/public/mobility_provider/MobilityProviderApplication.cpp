@@ -50,12 +50,12 @@ namespace yakbas::pub {
 
         std::vector<std::jthread> threadVec{m_serverManagersPtr.size()};
 
-        const auto &logger = log4cplus::Logger::getInstance("Secret Mobility Provider Application Logger");
+        const auto &logger = log4cplus::Logger::getInstance("Public Mobility Provider Application Logger");
         for (const auto &ptr: m_serverManagersPtr) {
             threadVec.emplace_back(&MobilityProviderServerManager::Init, ptr.get());
         }
 
-        LOG4CPLUS_INFO(logger, "Mobility Provider Servers will run...");
+        LOG4CPLUS_INFO(logger, "Public Mobility Provider Servers will run...");
         for (auto &thread: threadVec) {
             thread.join();
         }

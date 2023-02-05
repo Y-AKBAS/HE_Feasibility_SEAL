@@ -59,7 +59,7 @@ namespace yakbas::pub {
         const grpc::Status &status = readerPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during Search(). Error message: " + status.error_message());
@@ -107,7 +107,7 @@ namespace yakbas::pub {
         const auto &status = clientWriterPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Sent Public BookingRequests successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Sent Public BookingRequests successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during Sending Public BookingRequests. Error message: " +
@@ -156,10 +156,10 @@ namespace yakbas::pub {
         const auto &status = clientWriterPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Sent Public BookingRequestsOnOthers successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Sent Public BookOnMobilityProviders successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during Sending Public BookingRequestsOnOthers. Error message: " +
+                            "Error occurred during Sending Public BookOnMobilityProviders. Error message: " +
                             status.error_message());
         }
 
@@ -241,7 +241,7 @@ namespace yakbas::pub {
         const grpc::Status &status = stubPtr->CreateInvoice(clientContextPtr.get(), *invoicingRequestPtr,
                                                             invoicingResponsePtr.get());
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Sent InvoicingRequest successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Sent InvoicingRequest successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during creating InvoicingRequest. Error message: " +

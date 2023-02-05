@@ -13,14 +13,12 @@ namespace yakbas::sec {
               m_scalePower(sealKeys.m_scalePower) {
 
         if (m_sealInfoPtr->m_sealKeys.m_isEncodingEnabled) {
-
             if (m_schemeType == seal::scheme_type::bgv ||
                 m_schemeType == seal::scheme_type::bfv) {
                 m_batchEncoder = std::make_unique<seal::BatchEncoder>(*m_sealInfoPtr->m_sealContextPtr);
             } else {
                 m_ckksEncoder = std::make_unique<seal::CKKSEncoder>(*m_sealInfoPtr->m_sealContextPtr);
             }
-
         }
     }
 
@@ -112,7 +110,6 @@ namespace yakbas::sec {
 
     num_variant SealOperations::DecodeAndDecrypt(const seal::Ciphertext &cipher,
                                                  seal::Decryptor &decryptor) const {
-
         try {
             seal::Plaintext decryptedPlain;
             decryptor.decrypt(cipher, decryptedPlain);
@@ -167,12 +164,8 @@ namespace yakbas::sec {
                 m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(cipherToAdd);
             }
 
-            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
-            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
             if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 5)) {
                 processedCipher.scale() = cipherToAdd.scale();
-                LOG4CPLUS_INFO(*m_logger,
-                               "Cipher scales are being equal now. Scale: " + std::to_string(processedCipherScale));
             }
 
             m_sealInfoPtr->m_evaluatorPtr->mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
@@ -201,11 +194,7 @@ namespace yakbas::sec {
                 m_sealInfoPtr->m_evaluatorPtr->rescale_to_next_inplace(cipherToAdd);
             }
 
-            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
-            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
             if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 5)) {
-                LOG4CPLUS_INFO(*m_logger,
-                               "Cipher scales are being equal now. Scale: " + std::to_string(processedCipherScale));
                 processedCipher.scale() = cipherToAdd.scale();
             }
 
@@ -236,12 +225,8 @@ namespace yakbas::sec {
                 evaluator.rescale_to_next_inplace(cipherToAdd);
             }
 
-            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
-            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
             if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 4)) {
                 processedCipher.scale() = cipherToAdd.scale();
-                LOG4CPLUS_INFO(*m_logger,
-                               "Cipher scales are being equal now. Scale: " + std::to_string(processedCipherScale));
             }
 
             evaluator.mod_switch_to_inplace(cipherToAdd, processedCipher.parms_id());
@@ -254,7 +239,6 @@ namespace yakbas::sec {
 
     void SealOperations::SubProcessedCiphers(seal::Ciphertext &processedCipher, seal::Ciphertext &cipherToAdd,
                                              seal::Ciphertext &destination, const seal::Evaluator &evaluator) const {
-
         try {
             if (m_schemeType != seal::scheme_type::ckks) {
                 evaluator.sub_inplace(processedCipher, cipherToAdd);
@@ -264,11 +248,8 @@ namespace yakbas::sec {
             evaluator.rescale_to_next_inplace(processedCipher);
             double processedCipherScale = std::log2(processedCipher.scale());
             double cipherToAddScale = std::log2(cipherToAdd.scale());
-            LOG4CPLUS_INFO(*m_logger, "processedCipher scale: " + std::to_string(processedCipherScale));
-            LOG4CPLUS_INFO(*m_logger, "cipherToAdd scale: " + std::to_string(cipherToAddScale));
+
             if (CompareWithTolerance(&processedCipherScale, &cipherToAddScale, 5)) {
-                LOG4CPLUS_INFO(*m_logger,
-                               "Cipher scales are being equal now. Scale: " + std::to_string(processedCipherScale));
                 processedCipher.scale() = cipherToAdd.scale();
             }
 

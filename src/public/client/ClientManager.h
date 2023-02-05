@@ -16,7 +16,7 @@ namespace yakbas::pub {
         ClientManager();
 
         [[nodiscard]] std::unique_ptr<std::vector<std::unique_ptr<communication::Journey>>>
-        Search(const std::string &from, const std::string &to, int numberOfJourneys);
+        Search(const std::string &from, const std::string &to, int numberOfJourneys = 10);
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookOnPlatform(const communication::Journey &journey);
@@ -28,8 +28,6 @@ namespace yakbas::pub {
 
         void SendEndUsingRequest();
 
-        void SendUsageTotal(const std::uint64_t total);
-
         [[nodiscard]] std::unique_ptr<communication::InvoicingResponse>
         Pay(const communication::BookingResponse &bookingResponse);
 
@@ -40,6 +38,9 @@ namespace yakbas::pub {
         static bool IsInitialized();
 
     private:
+
+        void SendUsageTotal(std::uint64_t total);
+
         const std::unique_ptr<PublicUser> m_userPtr{nullptr};
         std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
         std::map<std::string, std::uint64_t> m_transporterUsageMap{};

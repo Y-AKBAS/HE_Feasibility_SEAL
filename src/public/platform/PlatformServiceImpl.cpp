@@ -25,7 +25,7 @@ namespace yakbas::pub {
     PlatformServiceImpl::SearchForRides(::grpc::ServerContext *context, const ::communication::SearchRequest *request,
                                         ::grpc::ServerWriter<::communication::Journey> *writer) {
 
-        LOG4CPLUS_DEBUG(*m_logger, "Secret Platform Service impl SearchForRides invoked...");
+        LOG4CPLUS_DEBUG(*m_logger, "Public Platform Service impl SearchForRides invoked...");
 
         const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
         grpc::ClientContext clientContext;
@@ -43,7 +43,7 @@ namespace yakbas::pub {
         const grpc::Status &status = clientReaderPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Journeys sent successfully ... ");
+            LOG4CPLUS_DEBUG(*m_logger, "Journeys sent successfully ... ");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during SearchForRides(). Error message: " + status.error_message());

@@ -1,5 +1,6 @@
 $root = Get-Item -Path ".\"
-$secretPath = Get-Item -Path "$root\cmake-build-debug\src\secret"
+$debugOrRelease = "release"
+$secretPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
 
 $scheme = 1
 $batchingEnabled = "false"

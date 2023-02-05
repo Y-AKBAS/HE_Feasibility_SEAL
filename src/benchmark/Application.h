@@ -14,7 +14,7 @@ namespace yakbas {
 
         void Run(int argc, char **argv) override;
 
-        void Benchmark(const sec::SecretCommandLineInfo &commandLineInfo);
+        void Benchmark(const sec::SecretCommandLineInfo &commandLineInfo, int argc, char **argv);
 
     };
 
