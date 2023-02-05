@@ -3,6 +3,8 @@ project(HE_Feasibility_SEAL
         LANGUAGES CXX
         VERSION 1.0.0)
 
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED 23)
 

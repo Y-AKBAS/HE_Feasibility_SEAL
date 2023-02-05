@@ -1,8 +1,9 @@
 $root = Get-Item -Path ".\"
 $reportFile = "$root\result"
-$secretPath = Get-Item -Path "$root\cmake-build-debug\src\secret"
-$publicPath = Get-Item -Path "$root\cmake-build-debug\src\public"
-$benchmarkPath = Get-Item -Path "$root\cmake-build-debug\src\benchmark"
+$debugOrRelease = "release"
+$secretPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
+$publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\public"
+$benchmarkPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\benchmark"
 
 $scheme = 1
 $batchingEnabled = "false"
@@ -43,20 +44,19 @@ cd $root
 function runPublics {
     cd "$publicPath\invoice_clerk\"
     Start-Process -NoNewWindow ".\publicInvoiceClerk.exe"
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 5
     cd "$publicPath\mobility_provider\"
     Start-Process -NoNewWindow ".\publicMobilityProvider.exe"
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 5
     cd "$publicPath\transporter\"
     Start-Process -NoNewWindow ".\publicTransporter.exe"
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 5
     cd "$publicPath\platform\"
     Start-Process -NoNewWindow ".\publicPlatform.exe"
     Start-Sleep -Seconds 5
     
     cd $root
 }
-
 
 function runBenchmark {
     [CmdletBinding()]
