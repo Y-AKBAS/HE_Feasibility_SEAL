@@ -126,7 +126,6 @@ namespace yakbas {
             const auto vec_size = journeyVecPtr->size();
             size_t index{};
             for (auto _: state) {
-                std::cout << "index: " << index << '\n';
                 auto bookingResult = clientManager.BookOnPlatform(*journeyVecPtr->at(index++ % vec_size));
                 if (bookingResult->journey_id().empty()) {
                     LOG4CPLUS_ERROR(benchmarkLogger, "JourneyId of the result is empty");
