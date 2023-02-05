@@ -17,6 +17,7 @@ namespace yakbas::sec {
         constexpr const char *scalePowerName = "scalePower,sp";
         constexpr const char *numberOfRequestsName = "numberOfRequests,nor";
         constexpr const char *timeUnitName = "timeUnit,tu";
+        constexpr const char *isSecretName = "m_isSecret,is";
         constexpr const char *portUrlName = "portUrl,pu";
 
         auto commandLineInfoPtr = std::make_unique<SecretCommandLineInfo>();
@@ -32,6 +33,7 @@ namespace yakbas::sec {
                 (scalePowerName, po::value<int>(&keys.m_scalePower))
                 (numberOfRequestsName, po::value<int>(&commandLineInfoPtr->m_numberOfRequests))
                 (timeUnitName, po::value<int>(&commandLineInfoPtr->timeUnit))
+                (isSecretName, po::value<bool>(&commandLineInfoPtr->m_isSecret))
                 (portUrlName, po::value<std::string>(&commandLineInfoPtr->m_portUrl));
 
         const bool success = IsParsed(cmdLineArgs, optionsDescription);

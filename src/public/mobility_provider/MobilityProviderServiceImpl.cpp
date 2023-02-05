@@ -75,7 +75,7 @@ namespace yakbas::pub {
                                                                const communication::UsageTotalReportRequest *request,
                                                                communication::UsageTotalReportResponse *response) {
         try {
-            LOG4CPLUS_INFO(*m_logger, std::string("Report usage total: ") +
+            LOG4CPLUS_TRACE(*m_logger, std::string("Report usage total: ") +
                                       std::to_string(AnyToNum<std::uint64_t>(&request->total())));
         } catch (std::exception &e) {
             LOG4CPLUS_ERROR(*m_logger, std::string("Exception during decryption. Message: ") + e.what());

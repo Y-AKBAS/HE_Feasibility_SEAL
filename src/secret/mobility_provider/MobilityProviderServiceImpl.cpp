@@ -161,7 +161,7 @@ namespace yakbas::sec {
         try {
             const num_variant &variant = m_customSealOperationsPtr->DecryptFromBuffer(
                     GetUniqueStream(request->total()));
-            LOG4CPLUS_INFO(*m_logger, std::string("Decrypted report usage total: ") +
+            LOG4CPLUS_TRACE(*m_logger, std::string("Decrypted report usage total: ") +
                                       std::to_string(GetAnyVariant<double>(&variant)));
         } catch (std::exception &e) {
             LOG4CPLUS_ERROR(*m_logger, std::string("Exception during decryption. Message: ") + e.what());

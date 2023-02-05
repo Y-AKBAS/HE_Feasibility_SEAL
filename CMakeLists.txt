@@ -3,10 +3,9 @@ project(HE_Feasibility_SEAL
         LANGUAGES CXX
         VERSION 1.0.0)
 
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose Release or Debug" FORCE)
-
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED 23)
+set(VCPKG_BUILD_TYPE release)
 
 get_filename_component(VCPKG_CMAKE_DIR "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ABSOLUTE)
 include(${VCPKG_CMAKE_DIR})

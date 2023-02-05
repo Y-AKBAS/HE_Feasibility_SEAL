@@ -1,7 +1,7 @@
 #include "Application.h"
 
 int main(int argc, char **argv) {
-    yakbas::Application application;
-    application.Run(argc, argv);
+    const auto application = std::make_unique<yakbas::Application>();
+    application->Run(argc, argv);
     return 0;
 }

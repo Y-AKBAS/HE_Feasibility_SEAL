@@ -43,7 +43,7 @@ namespace yakbas::pub {
         const grpc::Status &status = clientReaderPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Journeys sent successfully ... ");
+            LOG4CPLUS_DEBUG(*m_logger, "Journeys sent successfully ... ");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during SearchForRides(). Error message: " + status.error_message());

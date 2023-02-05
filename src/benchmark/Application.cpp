@@ -32,8 +32,8 @@ namespace yakbas {
         if (RegisterFunctions(commandLineInfo)) {
             benchmark::RunSpecifiedBenchmarks();
         }
+        std::this_thread::sleep_for(std::chrono::seconds(3));
         benchmark::Shutdown();
     }
-
 
 } // yakbas

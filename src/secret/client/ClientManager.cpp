@@ -87,7 +87,7 @@ namespace yakbas::sec {
         const grpc::Status &status = readerPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during SearchSecretly(). Error message: " + status.error_message());
@@ -126,7 +126,7 @@ namespace yakbas::sec {
         const grpc::Status &status = readerPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Fetched Journeys successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during Search(). Error message: " + status.error_message());
@@ -536,7 +536,7 @@ namespace yakbas::sec {
         const grpc::Status &status = stubPtr->CreateInvoice(clientContextPtr.get(), *invoicingRequestPtr,
                                                             invoicingResponsePtr.get());
         if (status.ok()) {
-            LOG4CPLUS_INFO(*m_logger, "Sent InvoicingRequest successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Sent InvoicingRequest successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during creating InvoicingRequest. Error message: " +

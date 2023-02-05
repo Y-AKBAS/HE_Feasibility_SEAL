@@ -6,17 +6,17 @@
 namespace yakbas {
     using namespace std::string_literals;
 
-    /* using bookingFunc = std::function<
-             std::unique_ptr<communication::BookingResponse>(
-                     const communication::Journey &journey
-             )>;
+    using bookingFunc = std::function<
+            std::unique_ptr<communication::BookingResponse>(
+                    const communication::Journey &journey
+            )>;
 
-     const static sec::SecretCommandLineInfo secretCommandLineInfo = []() -> decltype(auto) {
-         sec::SecretCommandLineInfo commandLineInfo{};
-         commandLineInfo.m_numberOfRequests = 1;
-         return commandLineInfo;
-     }();
- */
+    const static sec::SecretCommandLineInfo secretCommandLineInfo = []() -> decltype(auto) {
+        sec::SecretCommandLineInfo commandLineInfo{};
+        commandLineInfo.m_numberOfRequests = 1;
+        return commandLineInfo;
+    }();
+
     const static log4cplus::Logger &benchmarkLogger = log4cplus::Logger::getInstance("Benchmark Logger");
     const static log4cplus::Logger &exceptionLogger = log4cplus::Logger::getInstance("Benchmark Exception Logger");
 
@@ -126,6 +126,7 @@ namespace yakbas {
             const auto vec_size = journeyVecPtr->size();
             size_t index{};
             for (auto _: state) {
+                std::cout << "index: " << index << '\n';
                 auto bookingResult = clientManager.BookOnPlatform(*journeyVecPtr->at(index++ % vec_size));
                 if (bookingResult->journey_id().empty()) {
                     LOG4CPLUS_ERROR(benchmarkLogger, "JourneyId of the result is empty");
@@ -170,16 +171,23 @@ namespace yakbas {
     bool RegisterFunctions(const sec::SecretCommandLineInfo &info) {
         try {
             auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
-            BENCHMARK(PublicBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-            BENCHMARK(PublicBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-            BENCHMARK(PublicUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-            BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-            BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-            BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-            BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(
-                    timeUnit);
-            BENCHMARK(SecretUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-            BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+            if (info.m_isSecret) {
+                LOG4CPLUS_INFO(benchmarkLogger, "Will run secret tests");
+                BENCHMARK(SecretBookOnPlatform)->RangeMultiplier(2)->Range(1 << 10, 1 << 20)->Unit(
+                        timeUnit);
+                BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(
+                        timeUnit);
+                BENCHMARK(SecretUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+            } else {
+                LOG4CPLUS_INFO(benchmarkLogger, "Will run public tests");
+                BENCHMARK(PublicBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                BENCHMARK(PublicBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                BENCHMARK(PublicUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+            }
             return true;
         } catch (std::exception &e) {
             return false;
