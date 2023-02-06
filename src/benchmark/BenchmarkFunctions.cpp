@@ -20,6 +20,36 @@ namespace yakbas {
     const static log4cplus::Logger &benchmarkLogger = log4cplus::Logger::getInstance("Benchmark Logger");
     const static log4cplus::Logger &exceptionLogger = log4cplus::Logger::getInstance("Benchmark Exception Logger");
 
+    static void BfvSealContext(benchmark::State &state) {
+        for (auto _: state) {
+            seal::EncryptionParameters encryptionParameters(seal::scheme_type::bfv);
+            encryptionParameters.set_coeff_modulus(seal::CoeffModulus::BFVDefault(SEAL_POLY_MODULUS_DEGREE));
+            encryptionParameters.set_poly_modulus_degree(SEAL_POLY_MODULUS_DEGREE);
+            encryptionParameters.set_plain_modulus(seal::PlainModulus::Batching(SEAL_POLY_MODULUS_DEGREE, 20));
+            benchmark::DoNotOptimize(seal::SEALContext(encryptionParameters));
+        }
+    }
+
+    static void CkksSealContext(benchmark::State &state) {
+        for (auto _: state) {
+            seal::EncryptionParameters encryptionParameters(seal::scheme_type::ckks);
+            encryptionParameters.set_coeff_modulus(
+                    seal::CoeffModulus::Create(SEAL_POLY_MODULUS_DEGREE, constants::ENCODING_BIT_SIZES));
+            encryptionParameters.set_poly_modulus_degree(SEAL_POLY_MODULUS_DEGREE);
+            benchmark::DoNotOptimize(seal::SEALContext(encryptionParameters));
+        }
+    }
+
+    static void BgvSealContext(benchmark::State &state) {
+        for (auto _: state) {
+            seal::EncryptionParameters encryptionParameters(seal::scheme_type::bgv);
+            encryptionParameters.set_coeff_modulus(seal::CoeffModulus::BFVDefault(SEAL_POLY_MODULUS_DEGREE));
+            encryptionParameters.set_poly_modulus_degree(SEAL_POLY_MODULUS_DEGREE);
+            encryptionParameters.set_plain_modulus(seal::PlainModulus::Batching(SEAL_POLY_MODULUS_DEGREE, 20));
+            benchmark::DoNotOptimize(seal::SEALContext(encryptionParameters));
+        }
+    }
+
     static void SecretBookOnPlatform(benchmark::State &state) {
         try {
             sec::ClientManager clientManager;
@@ -79,6 +109,7 @@ namespace yakbas {
     static void SecretBookOnMobilityProvidersSymmetric(benchmark::State &state) {
         try {
             sec::ClientManager clientManager;
+            benchmark::DoNotOptimize(clientManager.Search("Leipzig", "Halle"));
             const auto journeyVecPtr = clientManager.Search("Leipzig", "Halle");
             const auto vec_size = journeyVecPtr->size();
             size_t index{};
@@ -171,9 +202,8 @@ namespace yakbas {
         try {
             auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
             if (info.m_isSecret) {
-                LOG4CPLUS_INFO(benchmarkLogger, "Will run secret tests");
-                BENCHMARK(SecretBookOnPlatform)->RangeMultiplier(2)->Range(1 << 10, 1 << 20)->Unit(
-                        timeUnit);
+                LOG4CPLUS_INFO(benchmarkLogger, "Will run secret benchmarks...");
+                RegisterOffRecords(info);
                 BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
@@ -182,14 +212,23 @@ namespace yakbas {
                 BENCHMARK(SecretUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
             } else {
-                LOG4CPLUS_INFO(benchmarkLogger, "Will run public tests");
+                LOG4CPLUS_INFO(benchmarkLogger, "Will run public benchmarks...");
                 BENCHMARK(PublicBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(PublicBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(PublicUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
             }
             return true;
         } catch (std::exception &e) {
+            LOG4CPLUS_ERROR(exceptionLogger, "Exception thrown during bench registration. Message: "s + e.what());
             return false;
         }
     }
+
+    void RegisterOffRecords(const sec::SecretCommandLineInfo &info) {
+        auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
+        BENCHMARK(BfvSealContext)->Iterations(10)->Unit(timeUnit);
+        BENCHMARK(CkksSealContext)->Iterations(10)->Unit(timeUnit);
+        BENCHMARK(BgvSealContext)->Iterations(10)->Unit(timeUnit);
+    }
+
 }

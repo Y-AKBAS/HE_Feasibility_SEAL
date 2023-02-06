@@ -5,6 +5,12 @@
 
 namespace yakbas {
 
+    static void BfvSealContext(benchmark::State &state);
+
+    static void CkksSealContext(benchmark::State &state);
+
+    static void BgvSealContext(benchmark::State &state);
+
     static void SecretBookOnPlatform(benchmark::State &state);
 
     static void SecretBookOnPlatformSymmetric(benchmark::State &state);
@@ -24,4 +30,6 @@ namespace yakbas {
     static void PublicUsageTest(benchmark::State &state);
 
     bool RegisterFunctions(const sec::SecretCommandLineInfo &info);
+
+    void RegisterOffRecords(const sec::SecretCommandLineInfo &info);
 }
