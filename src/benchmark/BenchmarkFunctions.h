@@ -31,5 +31,5 @@ namespace yakbas {
 
     bool RegisterFunctions(const sec::SecretCommandLineInfo &info);
 
-    void RegisterContextBenchmarks(const sec::SecretCommandLineInfo &info);
+    void RegisterContextBenchmark(const sec::SecretCommandLineInfo &info);
 }

@@ -203,7 +203,7 @@ namespace yakbas {
             auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
             if (info.m_isSecret) {
                 LOG4CPLUS_INFO(benchmarkLogger, "Will run secret benchmarks...");
-                RegisterContextBenchmarks(info);
+                RegisterContextBenchmark(info);
                 BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
@@ -224,11 +224,22 @@ namespace yakbas {
         }
     }
 
-    void RegisterContextBenchmarks(const sec::SecretCommandLineInfo &info) {
+    void RegisterContextBenchmark(const sec::SecretCommandLineInfo &info) {
         auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
-        BENCHMARK(BfvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-        BENCHMARK(CkksSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-        BENCHMARK(BgvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        const auto schemeType = info.m_sealKeys.m_schemeType;
+        switch (schemeType) {
+            case seal::scheme_type::bgv :
+                BENCHMARK(BgvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                break;
+            case seal::scheme_type::bfv :
+                BENCHMARK(BfvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                break;
+            case seal::scheme_type::ckks :
+                BENCHMARK(CkksSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                break;
+            default :
+                throw std::runtime_error("error while registering Context benchmarks.");
+        }
     }
 
 }
