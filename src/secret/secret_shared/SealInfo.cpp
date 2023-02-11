@@ -58,7 +58,9 @@ namespace yakbas::sec {
         return stream->str();
     }
 
-    SealKeys::SealKeys() : m_encodingBitSizes(constants::ENCODING_BIT_SIZES) {}
+    SealKeys::SealKeys() : m_encodingBitSizes(constants::ENCODING_BIT_SIZES) {
+        m_scale = std::pow(2.0, m_scalePower);
+    }
 
     SealInfo::SealInfo(const SealKeys &sealKeys)
             : m_sealKeys(sealKeys) {

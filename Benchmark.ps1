@@ -1,5 +1,5 @@
 $root = Get-Item -Path ".\"
-$reportFile = "$root\result"
+
 $debugOrRelease = "release"
 $secretPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
 $publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\public"
@@ -7,9 +7,15 @@ $benchmarkPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\benchmark
 
 $scheme = 2
 $batchingEnabled = "true"
-$timeUnit = 2
-$numberOfRequest = 10000
-$isSecret = $false
+$timeUnit = 2  # enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
+$numberOfRequest = 1000
+$isSecret = $true
+
+if($isSecret){
+    $reportFile = "$root\report\bench_'$scheme'_$batchingEnabled_$numberOfRequest"
+} else {
+    $reportFile = "$root\report\bench_public_$numberOfRequest"
+}
 
 $schemeArg = "--st $scheme"
 $batchingEnabledArg = "--ee $batchingEnabled"
@@ -79,11 +85,11 @@ function runBenchmark {
 }
 
 if ($isSecret) {
-    Write-Host "Running Secret Tests....."
+    Write-Host "Running Secret Benchmark....."
     runSecrets -schemeArg $schemeArg -batchingEnabledArg $batchingEnabledArg
 }
 else {
-    Write-Host "Running Public Tests....."
+    Write-Host "Running Public Benchmark....."
     runPublics
 }
 
