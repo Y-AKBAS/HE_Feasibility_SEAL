@@ -203,7 +203,7 @@ namespace yakbas {
             auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
             if (info.m_isSecret) {
                 LOG4CPLUS_INFO(benchmarkLogger, "Will run secret benchmarks...");
-                RegisterOffRecords(info);
+                RegisterContextBenchmarks(info);
                 BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
                 BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
@@ -224,11 +224,11 @@ namespace yakbas {
         }
     }
 
-    void RegisterOffRecords(const sec::SecretCommandLineInfo &info) {
+    void RegisterContextBenchmarks(const sec::SecretCommandLineInfo &info) {
         auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
-        BENCHMARK(BfvSealContext)->Iterations(10)->Unit(timeUnit);
-        BENCHMARK(CkksSealContext)->Iterations(10)->Unit(timeUnit);
-        BENCHMARK(BgvSealContext)->Iterations(10)->Unit(timeUnit);
+        BENCHMARK(BfvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(CkksSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(BgvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
     }
 
 }
