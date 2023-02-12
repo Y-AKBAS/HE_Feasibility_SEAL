@@ -7,6 +7,7 @@ namespace yakbas::sec {
 
     struct SecretCommandLineInfo : BaseCommandLineInfo {
         SealKeys m_sealKeys{};
+        bool m_isContext{false};
 
         bool operator==(const SecretCommandLineInfo &rhs) const;
 

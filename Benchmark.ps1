@@ -5,24 +5,38 @@ $secretPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
 $publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\public"
 $benchmarkPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\benchmark"
 
-$scheme = 2
+$scheme = 1
 $batchingEnabled = "true"
 $timeUnit = 2  # enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 $numberOfRequest = 1000
 $isSecret = $true
+$isContext = $false
 
-if($isSecret){
-    $reportFile = "$root\report\bench_'$scheme'_$batchingEnabled_$numberOfRequest"
-} else {
+if ($isSecret) {
+    if ($isContext) {
+        $reportFile = "$root\report\bench_contex_$numberOfRequest"
+    } else {
+        $reportFile = "$root\report\bench_'$scheme'_'$batchingEnabled'_$numberOfRequest"
+    }
+}
+else {
     $reportFile = "$root\report\bench_public_$numberOfRequest"
 }
 
 $schemeArg = "--st $scheme"
 $batchingEnabledArg = "--ee $batchingEnabled"
-$timeUnitArg = "--tu $timeUnit"
-$numberOfRequestArg = "--nor $numberOfRequest"
-$isSecretArg = "--is $isSecret"
-$benchmarkArgs = "$schemeArg $batchingEnabledArg $timeUnitArg $numberOfRequestArg $isSecretArg --benchmark_format=console --benchmark_out_format=json --benchmark_out=$reportFile"
+
+$benchmarkArgs = @(
+    $schemeArg,
+    $batchingEnabledArg,
+    "--tu $timeUnit",
+    "--nor $numberOfRequest",
+    "--is $isSecret",
+    "--ic $isContext",
+    "--benchmark_format=console",
+    "--benchmark_out_format=json",
+    "--benchmark_out=$reportFile"
+)
 
 Start-Sleep -Seconds 5
 
@@ -66,7 +80,7 @@ function runPublics {
     cd "$publicPath\platform\"
     Start-Process -NoNewWindow ".\publicPlatform.exe"
     Start-Sleep -Seconds 8
-    
+
     cd $root
 }
 
@@ -74,7 +88,7 @@ function runBenchmark {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
-        [string]$benchmarkArgs
+        [array]$benchmarkArgs
     )
 
     Start-Sleep -Seconds 10
