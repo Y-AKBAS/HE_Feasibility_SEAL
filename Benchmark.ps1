@@ -5,17 +5,18 @@ $secretPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
 $publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\public"
 $benchmarkPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\benchmark"
 
-$scheme = 1
-$batchingEnabled = "true"
+$scheme = 3
+$batchingEnabled = $false
 $timeUnit = 2  # enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
-$numberOfRequest = 1000
+$numberOfRequest = 5000
 $isSecret = $true
-$isContext = $false
+$isContext = $true
 
 if ($isSecret) {
     if ($isContext) {
         $reportFile = "$root\report\bench_contex_$numberOfRequest"
-    } else {
+    }
+    else {
         $reportFile = "$root\report\bench_'$scheme'_'$batchingEnabled'_$numberOfRequest"
     }
 }
@@ -99,11 +100,16 @@ function runBenchmark {
 }
 
 if ($isSecret) {
-    Write-Host "Running Secret Benchmark....."
-    runSecrets -schemeArg $schemeArg -batchingEnabledArg $batchingEnabledArg
+    if ($isContext) {
+        Write-Host "Running Context Benchmarks....."
+    }
+    else {
+        Write-Host "Running Secret Benchmarks....."
+        runSecrets -schemeArg $schemeArg -batchingEnabledArg $batchingEnabledArg    
+    }
 }
 else {
-    Write-Host "Running Public Benchmark....."
+    Write-Host "Running Public Benchmarks....."
     runPublics
 }
 
