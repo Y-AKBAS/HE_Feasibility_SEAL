@@ -1,5 +1,4 @@
-$root = Get-Item -Path "..\"
-
+$root = Get-Item -Path ".\"
 $debugOrRelease = "release"
 $secretPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
 $publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\public"
