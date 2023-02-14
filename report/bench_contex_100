@@ -1,0 +1,81 @@
+{
+  "context": {
+    "date": "2023-02-13T00:08:55+01:00",
+    "host_name": "DESKTOP-98VBEL8",
+    "executable": "C:\\Users\\monster\\CLionProjects\\HE_Feasibility_SEAL\\cmake-build-release\\src\\benchmark\\benchmark.exe",
+    "num_cpus": 8,
+    "mhz_per_cpu": 2808,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 49152,
+        "num_sharing": 2
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 1310720,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 12582912,
+        "num_sharing": 8
+      }
+    ],
+    "load_avg": [],
+    "library_build_type": "release"
+  },
+  "benchmarks": [
+    {
+      "name": "BgvSealContext/iterations:100",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BgvSealContext/iterations:100",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 100,
+      "real_time": 1.0237717150000026e+03,
+      "cpu_time": 1.0067187500000000e+03,
+      "time_unit": "ms"
+    },
+    {
+      "name": "BfvSealContext/iterations:100",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "BfvSealContext/iterations:100",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 100,
+      "real_time": 1.0243897380000271e+03,
+      "cpu_time": 1.0056250000000000e+03,
+      "time_unit": "ms"
+    },
+    {
+      "name": "CkksSealContext/iterations:100",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "CkksSealContext/iterations:100",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 100,
+      "real_time": 3.5549719499998901e+02,
+      "cpu_time": 3.2062500000000000e+02,
+      "time_unit": "ms"
+    }
+  ]
+}

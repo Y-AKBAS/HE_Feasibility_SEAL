@@ -1,0 +1,1 @@
+tree . /a > ./scripts/file_structure.txt

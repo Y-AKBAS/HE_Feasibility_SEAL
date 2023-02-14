@@ -200,22 +200,14 @@ namespace yakbas {
 
     bool RegisterFunctions(const sec::SecretCommandLineInfo &info) {
         try {
-            auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
             if (info.m_isSecret) {
-                LOG4CPLUS_INFO(benchmarkLogger, "Will run secret benchmarks...");
-                RegisterContextBenchmark(info);
-                BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(
-                        timeUnit);
-                BENCHMARK(SecretUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                if (info.m_isContext) {
+                    RegisterContextBenchmark(info);
+                } else {
+                    RegisterSecretRequestBenchmarks(info);
+                }
             } else {
-                LOG4CPLUS_INFO(benchmarkLogger, "Will run public benchmarks...");
-                BENCHMARK(PublicBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                BENCHMARK(PublicBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                BENCHMARK(PublicUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+                RegisterPublicRequestBenchmarks(info);
             }
             return true;
         } catch (std::exception &e) {
@@ -225,21 +217,30 @@ namespace yakbas {
     }
 
     void RegisterContextBenchmark(const sec::SecretCommandLineInfo &info) {
+        LOG4CPLUS_INFO(benchmarkLogger, "Will run context benchmarks...");
         auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
-        const auto schemeType = info.m_sealKeys.m_schemeType;
-        switch (schemeType) {
-            case seal::scheme_type::bgv :
-                BENCHMARK(BgvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                break;
-            case seal::scheme_type::bfv :
-                BENCHMARK(BfvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                break;
-            case seal::scheme_type::ckks :
-                BENCHMARK(CkksSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-                break;
-            default :
-                throw std::runtime_error("error while registering Context benchmarks.");
-        }
+        BENCHMARK(BgvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(BfvSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(CkksSealContext)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
     }
 
+    void RegisterSecretRequestBenchmarks(const sec::SecretCommandLineInfo &info) {
+        LOG4CPLUS_INFO(benchmarkLogger, "Will run secret request benchmarks...");
+        auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
+        BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(
+                timeUnit);
+        BENCHMARK(SecretUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+    }
+
+    void RegisterPublicRequestBenchmarks(const sec::SecretCommandLineInfo &info) {
+        LOG4CPLUS_INFO(benchmarkLogger, "Will run public request benchmarks...");
+        auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
+        BENCHMARK(PublicBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(PublicBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(PublicUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+    }
 }
