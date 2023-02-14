@@ -1,0 +1,81 @@
+{
+  "context": {
+    "date": "2023-02-13T08:13:17+01:00",
+    "host_name": "DESKTOP-98VBEL8",
+    "executable": "C:\\Users\\monster\\CLionProjects\\HE_Feasibility_SEAL\\cmake-build-release\\src\\benchmark\\benchmark.exe",
+    "num_cpus": 8,
+    "mhz_per_cpu": 2823,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 49152,
+        "num_sharing": 2
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 1310720,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 12582912,
+        "num_sharing": 8
+      }
+    ],
+    "load_avg": [],
+    "library_build_type": "release"
+  },
+  "benchmarks": [
+    {
+      "name": "PublicBookOnPlatform/iterations:100",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "PublicBookOnPlatform/iterations:100",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 100,
+      "real_time": 1.8746800000371877e-01,
+      "cpu_time": 0.0000000000000000e+00,
+      "time_unit": "ms"
+    },
+    {
+      "name": "PublicBookOnMobilityProviders/iterations:100",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "PublicBookOnMobilityProviders/iterations:100",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 100,
+      "real_time": 3.7761799998406786e-01,
+      "cpu_time": 0.0000000000000000e+00,
+      "time_unit": "ms"
+    },
+    {
+      "name": "PublicUsageTest/iterations:100",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "PublicUsageTest/iterations:100",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 100,
+      "real_time": 1.1839999999938300e+00,
+      "cpu_time": 0.0000000000000000e+00,
+      "time_unit": "ms"
+    }
+  ]
+}

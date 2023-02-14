@@ -1,0 +1,123 @@
+{
+  "context": {
+    "date": "2023-02-13T08:54:44+01:00",
+    "host_name": "DESKTOP-98VBEL8",
+    "executable": "C:\\Users\\monster\\CLionProjects\\HE_Feasibility_SEAL\\cmake-build-release\\src\\benchmark\\benchmark.exe",
+    "num_cpus": 8,
+    "mhz_per_cpu": 2826,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 49152,
+        "num_sharing": 2
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 1310720,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 12582912,
+        "num_sharing": 8
+      }
+    ],
+    "load_avg": [],
+    "library_build_type": "release"
+  },
+  "benchmarks": [
+    {
+      "name": "SecretBookOnPlatform/iterations:10",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "SecretBookOnPlatform/iterations:10",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 10,
+      "real_time": 1.3727520000029472e+02,
+      "cpu_time": 5.1562500000000000e+01,
+      "time_unit": "ms"
+    },
+    {
+      "name": "SecretBookOnPlatformSymmetric/iterations:10",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "SecretBookOnPlatformSymmetric/iterations:10",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 10,
+      "real_time": 1.2254683999999543e+02,
+      "cpu_time": 3.5937500000000000e+01,
+      "time_unit": "ms"
+    },
+    {
+      "name": "SecretBookOnMobilityProviders/iterations:10",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "SecretBookOnMobilityProviders/iterations:10",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 10,
+      "real_time": 1.8309590999997454e+02,
+      "cpu_time": 4.5312500000000000e+01,
+      "time_unit": "ms"
+    },
+    {
+      "name": "SecretBookOnMobilityProvidersSymmetric/iterations:10",
+      "family_index": 3,
+      "per_family_instance_index": 0,
+      "run_name": "SecretBookOnMobilityProvidersSymmetric/iterations:10",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 10,
+      "real_time": 1.5911918999991030e+02,
+      "cpu_time": 3.4375000000000000e+01,
+      "time_unit": "ms"
+    },
+    {
+      "name": "SecretUsageTest/iterations:10",
+      "family_index": 4,
+      "per_family_instance_index": 0,
+      "run_name": "SecretUsageTest/iterations:10",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 10,
+      "real_time": 1.6018280999996932e+02,
+      "cpu_time": 1.0937500000000000e+01,
+      "time_unit": "ms"
+    },
+    {
+      "name": "SecretSymmetricUsageTest/iterations:10",
+      "family_index": 5,
+      "per_family_instance_index": 0,
+      "run_name": "SecretSymmetricUsageTest/iterations:10",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 10,
+      "real_time": 1.4553832000019611e+02,
+      "cpu_time": 1.0937500000000000e+01,
+      "time_unit": "ms"
+    }
+  ]
+}

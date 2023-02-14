@@ -9,8 +9,8 @@ $scheme = 3
 $batchingEnabled = $false
 $timeUnit = 2  # enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 $numberOfRequest = 5000
-$isSecret = $true
-$isContext = $true
+$isSecret = $false
+$isContext = $false
 
 if ($isSecret) {
     if ($isContext) {
