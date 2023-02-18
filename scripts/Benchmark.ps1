@@ -7,13 +7,13 @@ $benchmarkPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\benchmark
 $scheme = 3
 $batchingEnabled = $false
 $timeUnit = 2  # enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
-$numberOfRequest = 5000
-$isSecret = $false
+$numberOfRequest = 10
+$isSecret = $true
 $isContext = $false
 
 if ($isSecret) {
     if ($isContext) {
-        $reportFile = "$root\report\bench_contex_$numberOfRequest"
+        $reportFile = "$root\report\bench_context_$numberOfRequest"
     }
     else {
         $reportFile = "$root\report\bench_'$scheme'_'$batchingEnabled'_$numberOfRequest"
