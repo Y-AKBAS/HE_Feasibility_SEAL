@@ -25,6 +25,7 @@ namespace yakbas::sec {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Mobility Provider Service impl SearchForRides invoked...");
 
+        request->ByteSizeLong()
         const auto stream = GetUniqueStream(request->publickey());
         const auto publicKeyPtr = m_customSealOperationsPtr->GetPublicKeyFromBuffer(stream);
         const auto &operations = m_customSealOperationsPtr->GetSealOperations();

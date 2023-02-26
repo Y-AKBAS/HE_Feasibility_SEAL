@@ -28,10 +28,13 @@ namespace yakbas::sec {
         BookSymmetricOnPlatformAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
+        BookOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
+
+        [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookSymmetricOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
+        BookAsymmetricOnPlatformAndDecrypt(const communication::Journey &journey) const;
 
         void SendStartUsingRequest();
 
@@ -56,6 +59,10 @@ namespace yakbas::sec {
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
         BookOnPlatform(const communication::Journey &journey) const;
+
+
+        [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
+        BookAsymmetricOnPlatform(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
         BookSymmetricOnPlatform(const communication::Journey &journey) const;

@@ -26,6 +26,10 @@ namespace yakbas::sec {
         BookOnPlatform(grpc::ServerContext *context, grpc::ServerReader<communication::sec::BookingRequest> *reader,
                        communication::sec::BookingResponse *response) override;
 
+        grpc::Status BookAsymmetricOnPlatform(::grpc::ServerContext *context,
+                                              ::grpc::ServerReader<::communication::sec::SearchRequest> *reader,
+                                              ::communication::sec::BookingResponse *response) override;
+
         grpc::Status
         BookOnMobilityProviders(grpc::ServerContext *context,
                                 grpc::ServerReader<communication::sec::BookingRequest> *reader,

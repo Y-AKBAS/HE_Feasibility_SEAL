@@ -117,6 +117,58 @@ namespace yakbas::sec {
         return grpc::Status::OK;
     }
 
+    grpc::Status PlatformServiceImpl::BookAsymmetricOnPlatform(grpc::ServerContext *context,
+                                                               grpc::ServerReader<communication::sec::SearchRequest> *reader,
+                                                               communication::sec::BookingResponse *response) {
+
+        const auto &stub_1 = m_platformClientManager->GetStub(
+                constants::MOBILITY_PROVIDER_CHANNEL_1);
+        const auto &stub_2 = m_platformClientManager->GetStub(
+                constants::MOBILITY_PROVIDER_CHANNEL_2);
+
+        grpc::ClientContext clientContext;
+
+        bool isReadable;
+        int count{};
+        do {
+            const auto searchRequestPtr = GetUnique<communication::sec::SearchRequest>();
+            isReadable = reader->Read(searchRequestPtr.get());
+            if (isReadable) {
+                std::unique_ptr<::grpc::ClientReader<::communication::sec::Journey>> clientReaderPtr{nullptr};
+                if (count % 2 == 0) {
+                    clientReaderPtr = stub_1->SearchForSecretRides(
+                            &clientContext, *searchRequestPtr);
+                } else {
+                    clientReaderPtr = stub_2->SearchForSecretRides(
+                            &clientContext, *searchRequestPtr);
+                }
+
+
+                bool isSecretSearchReadable;
+                do {
+                    const auto journeyPtr = GetUnique<communication::sec::Journey>();
+                    isSecretSearchReadable = clientReaderPtr->Read(journeyPtr.get());
+                    if (isSecretSearchReadable) {
+                        writer->Write(*journeyPtr);
+                    }
+                } while (isSecretSearchReadable);
+
+                const auto localStatus = clientReaderPtr->Finish();
+            }
+        } while (isReadable);
+
+        const grpc::Status &status = reader->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_DEBUG(*m_logger, "Journeys sent successfully ... ");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during SearchForSecretRides(). Error message: " + status.error_message());
+        }
+
+        return status;
+    }
+
     grpc::Status PlatformServiceImpl::BookOnMobilityProviders(grpc::ServerContext *context,
                                                               grpc::ServerReader<communication::sec::BookingRequest> *reader,
                                                               communication::sec::BookingResponse *response) {

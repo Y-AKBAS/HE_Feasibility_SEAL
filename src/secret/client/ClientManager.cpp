@@ -159,6 +159,12 @@ namespace yakbas::sec {
         return this->MapSecretToPublic(*secretBookingResponsePtr);
     }
 
+    std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookAsymmetricOnPlatformAndDecrypt(const communication::Journey &journey) const {
+        const auto secretBookingResponsePtr = BookAsymmetricOnPlatform(journey);
+        return this->MapSecretToPublic(*secretBookingResponsePtr);
+    }
+
     std::unique_ptr<communication::sec::BookingResponse>
     ClientManager::BookOnPlatform(const communication::Journey &journey) const {
 
@@ -332,6 +338,43 @@ namespace yakbas::sec {
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during Sending Symmetric Secret BookingRequests. Error message: " +
+                            status.error_message());
+        }
+
+        return responsePtr;
+    }
+
+    std::unique_ptr<communication::sec::BookingResponse>
+    ClientManager::BookAsymmetricOnPlatform(const communication::Journey &journey) const {
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContext = GetUnique<grpc::ClientContext>();
+        const auto requestPtr = GetUnique<communication::sec::SearchRequest>();
+
+        auto responsePtr = GetUnique<communication::sec::BookingResponse>();
+        const auto clientWriterPtr = stubPtr->BookAsymmetricOnPlatform(
+                clientContext.get(), responsePtr.get());
+
+        const auto &rides = journey.rides();
+
+        for (const auto &ride: rides) {
+            requestPtr->set_numberofjourneys(1);
+            requestPtr->set_to(ride.to());
+            requestPtr->set_from(ride.from());
+            requestPtr->set_publickey(m_userPtr->GetCustomSealOperations()->GetPublicKeyBuffer());
+
+            if (!clientWriterPtr->Write(*requestPtr)) {
+                throw std::bad_function_call();
+            }
+        }
+
+        clientWriterPtr->WritesDone();
+        const auto &status = clientWriterPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_TRACE(*m_logger, "Sent Secret BookingRequests successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during Sending Secret BookingRequests. Error message: " +
                             status.error_message());
         }
 
