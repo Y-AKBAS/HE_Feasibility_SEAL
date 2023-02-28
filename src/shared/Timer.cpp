@@ -12,15 +12,28 @@ namespace yakbas {
             system::now().time_since_epoch()).count() - 1;
 
     void Timer::clear() {
+        m_cpu_begin = m_cpu_end = std::clock();
         m_begin = m_end = steady::now();
     }
 
     void Timer::start() {
+        m_cpu_begin = std::clock();
         m_begin = steady::now();
     }
 
     void Timer::stop() {
+        m_cpu_end = std::clock();
         m_end = steady::now();
+    }
+
+    std::uint64_t Timer::PassedCpuTimeInMillisWithStop() {
+        this->stop();
+        return this->PassedCpuTimeInMillisWithoutStop();
+    }
+
+    std::uint64_t Timer::PassedTimeInMillisWithStop() {
+        this->stop();
+        return this->PassedTimeInMillisWithoutStop();
     }
 
     std::uint64_t Timer::PassedTimeInMillisWithoutStop() const {
@@ -30,9 +43,11 @@ namespace yakbas {
         return std::chrono::duration_cast<std::chrono::milliseconds>(m_end - m_begin).count();
     }
 
-    std::uint64_t Timer::PassedTimeInMillisWithStop() {
-        this->stop();
-        return this->PassedTimeInMillisWithoutStop();
+    std::uint64_t Timer::PassedCpuTimeInMillisWithoutStop() const {
+        if (m_cpu_end <= m_cpu_begin) {
+            return 0.0;
+        }
+        return static_cast<std::uint64_t>((m_cpu_end - m_cpu_begin) / (CLOCKS_PER_SEC / 1000.0));
     }
 
     std::chrono::steady_clock::time_point Timer::GetSteadyTimePoint() {
