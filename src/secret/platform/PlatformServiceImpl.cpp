@@ -118,55 +118,44 @@ namespace yakbas::sec {
     }
 
     grpc::Status PlatformServiceImpl::BookAsymmetricOnPlatform(grpc::ServerContext *context,
-                                                               grpc::ServerReader<communication::sec::SearchRequest> *reader,
+                                                               const communication::sec::SearchRequest *request,
                                                                communication::sec::BookingResponse *response) {
 
-        const auto &stub_1 = m_platformClientManager->GetStub(
-                constants::MOBILITY_PROVIDER_CHANNEL_1);
-        const auto &stub_2 = m_platformClientManager->GetStub(
-                constants::MOBILITY_PROVIDER_CHANNEL_2);
+        const auto &relinKeys = request->relinkeys();
+        const auto relinKeysPtr = m_customSealOperationsPtr->GetRelinKeysFromBuffer(GetUniqueStream(relinKeys));
+
+        const auto &stub = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
 
         grpc::ClientContext clientContext;
+        const auto clientReader = stub->SearchForSecretRides(&clientContext, *request);
 
+        std::vector<std::unique_ptr<seal::Ciphertext>> requestTotalCiphers{};
         bool isReadable;
-        int count{};
         do {
-            const auto searchRequestPtr = GetUnique<communication::sec::SearchRequest>();
-            isReadable = reader->Read(searchRequestPtr.get());
-            if (isReadable) {
-                std::unique_ptr<::grpc::ClientReader<::communication::sec::Journey>> clientReaderPtr{nullptr};
-                if (count % 2 == 0) {
-                    clientReaderPtr = stub_1->SearchForSecretRides(
-                            &clientContext, *searchRequestPtr);
-                } else {
-                    clientReaderPtr = stub_2->SearchForSecretRides(
-                            &clientContext, *searchRequestPtr);
-                }
-
-
-                bool isSecretSearchReadable;
-                do {
-                    const auto journeyPtr = GetUnique<communication::sec::Journey>();
-                    isSecretSearchReadable = clientReaderPtr->Read(journeyPtr.get());
-                    if (isSecretSearchReadable) {
-                        writer->Write(*journeyPtr);
+            communication::sec::Journey journey;
+            if ((isReadable = clientReader->Read(&journey))) {
+                for (const auto &ride: journey.rides()) {
+                    if (auto rideTotalPtr = FindSecretRideTotal(ride, *relinKeysPtr)) {
+                        requestTotalCiphers.push_back(std::move(rideTotalPtr));
+                    } else {
+                        return {grpc::StatusCode::INTERNAL, "Secret Platform Ciphertext computation failed..."};
                     }
-                } while (isSecretSearchReadable);
-
-                const auto localStatus = clientReaderPtr->Finish();
+                }
             }
         } while (isReadable);
 
-        const grpc::Status &status = reader->Finish();
-
-        if (status.ok()) {
-            LOG4CPLUS_DEBUG(*m_logger, "Journeys sent successfully ... ");
-        } else {
-            LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during SearchForSecretRides(). Error message: " + status.error_message());
+        auto &totalCipherPtr = requestTotalCiphers.at(0);
+        if (requestTotalCiphers.size() > 1) {
+            for (int i = 1; i < requestTotalCiphers.size(); ++i) {
+                m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *requestTotalCiphers.at(i));
+            }
         }
 
-        return status;
+        m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+        const auto &buffer = CustomSealOperations::GetBufferFromCipher(*totalCipherPtr);
+        response->set_total(buffer);
+
+        return grpc::Status::OK;
     }
 
     grpc::Status PlatformServiceImpl::BookOnMobilityProviders(grpc::ServerContext *context,
@@ -198,9 +187,7 @@ namespace yakbas::sec {
             }
         }
 
-        if (m_schemeType != seal::scheme_type::ckks) {
-            m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
-        }
+        m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
         const auto &buffer = CustomSealOperations::GetBufferFromCipher(*totalCipherPtr);
         response->set_total(buffer);
 
@@ -211,8 +198,8 @@ namespace yakbas::sec {
                                                       const communication::InvoicingReport *request,
                                                       communication::InvoicingResponse *response) {
 
-        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
         grpc::ClientContext clientContext;
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
         const auto &status = stubPtr->ReportInvoicing(&clientContext, *request, response);
 
         if (!status.ok()) {
@@ -292,6 +279,50 @@ namespace yakbas::sec {
     }
 
     std::unique_ptr<seal::Ciphertext>
+    PlatformServiceImpl::FindSecretRideTotal(const communication::sec::Ride &ride,
+                                             const seal::RelinKeys &relinKeys) const {
+
+        try {
+            const auto coefficientCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(
+                    GetUniqueStream(ride.coefficient()));
+            const auto unitPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(
+                    GetUniqueStream(ride.transporter().unitprice()));
+
+            auto totalCipherPtr = m_customSealOperationsPtr->GetSealOperations()->GetNewCipher(
+                    std::make_optional(coefficientCipherPtr->parms_id()));
+
+            const auto &evaluatorPtr = m_customSealOperationsPtr->GetEvaluatorPtr();
+            evaluatorPtr->multiply(*unitPriceCipherPtr, *coefficientCipherPtr,
+                                   *totalCipherPtr);
+
+            m_customSealOperationsPtr->GetSealOperations()->Relinearize(*totalCipherPtr, relinKeys);
+
+            const auto &discount = ride.discount();
+            if (!discount.empty()) {
+                auto discountCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(discount));
+                m_customSealOperationsPtr->SubProcessedInPlace(*totalCipherPtr, *discountCipherPtr);
+            }
+
+            const auto &seatPrice = ride.transporter().seatprice();
+            if (!seatPrice.empty()) {
+                auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
+                m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *seatPriceCipherPtr);
+            }
+
+            if (m_schemeType != seal::scheme_type::ckks) {
+                m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
+            }
+
+            return totalCipherPtr;
+        } catch (const std::exception &exception) {
+            LOG4CPLUS_ERROR(*m_logger,
+                            std::string("Error occurred while finding secret ride total. Message: ") +
+                            exception.what());
+            return nullptr;
+        }
+    }
+
+    std::unique_ptr<seal::Ciphertext>
     PlatformServiceImpl::GetRequestTotalAndInsertSeat(const communication::sec::BookingRequest &request,
                                                       google::protobuf::Map<std::string, int32_t> *rideIdSeatNumberMap) const {
         try {
@@ -333,7 +364,8 @@ namespace yakbas::sec {
             return totalCipherPtr;
         } catch (const std::exception &exception) {
             LOG4CPLUS_ERROR(*m_logger,
-                            std::string("Error occurred while getting request total. Message: ") + exception.what());
+                            std::string("Error occurred while getting BookingRequest total. Message: ") +
+                            exception.what());
             return nullptr;
         }
     }

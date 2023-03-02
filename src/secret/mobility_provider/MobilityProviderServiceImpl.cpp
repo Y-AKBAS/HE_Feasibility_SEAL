@@ -25,15 +25,13 @@ namespace yakbas::sec {
 
         LOG4CPLUS_DEBUG(*m_logger, "Secret Mobility Provider Service impl SearchForRides invoked...");
 
-        request->ByteSizeLong()
         const auto stream = GetUniqueStream(request->publickey());
         const auto publicKeyPtr = m_customSealOperationsPtr->GetPublicKeyFromBuffer(stream);
         const auto &operations = m_customSealOperationsPtr->GetSealOperations();
         const auto newEncryptorPtr = CustomSealOperations::CreateNewEncryptor(*publicKeyPtr,
                                                                               operations->GetSealInfoPtr()->m_sealKeys);
 
-        auto status = MobilityProviderGenerator::GenerateSecretJourneys(request, writer, *operations, *newEncryptorPtr);
-        return status;
+        return MobilityProviderGenerator::GenerateSecretJourneys(request, writer, *operations, *newEncryptorPtr);
     }
 
     grpc::Status MobilityProviderServiceImpl::SearchForRides(grpc::ServerContext *context,
@@ -163,7 +161,7 @@ namespace yakbas::sec {
             const num_variant &variant = m_customSealOperationsPtr->DecryptFromBuffer(
                     GetUniqueStream(request->total()));
             LOG4CPLUS_TRACE(*m_logger, std::string("Decrypted report usage total: ") +
-                                      std::to_string(GetAnyVariant<double>(&variant)));
+                                       std::to_string(GetAnyVariant<double>(&variant)));
         } catch (std::exception &e) {
             LOG4CPLUS_ERROR(*m_logger, std::string("Exception during decryption. Message: ") + e.what());
             throw std::runtime_error(e.what());

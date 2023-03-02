@@ -125,6 +125,17 @@ namespace yakbas::sec::test {
                            std::to_string(passedTimeInMillisWithStop));
         }
 
+        TEST_CASE("ClientManager BookAsymmetricOnPlatform Test") {
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
+
+            for (int i = 0; i < 5; ++i) {
+                const auto response = clientManagerPtr->BookAsymmetricOnPlatformAndDecrypt("Leipzig", "Halle");
+                const double responseTotal = AnyToNum(isCKKS, &response->total());
+                LOG4CPLUS_INFO(*logger, "BookAsymmetricOnPlatform Response total: "s + std::to_string(responseTotal));
+            }
+        }
+
         TEST_CASE("Client Manager BookOnMobilityProviders Request Test") {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;

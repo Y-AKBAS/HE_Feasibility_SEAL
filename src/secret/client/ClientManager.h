@@ -34,7 +34,8 @@ namespace yakbas::sec {
         BookSymmetricOnMobilityProvidersAndDecrypt(const communication::Journey &journey) const;
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
-        BookAsymmetricOnPlatformAndDecrypt(const communication::Journey &journey) const;
+        BookAsymmetricOnPlatformAndDecrypt(const std::string &from, const std::string &to,
+                                           int numberOfJourneys = 1) const;
 
         void SendStartUsingRequest();
 
@@ -60,9 +61,8 @@ namespace yakbas::sec {
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
         BookOnPlatform(const communication::Journey &journey) const;
 
-
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
-        BookAsymmetricOnPlatform(const communication::Journey &journey) const;
+        BookAsymmetricOnPlatform(const std::string &from, const std::string &to, int numberOfJourneys) const;
 
         [[nodiscard]] std::unique_ptr<communication::sec::BookingResponse>
         BookSymmetricOnPlatform(const communication::Journey &journey) const;
@@ -84,14 +84,18 @@ namespace yakbas::sec {
         static void MapRideAndSeatNumberMap(google::protobuf::Map<std::string, int32_t> &targetMap,
                                             const google::protobuf::Map<std::string, int32_t> *sourceMapPtr);
 
+        [[nodiscard]] std::unique_ptr<communication::sec::BookingRequest>
+        MapJourneyToBookingRequest(const communication::Ride &ride, bool isCKKS) const;
+
         const std::unique_ptr<SecretUser> m_userPtr{nullptr};
         const std::unique_ptr<log4cplus::Logger> m_logger{nullptr};
-        std::map<std::string, std::unique_ptr<seal::Ciphertext>> m_transporterUsageMap{};
 
+        std::map<std::string, std::unique_ptr<seal::Ciphertext>> m_transporterUsageMap{};
         seal::scheme_type m_schemeType;
         static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
-        static std::once_flag m_isInitialized;
 
+
+        static std::once_flag m_isInitialized;
     };
 
 } // yakbas

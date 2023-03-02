@@ -32,7 +32,7 @@ namespace yakbas::sec {
         try {
             for (int i = 0; i < request->numberofjourneys(); ++i) {
                 const auto journeyPtr = GetUnique<communication::sec::Journey>();
-                GenerateSecretRides(request, operations, encryptor, journeyPtr.get(), (i % 2) + 1);
+                GenerateSecretRides(request, operations, encryptor, journeyPtr.get(), 2);
                 writer->Write(*journeyPtr);
             }
         } catch (const std::exception &e) {
@@ -50,7 +50,7 @@ namespace yakbas::sec {
         try {
             for (int i = 0; i < request->numberofjourneys(); ++i) {
                 const auto journeyPtr = GetUnique<communication::Journey>();
-                GenerateRides(request, journeyPtr.get(), operations, (i % 2) + 1);
+                GenerateRides(request, journeyPtr.get(), operations, 2);
                 writer->Write(*journeyPtr);
             }
         } catch (const std::exception &e) {
