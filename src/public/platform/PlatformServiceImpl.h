@@ -29,6 +29,10 @@ namespace yakbas::pub {
                                 grpc::ServerReader<communication::pub::BookingRequest> *reader,
                                 communication::BookingResponse *response) override;
 
+        grpc::Status
+        BookAsymmetricOnPlatform(grpc::ServerContext *context, const communication::SearchRequest *request,
+                                 communication::BookingResponse *response) override;
+
         grpc::Status ReportInvoicing(grpc::ServerContext *context, const communication::InvoicingReport *request,
                                      communication::InvoicingResponse *response) override;
 
@@ -54,6 +58,8 @@ namespace yakbas::pub {
                               const std::unique_ptr<publicService::Stub> &stub_1,
                               const std::unique_ptr<publicService::Stub> &stub_2, int &count,
                               const std::unique_ptr<communication::pub::BookingRequest> &bookingRequestPtr) const;
+
+        std::uint64_t FindRideTotal(const communication::Ride &ride);
     };
 
 

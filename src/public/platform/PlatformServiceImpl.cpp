@@ -1,5 +1,6 @@
 
 #include <log4cplus/loggingmacros.h>
+#include <numeric>
 #include "PlatformServiceImpl.h"
 #include "ApplicationConstants.h"
 #include "Utils.h"
@@ -77,6 +78,48 @@ namespace yakbas::pub {
         return grpc::Status::OK;
     }
 
+    grpc::Status PlatformServiceImpl::BookAsymmetricOnPlatform(grpc::ServerContext *context,
+                                                               const communication::SearchRequest *request,
+                                                               communication::BookingResponse *response) {
+
+        response->set_journey_id(GetUUID());
+        const auto stubPtr = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
+        grpc::ClientContext clientContext;
+        const auto clientReaderPtr = stubPtr->SearchForRides(&clientContext, *request);
+        std::vector<std::uint64_t> rideTotals{};
+
+        bool isReadable;
+        do {
+            const auto journeyPtr = GetUnique<communication::Journey>();
+            if ((isReadable = clientReaderPtr->Read(journeyPtr.get()))) {
+                for (const auto &ride: journeyPtr->rides()) {
+                    if (auto rideTotal = FindRideTotal(ride)) {
+                        rideTotals.push_back(rideTotal);
+                    } else {
+                        return {grpc::StatusCode::INTERNAL,
+                                "Public Platform BookAsymmetricOnPlatform computation failed..."};
+                    }
+                }
+            }
+        } while (isReadable);
+
+        const grpc::Status &status = clientReaderPtr->Finish();
+
+        if (status.ok()) {
+            LOG4CPLUS_DEBUG(*m_logger, "BookAsymmetricOnPlatform invoked successfully ... ");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during BookAsymmetricOnPlatform(). Error message: " +
+                            status.error_message());
+            throw std::runtime_error(status.error_message());
+        }
+
+        const auto total = std::accumulate(rideTotals.begin(), rideTotals.end(), 0ULL);
+        NumToAny(total, response->mutable_total());
+
+        return status;
+    }
+
     grpc::Status PlatformServiceImpl::BookOnMobilityProviders(grpc::ServerContext *context,
                                                               grpc::ServerReader<communication::pub::BookingRequest> *reader,
                                                               communication::BookingResponse *response) {
@@ -101,8 +144,7 @@ namespace yakbas::pub {
             }
         } while (isReadable);
 
-        auto anyPtr = response->mutable_total();
-        NumToAny(total, anyPtr);
+        NumToAny(total, response->mutable_total());
 
         return grpc::Status::OK;
     }
@@ -142,11 +184,10 @@ namespace yakbas::pub {
 
         if (localStatus.ok()) {
             total += GetRequestTotalAndInsertSeat(*bookingRequestPtr, rideIdSeatNumberMap);
-            return;
+        } else {
+            LOG4CPLUS_ERROR(*m_logger, "Handling HandleIsReadable failed. Reason: " + localStatus.error_message());
+            throw std::runtime_error(localStatus.error_message());
         }
-
-        LOG4CPLUS_ERROR(*m_logger, "Handling HandleIsReadable failed. Reason: " + localStatus.error_message());
-        throw std::bad_exception();
     }
 
     std::uint64_t PlatformServiceImpl::GetRequestTotalAndInsertSeat(const communication::pub::BookingRequest &request,
@@ -190,6 +231,24 @@ namespace yakbas::pub {
         grpc::ClientContext clientContext;
         return m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_2)->ReportUsageTotal(
                 &clientContext, *request, response);
+    }
+
+    std::uint64_t PlatformServiceImpl::FindRideTotal(const communication::Ride &ride) {
+
+        std::uint64_t requestTotal = AnyToNum<std::uint64_t>(&ride.transporter().unitprice()) *
+                                     AnyToNum<std::uint64_t>(&ride.coefficient());
+
+        const auto &discount = AnyToNum<std::uint64_t>(&ride.discount());
+        if (discount > 0) {
+            requestTotal -= discount;
+        }
+
+        const auto &seatPrice = AnyToNum<std::uint64_t>(&ride.transporter().seatprice());
+        if (seatPrice > 0) {
+            requestTotal += seatPrice;
+        }
+
+        return requestTotal;
     }
 
 } // yakbas

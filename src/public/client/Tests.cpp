@@ -59,7 +59,7 @@ namespace yakbas::pub::test {
 
                 CHECK(AnyToNum<std::uint64_t>(&bookingResponsePtr->total()) == totalBeforeSent);
             }
-            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Public Booking passed time in millis for " + std::to_string(numberOfJourneys) +
                            " journeys: " +
@@ -83,11 +83,19 @@ namespace yakbas::pub::test {
 
                 CHECK(AnyToNum<std::uint64_t>(&bookingResponsePtr->total()) == totalBeforeSent);
             }
-            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Public BookingOnOthers passed time in millis for " + std::to_string(numberOfJourneys) +
                            " journeys: " +
                            std::to_string(passedTimeInMillisWithStop));
+        }
+
+        TEST_CASE("Client Manager BookAsymmetric Test") {
+            const auto clientManagerPtr = std::make_unique<ClientManager>();
+            CHECK(ClientManager::IsInitialized());
+
+            const auto responsePtr = clientManagerPtr->BookAsymmetricOnPlatform("Leipzig", "Halle");
+            CHECK(AnyToNum<std::uint64_t>(&responsePtr->total()) >= std::pow(constants::APP_MIN_RANDOM_NUMBER, 2));
         }
 
         TEST_CASE("Usage Tests") {
@@ -130,7 +138,7 @@ namespace yakbas::pub::test {
             const auto reportInvoicingCode = clientManagerPtr->ReportInvoicing(*invoicingResponsePtr,
                                                                                *bookingResponsePtr);
             CHECK(reportInvoicingCode == communication::StatusCode::SUCCESSFUL);
-            long long int passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "Payment Request passed time in millis: " + std::to_string(passedTimeInMillisWithStop));
         }
