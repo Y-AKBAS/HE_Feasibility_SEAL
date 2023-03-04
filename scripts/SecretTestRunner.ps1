@@ -1,6 +1,9 @@
+# Run this script from the root of the application
+
+# General Paths
 $root = Get-Item -Path ".\"
-$debugOrRelease = "relwithdebinfo"
-$secretPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\secret"
+$buildType = "relwithdebinfo"
+$secretPath = Get-Item -Path "$root\cmake-build-$buildType\src\secret"
 
 $scheme = 3
 $batchingEnabled = $false
