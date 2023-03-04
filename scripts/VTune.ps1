@@ -1,4 +1,3 @@
-
 # Run this script from the root of the application
 
 # General Paths
