@@ -92,9 +92,8 @@ namespace yakbas::sec {
 
         std::map<std::string, std::unique_ptr<seal::Ciphertext>> m_transporterUsageMap{};
         seal::scheme_type m_schemeType;
+
         static std::map<std::string, const std::shared_ptr<seal::PublicKey>> m_publicKeyMap;
-
-
         static std::once_flag m_isInitialized;
     };
 
