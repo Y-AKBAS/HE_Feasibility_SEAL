@@ -129,10 +129,10 @@ namespace yakbas::sec::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
 
-            for (int i = 0; i < 5; ++i) {
+            for (int i = 0; i < 10; ++i) {
                 const auto response = clientManagerPtr->BookAsymmetricOnPlatformAndDecrypt("Leipzig", "Halle");
                 const double responseTotal = AnyToNum(isCKKS, &response->total());
-                LOG4CPLUS_INFO(*logger, "BookAsymmetricOnPlatform Response total: "s + std::to_string(responseTotal));
+                LOG4CPLUS_DEBUG(*logger, "BookAsymmetricOnPlatform Response total: "s + std::to_string(responseTotal));
             }
         }
 

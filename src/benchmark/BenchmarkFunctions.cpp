@@ -44,6 +44,23 @@ namespace yakbas {
         }
     }
 
+    static void SecretBookAsymmetricOnPlatform(benchmark::State &state) {
+        try {
+            const std::string from = "Leipzig";
+            const std::string to = "Halle";
+            sec::ClientManager clientManager;
+            for (auto _: state) {
+                auto bookingResult = clientManager.BookAsymmetricOnPlatformAndDecrypt(from, to);
+                if (bookingResult->journey_id().empty()) {
+                    LOG4CPLUS_ERROR(benchmarkLogger, "JourneyId of the result is empty");
+                    throw std::runtime_error("JourneyId cannot be empty");
+                }
+            }
+        } catch (std::exception &exception) {
+            LOG4CPLUS_ERROR(exceptionLogger, "Exception message: "s + exception.what());
+        }
+    }
+
     static void SecretBookOnPlatform(benchmark::State &state) {
         try {
             sec::ClientManager clientManager;
@@ -144,6 +161,23 @@ namespace yakbas {
         }
     }
 
+    static void PublicBookAsymmetricOnPlatform(benchmark::State &state) {
+        try {
+            const std::string from = "Leipzig";
+            const std::string to = "Halle";
+            pub::ClientManager clientManager;
+            for (auto _: state) {
+                auto bookingResult = clientManager.BookAsymmetricOnPlatform(from, to);
+                if (bookingResult->journey_id().empty()) {
+                    LOG4CPLUS_ERROR(benchmarkLogger, "JourneyId of the result is empty");
+                    throw std::runtime_error("JourneyId cannot be empty");
+                }
+            }
+        } catch (std::exception &exception) {
+            LOG4CPLUS_ERROR(exceptionLogger, "Exception message: "s + exception.what());
+        }
+    }
+
     static void PublicBookOnPlatform(benchmark::State &state) {
         try {
             pub::ClientManager clientManager;
@@ -221,8 +255,9 @@ namespace yakbas {
     void RegisterSecretRequestBenchmarks(const sec::SecretCommandLineInfo &info) {
         LOG4CPLUS_INFO(benchmarkLogger, "Will run secret request benchmarks...");
         auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
-        BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-        BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(SecretBookAsymmetricOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        //BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        //BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(
                 timeUnit);
@@ -233,7 +268,8 @@ namespace yakbas {
     void RegisterPublicRequestBenchmarks(const sec::SecretCommandLineInfo &info) {
         LOG4CPLUS_INFO(benchmarkLogger, "Will run public request benchmarks...");
         auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
-        BENCHMARK(PublicBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        //BENCHMARK(PublicBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(PublicBookAsymmetricOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         BENCHMARK(PublicBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         BENCHMARK(PublicUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
     }

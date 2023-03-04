@@ -94,8 +94,10 @@ namespace yakbas::pub::test {
             const auto clientManagerPtr = std::make_unique<ClientManager>();
             CHECK(ClientManager::IsInitialized());
 
-            const auto responsePtr = clientManagerPtr->BookAsymmetricOnPlatform("Leipzig", "Halle");
-            CHECK(AnyToNum<std::uint64_t>(&responsePtr->total()) >= std::pow(constants::APP_MIN_RANDOM_NUMBER, 2));
+            for (int i = 0; i < 10; ++i) {
+                const auto responsePtr = clientManagerPtr->BookAsymmetricOnPlatform("Leipzig", "Halle");
+                CHECK(AnyToNum<std::uint64_t>(&responsePtr->total()) >= std::pow(constants::APP_MIN_RANDOM_NUMBER, 2));
+            }
         }
 
         TEST_CASE("Usage Tests") {

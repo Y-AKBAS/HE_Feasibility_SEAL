@@ -120,7 +120,7 @@ namespace yakbas::sec {
     grpc::Status PlatformServiceImpl::BookAsymmetricOnPlatform(grpc::ServerContext *context,
                                                                const communication::sec::SearchRequest *request,
                                                                communication::sec::BookingResponse *response) {
-
+        response->set_journey_id(GetUUID());
         const auto &relinKeys = request->relinkeys();
         const auto relinKeysPtr = m_customSealOperationsPtr->GetRelinKeysFromBuffer(GetUniqueStream(relinKeys));
 
@@ -355,10 +355,6 @@ namespace yakbas::sec {
                 auto seatPriceCipherPtr = m_customSealOperationsPtr->GetCipherFromBuffer(GetUniqueStream(seatPrice));
                 m_customSealOperationsPtr->AddProcessedInPlace(*totalCipherPtr, *seatPriceCipherPtr);
                 rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
-            }
-
-            if (m_schemeType != seal::scheme_type::ckks) {
-                m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
             }
 
             return totalCipherPtr;
