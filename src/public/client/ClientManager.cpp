@@ -118,6 +118,31 @@ namespace yakbas::pub {
     }
 
     std::unique_ptr<communication::BookingResponse>
+    ClientManager::BookAsymmetricOnPlatform(const std::string &from, const std::string &to, int numberOfJourneys) {
+
+        const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);
+        const auto clientContext = GetUnique<grpc::ClientContext>();
+        const auto requestPtr = GetUnique<communication::SearchRequest>();
+        auto responsePtr = GetUnique<communication::BookingResponse>();
+
+        requestPtr->set_numberofjourneys(numberOfJourneys);
+        requestPtr->set_to(to);
+        requestPtr->set_from(from);
+
+        const auto &status = stubPtr->BookAsymmetricOnPlatform(clientContext.get(), *requestPtr, responsePtr.get());
+
+        if (status.ok()) {
+            LOG4CPLUS_DEBUG(*m_logger, "Sent Public BookAsymmetricOnPlatform successfully...");
+        } else {
+            LOG4CPLUS_ERROR(*m_logger,
+                            "Error occurred during Public BookAsymmetricOnPlatform. Error message: " +
+                            status.error_message());
+        }
+
+        return responsePtr;
+    }
+
+    std::unique_ptr<communication::BookingResponse>
     ClientManager::BookOnMobilityProviders(const communication::Journey &journey) {
 
         const auto stubPtr = this->GetStub(constants::PLATFORM_CHANNEL);

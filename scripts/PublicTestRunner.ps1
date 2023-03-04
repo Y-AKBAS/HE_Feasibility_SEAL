@@ -1,5 +1,5 @@
 $root = Get-Item -Path ".\"
-$debugOrRelease = "release"
+$debugOrRelease = "relwithdebinfo"
 $publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\public"
 
 function runApplications {

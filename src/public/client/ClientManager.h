@@ -22,6 +22,9 @@ namespace yakbas::pub {
         BookOnPlatform(const communication::Journey &journey);
 
         [[nodiscard]] std::unique_ptr<communication::BookingResponse>
+        BookAsymmetricOnPlatform(const std::string &from, const std::string &to, int numberOfJourneys = 1);
+
+        [[nodiscard]] std::unique_ptr<communication::BookingResponse>
         BookOnMobilityProviders(const communication::Journey &journey);
 
         void SendStartUsingRequest();

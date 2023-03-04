@@ -22,9 +22,11 @@ namespace yakbas {
 
         [[nodiscard]] std::uint64_t PassedTimeInMillisWithoutStop() const;
 
-        void extraction(std::ostream &os) const;
+        [[nodiscard]] std::uint64_t PassedTimeInMillisWithStop();
 
-        std::uint64_t PassedTimeInMillisWithStop();
+        [[nodiscard]] std::uint64_t PassedCpuTimeInMillisWithoutStop() const;
+
+        [[nodiscard]] std::uint64_t PassedCpuTimeInMillisWithStop();
 
         static std::chrono::steady_clock::time_point GetSteadyTimePoint();
 
@@ -38,6 +40,8 @@ namespace yakbas {
 
         static std::unique_ptr<google::protobuf::Timestamp> GetTimestamp();
 
+        void extraction(std::ostream &os) const;
+
     private:
         using steady = std::chrono::steady_clock;
         using system = std::chrono::system_clock;
@@ -47,6 +51,8 @@ namespace yakbas {
 
         steady::time_point m_begin;
         steady::time_point m_end;
+        std::clock_t m_cpu_begin;
+        std::clock_t m_cpu_end;
     };
 
     std::ostream &operator<<(std::ostream &os, const Timer &timer);
