@@ -87,10 +87,10 @@ namespace yakbas::sec {
         const grpc::Status &status = readerPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_DEBUG(*m_logger, "Fetched Journeys successfully...");
+            LOG4CPLUS_DEBUG(*m_logger, "Fetched Secret Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during SearchSecretly(). Error message: " + status.error_message());
+                            "Error occurred during SearchSecretly. Error message: " + status.error_message());
         }
 
         return journeyVecPtr;
@@ -129,7 +129,7 @@ namespace yakbas::sec {
             LOG4CPLUS_DEBUG(*m_logger, "Fetched Journeys successfully...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during Search(). Error message: " + status.error_message());
+                            "Error occurred during Search. Error message: " + status.error_message());
         }
 
         return journeyVecPtr;
@@ -216,10 +216,10 @@ namespace yakbas::sec {
         const auto &status = clientWriterPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_TRACE(*m_logger, "Sent Secret BookingRequests successfully...");
+            LOG4CPLUS_TRACE(*m_logger, "Secret BookOnPlatform was a success...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during Sending Secret BookingRequests. Error message: " +
+                            "Error occurred during Secret BookOnPlatform. Error message: " +
                             status.error_message());
         }
 
@@ -306,10 +306,10 @@ namespace yakbas::sec {
         const auto &status = clientWriterPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_TRACE(*m_logger, "Sent Symmetric Secret BookingRequests successfully...");
+            LOG4CPLUS_TRACE(*m_logger, "Secret BookSymmetricOnMobilityProviders was a success...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during Sending Symmetric Secret BookingRequests. Error message: " +
+                            "Error occurred during Secret BookSymmetricOnMobilityProviders. Error message: " +
                             status.error_message());
         }
 
@@ -335,15 +335,12 @@ namespace yakbas::sec {
                 clientContext.get(), *requestPtr, responsePtr.get());
 
         if (status.ok()) {
-            LOG4CPLUS_TRACE(*m_logger, "Sent BookAsymmetricOnPlatform successfully...");
+            LOG4CPLUS_TRACE(*m_logger, "Secret BookAsymmetricOnPlatform was a success...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
                             "Error occurred during BookAsymmetricOnPlatform. Error message: " +
                             status.error_message());
         }
-
-        LOG4CPLUS_INFO(*m_logger,
-                       "BookAsymmetricOnPlatform ByteSizeLong total: "s + std::to_string(responsePtr->ByteSizeLong()));
 
         return responsePtr;
     }
@@ -397,15 +394,12 @@ namespace yakbas::sec {
         const auto &status = clientWriterPtr->Finish();
 
         if (status.ok()) {
-            LOG4CPLUS_TRACE(*m_logger, "Sent Secret BookingRequests successfully...");
+            LOG4CPLUS_TRACE(*m_logger, "Secret BookOnMobilityProviders was a success...");
         } else {
             LOG4CPLUS_ERROR(*m_logger,
-                            "Error occurred during Sending Secret BookingRequests. Error message: " +
+                            "Error occurred BookOnMobilityProviders. Error message: " +
                             status.error_message());
         }
-
-        LOG4CPLUS_INFO(*m_logger, "BookOnMobilityProviders ByteSizeLong total: "s +
-                                  std::to_string(responsePtr->ByteSizeLong()));
 
         return responsePtr;
     }

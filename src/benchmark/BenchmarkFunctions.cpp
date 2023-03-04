@@ -11,12 +11,6 @@ namespace yakbas {
                     const communication::Journey &journey
             )>;
 
-    const static sec::SecretCommandLineInfo secretCommandLineInfo = []() -> decltype(auto) {
-        sec::SecretCommandLineInfo commandLineInfo{};
-        commandLineInfo.m_numberOfRequests = 1;
-        return commandLineInfo;
-    }();
-
     const static log4cplus::Logger &benchmarkLogger = log4cplus::Logger::getInstance("Benchmark Logger");
     const static log4cplus::Logger &exceptionLogger = log4cplus::Logger::getInstance("Benchmark Exception Logger");
 
