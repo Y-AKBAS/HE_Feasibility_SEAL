@@ -1,6 +1,9 @@
+# Run this script from the root of the application
+
+# General Paths
 $root = Get-Item -Path ".\"
-$debugOrRelease = "release"
-$publicPath = Get-Item -Path "$root\cmake-build-$debugOrRelease\src\public"
+$buildType = "relwithdebinfo"
+$publicPath = Get-Item -Path "$root\cmake-build-$buildType\src\public"
 
 function runApplications {
     cd "$publicPath\invoice_clerk\"

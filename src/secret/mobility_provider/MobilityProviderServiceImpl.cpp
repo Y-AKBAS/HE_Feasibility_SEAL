@@ -31,8 +31,7 @@ namespace yakbas::sec {
         const auto newEncryptorPtr = CustomSealOperations::CreateNewEncryptor(*publicKeyPtr,
                                                                               operations->GetSealInfoPtr()->m_sealKeys);
 
-        auto status = MobilityProviderGenerator::GenerateSecretJourneys(request, writer, *operations, *newEncryptorPtr);
-        return status;
+        return MobilityProviderGenerator::GenerateSecretJourneys(request, writer, *operations, *newEncryptorPtr);
     }
 
     grpc::Status MobilityProviderServiceImpl::SearchForRides(grpc::ServerContext *context,
@@ -162,7 +161,7 @@ namespace yakbas::sec {
             const num_variant &variant = m_customSealOperationsPtr->DecryptFromBuffer(
                     GetUniqueStream(request->total()));
             LOG4CPLUS_TRACE(*m_logger, std::string("Decrypted report usage total: ") +
-                                      std::to_string(GetAnyVariant<double>(&variant)));
+                                       std::to_string(GetAnyVariant<double>(&variant)));
         } catch (std::exception &e) {
             LOG4CPLUS_ERROR(*m_logger, std::string("Exception during decryption. Message: ") + e.what());
             throw std::runtime_error(e.what());

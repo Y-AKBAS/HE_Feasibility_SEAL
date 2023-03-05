@@ -1,5 +1,10 @@
 .idea
 cmake-build-debug
 cmake-build-release
+cmake-build-relwithdebinfo
 build
 tempCodeRunnerFile.ps1
+json_visual
+r0*
+*.dll
+*.lib

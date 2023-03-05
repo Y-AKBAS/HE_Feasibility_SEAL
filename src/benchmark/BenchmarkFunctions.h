@@ -11,6 +11,8 @@ namespace yakbas {
 
     static void BgvSealContext(benchmark::State &state);
 
+    static void SecretBookAsymmetricOnPlatform(benchmark::State &state);
+
     static void SecretBookOnPlatform(benchmark::State &state);
 
     static void SecretBookOnPlatformSymmetric(benchmark::State &state);
@@ -22,6 +24,8 @@ namespace yakbas {
     static void SecretUsageTest(benchmark::State &state);
 
     static void SecretSymmetricUsageTest(benchmark::State &state);
+
+    static void PublicBookAsymmetricOnPlatform(benchmark::State &state);
 
     static void PublicBookOnPlatform(benchmark::State &state);
 

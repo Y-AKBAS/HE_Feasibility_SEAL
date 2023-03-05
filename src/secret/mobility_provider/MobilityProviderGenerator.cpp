@@ -32,7 +32,7 @@ namespace yakbas::sec {
         try {
             for (int i = 0; i < request->numberofjourneys(); ++i) {
                 const auto journeyPtr = GetUnique<communication::sec::Journey>();
-                GenerateSecretRides(request, operations, encryptor, journeyPtr.get(), (i % 2) + 1);
+                GenerateSecretRides(request, operations, encryptor, journeyPtr.get(), 2);
                 writer->Write(*journeyPtr);
             }
         } catch (const std::exception &e) {
@@ -50,7 +50,7 @@ namespace yakbas::sec {
         try {
             for (int i = 0; i < request->numberofjourneys(); ++i) {
                 const auto journeyPtr = GetUnique<communication::Journey>();
-                GenerateRides(request, journeyPtr.get(), operations, (i % 2) + 1);
+                GenerateRides(request, journeyPtr.get(), operations, 2);
                 writer->Write(*journeyPtr);
             }
         } catch (const std::exception &e) {
@@ -92,9 +92,10 @@ namespace yakbas::sec {
         const auto providerId = GetUUID();
         const bool isCkks = operations.GetSealInfoPtr()->m_sealKeys.m_schemeType == seal::scheme_type::ckks;
         const auto randomNumber = isCkks ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
+        const auto randomToPrint = std::to_string(GetAnyVariant<double>(&randomNumber));
+        m_logger->log(log4cplus::DEBUG_LOG_LEVEL, "RandomNumber: " + randomToPrint);
         const int randomInt = GetRandomNumber<int>();
         const auto transporterType = GetTransporterType(randomInt);
-        const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
 
         //ciphers
         auto unitPricePtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
@@ -112,11 +113,9 @@ namespace yakbas::sec {
         transporterPtr->set_transportertype(transporterType);
         transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
 
-        // set seat price if it makes sense
-        if (isSeatPriceMeaningful) {
-            const auto seatPricePtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
-            transporterPtr->set_seatprice(*seatPricePtr);
-        }
+        m_logger->log(log4cplus::DEBUG_LOG_LEVEL, "Seat price RandomNumber: " + randomToPrint);
+        const auto seatPricePtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
+        transporterPtr->set_seatprice(*seatPricePtr);
 
         // set other infos
         ridePtr->set_rideid(GetUUID());
@@ -125,10 +124,9 @@ namespace yakbas::sec {
         ridePtr->set_to(request->to());
         ridePtr->set_coefficient(*coefficientPtr);
 
-        if ((randomInt % 2) == 1) {
-            const auto discountPtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
-            ridePtr->set_discount(*discountPtr);
-        }
+        m_logger->log(log4cplus::DEBUG_LOG_LEVEL, "Discount RandomNumber: " + randomToPrint);
+        const auto discountPtr = operations.GetEncryptedBuffer(randomNumber, encryptor);
+        ridePtr->set_discount(*discountPtr);
     }
 
     void MobilityProviderGenerator::GenerateRide(const communication::SearchRequest *request,
@@ -138,9 +136,10 @@ namespace yakbas::sec {
         const auto providerId = GetUUID();
         const bool isCkks = operations.GetSealInfoPtr()->m_sealKeys.m_schemeType == seal::scheme_type::ckks;
         const auto randomNumber = isCkks ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
+        const auto randomToPrint = std::to_string(GetAnyVariant<double>(&randomNumber));
+        LOG4CPLUS_DEBUG(*m_logger, "RandomNumber: " + randomToPrint);
         const int randomInt = GetRandomNumber<int>();
         const auto transporterType = GetTransporterType(randomInt);
-        const bool isSeatPriceMeaningful = IsSeatPriceMeaningful(transporterType);
 
         // set Timestamp
         const auto timestampPtr = ridePtr->mutable_starttime();
@@ -154,21 +153,15 @@ namespace yakbas::sec {
         transporterPtr->set_transportertype(transporterType);
         transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
 
-        // set seat price if it makes sense
-        if (isSeatPriceMeaningful) {
-            NumVariantToAny(&randomNumber, transporterPtr->mutable_seatprice());
-        }
-
         // set other infos
         ridePtr->set_rideid(GetUUID());
         ridePtr->set_providerid(providerId);
         ridePtr->set_from(request->from());
         ridePtr->set_to(request->to());
-        NumVariantToAny(&randomNumber, ridePtr->mutable_coefficient());
 
-        if ((randomInt % 2) == 1) {
-            NumVariantToAny(&randomNumber, ridePtr->mutable_discount());
-        }
+        NumVariantToAny(&randomNumber, transporterPtr->mutable_seatprice());
+        NumVariantToAny(&randomNumber, ridePtr->mutable_coefficient());
+        NumVariantToAny(&randomNumber, ridePtr->mutable_discount());
     }
 
     communication::TransporterType MobilityProviderGenerator::GetTransporterType(int value) {
