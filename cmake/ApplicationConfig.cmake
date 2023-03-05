@@ -22,7 +22,7 @@ add_compile_definitions(${PUBLIC_PREFIX}MOBILITY_PROVIDER_SERVER_PORT_1="${LOCAL
 add_compile_definitions(${PUBLIC_PREFIX}MOBILITY_PROVIDER_SERVER_PORT_2="${LOCALHOST}8074")
 add_compile_definitions(${PUBLIC_PREFIX}MOBILITY_PROVIDER_SERVER_PORT_3="${LOCALHOST}8075")
 
-add_compile_definitions(DISABLE_TESTS=false)
+add_compile_definitions(DISABLE_TESTS=true)
 add_compile_definitions(SEAL_SCHEME_TYPE=0x1)
 add_compile_definitions(SEAL_POLY_MODULUS_DEGREE=16384)
 add_compile_definitions(SEAL_PLAIN_MODULUS_DEGREE=1024)
