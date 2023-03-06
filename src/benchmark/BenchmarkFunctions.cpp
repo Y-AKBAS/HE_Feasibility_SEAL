@@ -120,7 +120,6 @@ namespace yakbas {
     static void SecretBookOnMobilityProvidersSymmetric(benchmark::State &state) {
         try {
             sec::ClientManager clientManager;
-            benchmark::DoNotOptimize(clientManager.Search("Leipzig", "Halle"));
             const auto journeyVecPtr = clientManager.Search("Leipzig", "Halle");
             const auto vec_size = journeyVecPtr->size();
             size_t index{};
