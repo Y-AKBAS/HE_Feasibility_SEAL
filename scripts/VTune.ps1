@@ -8,60 +8,60 @@ $publicPath = Get-Item -Path "$root\cmake-build-$buildType\src\public"
 $benchmarkPath = Get-Item -Path "$root\cmake-build-$buildType\src\benchmark"
 
 # App Paths
-    # vtune
+# vtune
 $vtuneAppPath = "C:\Program Files (x86)\Intel\oneAPI\vtune\latest\bin64"
-    # secret app paths
+# secret app paths
 $secretPlatformAppPath = "$secretPath\platform"
 $secretMobilityProviderAppPath = "$secretPath\mobility_provider"
 $secretInvoiceClerkAppPath = "$secretPath\invoice_clerk"
 $secretTransporterAppPath = "$secretPath\transporter"
-    # public app paths
+# public app paths
 $publicPlatformAppPath = "$publicPath\platform"
 $publicMobilityProviderAppPath = "$publicPath\mobility_provider"
 $publicInvoiceClerkAppPath = "$publicPath\invoice_clerk\"
 $publicTransporterAppPath = "$publicPath\transporter"
-    # benchmark app path
+# benchmark app path
 $benchmarkAppPath = $benchmarkPath
 
 # App names
-    # vtune
+# vtune
 $vtuneName = "vtune"
-    # secret app names
+# secret app names
 $secretPlatformName = "secretPlatform"
 $secretMobilityProviderName = "secretMobilityProvider"
 $secretInvoiceClerkName = "secretInvoiceClerk"
 $secretTransporterName = "secretTransporter"
-    # public app names
+# public app names
 $publicPlatformName = "publicPlatform"
 $publicMobilityProviderName = "publicMobilityProvider"
 $publicInvoiceClerkName = "publicInvoiceClerk"
 $publicTransporterName = "publicTransporter"
-    # benchmark app name
+# benchmark app name
 $benchmarkName = "benchmark"
 
 # Apps
-    # vtune
+# vtune
 $vtuneApp = "$vtuneAppPath\$vtuneName"
 $vtuneApp
-    # secret apps
+# secret apps
 $secretPlatformApp = "$secretPlatformAppPath\$secretPlatformName"
 $secretMobilityProviderApp = "$secretMobilityProviderAppPath\$secretMobilityProviderName"
 $secretInvoiceClerkApp = "$secretInvoiceClerkAppPath\$secretInvoiceClerkName"
 $secretTransporterApp = "$secretTransporterAppPath\$secretTransporterName"
-    # public apps
+# public apps
 $publicPlatformApp = "$publicPlatformAppPath\$publicPlatformName"
 $publicMobilityProviderApp = "$publicMobilityProviderAppPath\$publicMobilityProviderName"
 $publicInvoiceClerkApp = "$publicInvoiceClerkAppPath\$publicInvoiceClerkName"
 $publicTransporterApp = "$publicTransporterAppPath\$publicTransporterName"
-    # benchmark app
+# benchmark app
 $benchmarkApp = "$benchmarkAppPath\$benchmarkName"
 
 # parameters
 $scheme = 3 # enum class scheme_type {None, bfv, ckks, bgv}
-$batchingEnabled = $true
+$batchingEnabled = $false
 $timeUnit = 2  # enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 $numberOfRequest = 500
-$isSecret = $false
+$isSecret = $true
 $isContext = $false
 
 $schemeArg = "--st $scheme"
@@ -162,10 +162,10 @@ function stopPublicAppsForced {
 }
 
 function stopPublicApps {
-    Start-Process $vtuneApp -Verb RunAs -ArgumentList "-r $root\r005hs -command stop"
-    Start-Process $vtuneApp -Verb RunAs -ArgumentList "-r $root\r006hs -command stop"
-    Start-Process $vtuneApp -Verb RunAs -ArgumentList "-r $root\r007hs -command stop"
-    Start-Process $vtuneApp -Verb RunAs -ArgumentList "-r $root\r008hs -command stop"
+    Start-Process $vtuneApp -Verb RunAs -ArgumentList "-r $root\r000hs -command stop"
+    Start-Process $vtuneApp -Verb RunAs -ArgumentList "-r $root\r001hs -command stop"
+    Start-Process $vtuneApp -Verb RunAs -ArgumentList "-r $root\r002hs -command stop"
+    Start-Process $vtuneApp -Verb RunAs -ArgumentList "-r $root\r003hs -command stop"
 }
 
 function stopSecretAppsForced {

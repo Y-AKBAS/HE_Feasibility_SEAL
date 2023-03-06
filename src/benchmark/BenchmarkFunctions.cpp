@@ -120,7 +120,6 @@ namespace yakbas {
     static void SecretBookOnMobilityProvidersSymmetric(benchmark::State &state) {
         try {
             sec::ClientManager clientManager;
-            benchmark::DoNotOptimize(clientManager.Search("Leipzig", "Halle"));
             const auto journeyVecPtr = clientManager.Search("Leipzig", "Halle");
             const auto vec_size = journeyVecPtr->size();
             size_t index{};
@@ -255,14 +254,13 @@ namespace yakbas {
     void RegisterSecretRequestBenchmarks(const sec::SecretCommandLineInfo &info) {
         LOG4CPLUS_INFO(benchmarkLogger, "Will run secret request benchmarks...");
         auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
-        BENCHMARK(SecretBookAsymmetricOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         //BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         //BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        //BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        //BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(SecretBookAsymmetricOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-        BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(
-                timeUnit);
         BENCHMARK(SecretUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-        BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
     }
 
     void RegisterPublicRequestBenchmarks(const sec::SecretCommandLineInfo &info) {
