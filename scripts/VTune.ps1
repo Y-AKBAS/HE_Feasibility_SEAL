@@ -57,12 +57,12 @@ $publicTransporterApp = "$publicTransporterAppPath\$publicTransporterName"
 $benchmarkApp = "$benchmarkAppPath\$benchmarkName"
 
 # parameters
-$scheme = 1 # enum class scheme_type {None, bfv, ckks, bgv}
+$scheme = 3 # enum class scheme_type {None, bfv, ckks, bgv}
 $batchingEnabled = $false
 $timeUnit = 2  # enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 $numberOfRequest = 500
-$isSecret = $false
-$isContext = $true
+$isSecret = $true
+$isContext = $false
 
 $schemeArg = "--st $scheme"
 $batchingEnabledArg = "--ee $batchingEnabled"

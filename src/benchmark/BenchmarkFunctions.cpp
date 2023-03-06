@@ -255,14 +255,13 @@ namespace yakbas {
     void RegisterSecretRequestBenchmarks(const sec::SecretCommandLineInfo &info) {
         LOG4CPLUS_INFO(benchmarkLogger, "Will run secret request benchmarks...");
         auto timeUnit = static_cast<benchmark::TimeUnit>(info.timeUnit);
-        BENCHMARK(SecretBookAsymmetricOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         //BENCHMARK(SecretBookOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         //BENCHMARK(SecretBookOnPlatformSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        //BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        //BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
+        BENCHMARK(SecretBookAsymmetricOnPlatform)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
         BENCHMARK(SecretBookOnMobilityProviders)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-        BENCHMARK(SecretBookOnMobilityProvidersSymmetric)->Iterations(info.m_numberOfRequests)->Unit(
-                timeUnit);
         BENCHMARK(SecretUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
-        BENCHMARK(SecretSymmetricUsageTest)->Iterations(info.m_numberOfRequests)->Unit(timeUnit);
     }
 
     void RegisterPublicRequestBenchmarks(const sec::SecretCommandLineInfo &info) {
