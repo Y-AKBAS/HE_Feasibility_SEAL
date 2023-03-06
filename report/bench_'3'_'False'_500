@@ -1,10 +1,10 @@
 {
   "context": {
-    "date": "2023-03-05T12:02:35+01:00",
+    "date": "2023-03-05T22:28:21+01:00",
     "host_name": "DESKTOP-98VBEL8",
     "executable": "C:\\Users\\monster\\CLionProjects\\HE_Feasibility_SEAL\\cmake-build-relwithdebinfo\\src\\benchmark\\benchmark",
     "num_cpus": 8,
-    "mhz_per_cpu": 2847,
+    "mhz_per_cpu": 2826,
     "caches": [
       {
         "type": "Data",
@@ -45,8 +45,8 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 500,
-      "real_time": 5.4003038819995709e+02,
-      "cpu_time": 8.5000000000000000e+00,
+      "real_time": 5.7318090439995285e+02,
+      "cpu_time": 1.0531250000000000e+01,
       "time_unit": "ms"
     },
     {
@@ -59,27 +59,13 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 500,
-      "real_time": 4.7589165599993430e+02,
-      "cpu_time": 9.2781250000000000e+01,
-      "time_unit": "ms"
-    },
-    {
-      "name": "SecretBookOnMobilityProvidersSymmetric/iterations:500",
-      "family_index": 2,
-      "per_family_instance_index": 0,
-      "run_name": "SecretBookOnMobilityProvidersSymmetric/iterations:500",
-      "run_type": "iteration",
-      "repetitions": 1,
-      "repetition_index": 0,
-      "threads": 1,
-      "iterations": 500,
-      "real_time": 4.3880931200005580e+02,
-      "cpu_time": 7.2562500000000000e+01,
+      "real_time": 5.7499009660002775e+02,
+      "cpu_time": 9.7062500000000000e+01,
       "time_unit": "ms"
     },
     {
       "name": "SecretUsageTest/iterations:500",
-      "family_index": 3,
+      "family_index": 2,
       "per_family_instance_index": 0,
       "run_name": "SecretUsageTest/iterations:500",
       "run_type": "iteration",
@@ -87,22 +73,8 @@
       "repetition_index": 0,
       "threads": 1,
       "iterations": 500,
-      "real_time": 1.4215818500006571e+02,
-      "cpu_time": 9.5625000000000000e+00,
-      "time_unit": "ms"
-    },
-    {
-      "name": "SecretSymmetricUsageTest/iterations:500",
-      "family_index": 4,
-      "per_family_instance_index": 0,
-      "run_name": "SecretSymmetricUsageTest/iterations:500",
-      "run_type": "iteration",
-      "repetitions": 1,
-      "repetition_index": 0,
-      "threads": 1,
-      "iterations": 500,
-      "real_time": 1.1674273739999626e+02,
-      "cpu_time": 8.9375000000000000e+00,
+      "real_time": 3.4904017200006638e+02,
+      "cpu_time": 1.3218750000000000e+01,
       "time_unit": "ms"
     }
   ]
