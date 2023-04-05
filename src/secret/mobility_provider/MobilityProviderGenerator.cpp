@@ -89,7 +89,7 @@ namespace yakbas::sec {
                                                        const SealOperations &operations,
                                                        const seal::Encryptor &encryptor,
                                                        communication::sec::Ride *ridePtr) {
-        // optionals: seatPrice, discount
+
         const auto providerId = GetUUID();
         const bool isCkks = operations.GetSealInfoPtr()->m_sealKeys.m_schemeType == seal::scheme_type::ckks;
         const auto randomNumber = isCkks ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
@@ -133,7 +133,7 @@ namespace yakbas::sec {
     void MobilityProviderGenerator::GenerateRide(const communication::SearchRequest *request,
                                                  const SealOperations &operations,
                                                  communication::Ride *ridePtr) {
-        // optionals: seatPrice, discount
+
         const auto providerId = GetUUID();
         const bool isCkks = operations.GetSealInfoPtr()->m_sealKeys.m_schemeType == seal::scheme_type::ckks;
         const auto randomNumber = isCkks ? GetRandomNumberVariant<double>() : GetRandomNumberVariant<std::uint64_t>();
@@ -149,7 +149,6 @@ namespace yakbas::sec {
         // set Transporter
         const auto transporterPtr = ridePtr->mutable_transporter();
         transporterPtr->set_providerid(providerId);
-        NumVariantToAny(&randomNumber, transporterPtr->mutable_unitprice());
         transporterPtr->set_capacity(GetRandomNumber<std::uint64_t>());
         transporterPtr->set_transportertype(transporterType);
         transporterPtr->set_unitpricetype(m_transporterUnitPriceType.find(transporterType)->second);
@@ -160,6 +159,7 @@ namespace yakbas::sec {
         ridePtr->set_from(request->from());
         ridePtr->set_to(request->to());
 
+        NumVariantToAny(&randomNumber, transporterPtr->mutable_unitprice());
         NumVariantToAny(&randomNumber, transporterPtr->mutable_seatprice());
         NumVariantToAny(&randomNumber, ridePtr->mutable_coefficient());
         NumVariantToAny(&randomNumber, ridePtr->mutable_discount());
