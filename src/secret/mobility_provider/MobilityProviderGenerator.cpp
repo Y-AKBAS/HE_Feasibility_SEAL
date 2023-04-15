@@ -29,11 +29,16 @@ namespace yakbas::sec {
                                                                    grpc::ServerWriter<communication::sec::Journey> *writer,
                                                                    const SealOperations &operations,
                                                                    const seal::Encryptor &encryptor) {
+        std::uint64_t chunkCount{};
         try {
             for (int i = 0; i < request->numberofjourneys(); ++i) {
                 const auto journeyPtr = GetUnique<communication::sec::Journey>();
                 GenerateSecretRides(request, operations, encryptor, journeyPtr.get(),
                                     constants::NUMBER_OF_RIDES_PER_JOURNEY);
+                chunkCount++;
+                m_logger->log(log4cplus::INFO_LOG_LEVEL,
+                              "MobilityProviderGenerator::GenerateSecretJourneys " + std::to_string(chunkCount) +
+                              ". chunk: " + std::to_string(journeyPtr->ByteSizeLong()));
                 writer->Write(*journeyPtr);
             }
         } catch (const std::exception &e) {

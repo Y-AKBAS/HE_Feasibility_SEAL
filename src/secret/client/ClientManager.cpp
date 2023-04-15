@@ -330,10 +330,15 @@ namespace yakbas::sec {
         requestPtr->set_publickey(m_userPtr->GetCustomSealOperations()->GetPublicKeyBuffer());
         requestPtr->set_relinkeys(m_userPtr->GetCustomSealOperations()->GetRelinKeysBuffer());
 
+        m_logger->log(log4cplus::INFO_LOG_LEVEL, "ClientManager::BookAsymmetricOnPlatform request_size: " +
+                                                 std::to_string(requestPtr->ByteSizeLong()));
+
         auto responsePtr = GetUnique<communication::sec::BookingResponse>();
         const auto &status = stubPtr->BookAsymmetricOnPlatform(
                 clientContext.get(), *requestPtr, responsePtr.get());
 
+        m_logger->log(log4cplus::INFO_LOG_LEVEL, "ClientManager::BookAsymmetricOnPlatform response_size: " +
+                                                 std::to_string(responsePtr->ByteSizeLong()));
         if (status.ok()) {
             LOG4CPLUS_TRACE(*m_logger, "Secret BookAsymmetricOnPlatform was a success...");
         } else {
@@ -355,13 +360,22 @@ namespace yakbas::sec {
         const auto clientWriterPtr = stubPtr->BookOnMobilityProviders(clientContextPtr.get(), responsePtr.get());
 
         const auto &rides = journey.rides();
+        std::uint64_t chunkCount{};
+
+        const auto requestPtr = GetUnique<communication::sec::BookingRequest>();
+        const auto &customSealOperations = m_userPtr->GetCustomSealOperations();
+        requestPtr->set_relinkeys(customSealOperations->GetRelinKeysBuffer());
+
+        m_logger->log(log4cplus::INFO_LOG_LEVEL,
+                      "relinkeys size: " + std::to_string(customSealOperations->GetRelinKeysBuffer().size()));
+        m_logger->log(log4cplus::INFO_LOG_LEVEL,
+                      "public key size: " + std::to_string(customSealOperations->GetPublicKeyBuffer().size()));
+        m_logger->log(log4cplus::INFO_LOG_LEVEL,
+                      "ClientManager::BookOnMobilityProviders request with relinkeys: " +
+                      std::to_string(requestPtr->ByteSizeLong()));
 
         for (const auto &ride: rides) {
-
-            const auto requestPtr = GetUnique<communication::sec::BookingRequest>();
-            const auto &customSealOperations = m_userPtr->GetCustomSealOperations();
-            requestPtr->set_relinkeys(customSealOperations->GetRelinKeysBuffer());
-
+            chunkCount++;
             int bookingType = GetRandomNumber<int>() % (communication::BookingType_ARRAYSIZE - 1);
             requestPtr->set_bookingtype(static_cast<communication::BookingType>(bookingType));
 
@@ -385,6 +399,10 @@ namespace yakbas::sec {
                 requestPtr->set_seatprice(*seatPriceBuffer);
             }
 
+            m_logger->log(log4cplus::INFO_LOG_LEVEL,
+                          "ClientManager::BookOnMobilityProviders " + std::to_string(chunkCount) +
+                          ". request chunk: " + std::to_string(requestPtr->ByteSizeLong()));
+
             if (!clientWriterPtr->Write(*requestPtr)) {
                 throw std::bad_function_call();
             }
@@ -400,6 +418,10 @@ namespace yakbas::sec {
                             "Error occurred BookOnMobilityProviders. Error message: " +
                             status.error_message());
         }
+
+        m_logger->log(log4cplus::INFO_LOG_LEVEL,
+                      "ClientManager::BookOnMobilityProviders response size:" +
+                      std::to_string(responsePtr->ByteSizeLong()));
 
         return responsePtr;
     }

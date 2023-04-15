@@ -17,6 +17,11 @@ namespace yakbas::sec {
                 logger, cmdLineParserResultPair
         );
 
+        SealKeys sealKeys{};
+        sealKeys.m_schemeType = static_cast<seal::scheme_type>(1);
+        sealKeys.m_isEncodingEnabled = true;
+        resultPtr->m_sealKeys = sealKeys;
+
         LOG4CPLUS_INFO(logger, resultPtr->m_sealKeys.ToString());
         return resultPtr;
     }

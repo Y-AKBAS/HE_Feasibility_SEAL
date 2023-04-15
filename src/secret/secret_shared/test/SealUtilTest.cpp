@@ -8,6 +8,7 @@
 #if (!DISABLE_TESTS)
 
 #include "CustomSealOperations.h"
+#include "Timer.h"
 #include <memory>
 #include <log4cplus/configurator.h>
 
@@ -28,6 +29,32 @@ namespace yakbas::sec::test {
     }
 
     TEST_SUITE("Seal Util Test Suit") {
+
+        TEST_CASE("Required plain modulus in big numbers test") {
+            auto max_int = std::numeric_limits<int32_t>::max();
+            std::cout << "Max int: " << max_int << std::endl;
+            const uint64_t millis = 12000;  // Timer::GetCurrentTimeMillis();
+            std::cout << "Millis: " << millis << '\n';
+            auto plain = static_cast<int>(std::pow(2.0, 14));
+            std::cout << std::boolalpha << "Plain: " << plain
+                      << " is less than max: " << (max_int >= plain)
+                      << '\n';
+
+            try {
+                SealKeys keys{};
+                keys.m_isEncodingEnabled = false;
+                keys.m_plainModulus = plain;//max_int - 1;
+                auto operations = util::GetUnique<CustomSealOperations>(keys);
+                auto cipher = operations->Encrypt(millis);
+                auto variant = operations->Decrypt(*cipher);
+                const auto decryptedNum = util::GetAnyVariant<uint64_t>(&variant);
+                std::cout << "Decrypted num: " << decryptedNum << '\n';
+                std::cout << "is equals: " << std::boolalpha << (decryptedNum == millis) << '\n';
+            } catch (std::exception &e) {
+                std::cerr << "Exception: " << e.what() << '\n';
+            }
+            log4cplus::deinitialize();
+        }
 
         TEST_CASE("Seal Util Tests") {
             ::log4cplus::initialize();

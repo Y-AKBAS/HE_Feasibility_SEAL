@@ -63,6 +63,9 @@ namespace yakbas::sec {
         if (auto requestTotalPtr = GetRequestTotalAndInsertSeat(*request, rideIdSeatNumberMap)) {
             const auto &buffer = CustomSealOperations::GetBufferFromCipher(*requestTotalPtr);
             response->set_total(buffer);
+            m_logger->log(log4cplus::INFO_LOG_LEVEL,
+                          "MobilityProviderServiceImpl::BookOnMobilityProvider response size: " +
+                          std::to_string(response->ByteSizeLong()));
             return grpc::Status::OK;
         }
 
@@ -205,9 +208,7 @@ namespace yakbas::sec {
                 rideIdSeatNumberMap->emplace(request.ride_id(), request.seatnumber());
             }
 
-            if (m_schemeType != seal::scheme_type::ckks) {
-                m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
-            }
+            m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
 
             return totalCipherPtr;
         } catch (const std::exception &exception) {

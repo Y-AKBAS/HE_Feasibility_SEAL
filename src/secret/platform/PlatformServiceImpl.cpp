@@ -123,7 +123,6 @@ namespace yakbas::sec {
         response->set_journey_id(GetUUID());
         const auto &relinKeys = request->relinkeys();
         const auto relinKeysPtr = m_customSealOperationsPtr->GetRelinKeysFromBuffer(GetUniqueStream(relinKeys));
-
         const auto &stub = m_platformClientManager->GetStub(constants::MOBILITY_PROVIDER_CHANNEL_1);
 
         grpc::ClientContext clientContext;
@@ -154,7 +153,6 @@ namespace yakbas::sec {
         m_customSealOperationsPtr->SwitchMode(*totalCipherPtr);
         const auto &buffer = CustomSealOperations::GetBufferFromCipher(*totalCipherPtr);
         response->set_total(buffer);
-
         return grpc::Status::OK;
     }
 

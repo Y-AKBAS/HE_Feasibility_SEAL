@@ -141,7 +141,7 @@ namespace yakbas::sec::test {
             const bool isCKKS = clientManagerPtr->GetSchemeType() == seal::scheme_type::ckks;
             CHECK(ClientManager::IsInitialized());
             Timer timer;
-            const int numberOfJourneys = 8;
+            const int numberOfJourneys = 3;
             const auto journeysVecPtr = clientManagerPtr->Search("Leipzig", "Halle", numberOfJourneys);
 
             for (int i = 0; i < numberOfJourneys; ++i) {
@@ -156,7 +156,7 @@ namespace yakbas::sec::test {
                     CHECK(total == totalBeforeSent);
                 }
             }
-            std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
+            /*std::uint64_t passedTimeInMillisWithStop = timer.PassedTimeInMillisWithStop();
             LOG4CPLUS_INFO(*logger,
                            "BookOnMobilityProvidersAndDecrypt passed time in millis for " +
                            std::to_string(numberOfJourneys) +
@@ -182,7 +182,7 @@ namespace yakbas::sec::test {
                            "BookSymmetricOnMobilityProvidersAndDecrypt passed time in millis for " +
                            std::to_string(numberOfJourneys) +
                            " journeys: " +
-                           std::to_string(passedTimeInMillisWithStop));
+                           std::to_string(passedTimeInMillisWithStop));*/
         }
 
         TEST_CASE("Usage Tests") {

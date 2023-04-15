@@ -6,7 +6,7 @@ $buildType = "relwithdebinfo"
 $secretPath = Get-Item -Path "$root\cmake-build-$buildType\src\secret"
 
 $scheme = 3
-$batchingEnabled = $false
+$batchingEnabled = $true
 
 $schemeArg = "--st $scheme"
 $batchingEnabledArg = "--ee $batchingEnabled"
@@ -31,11 +31,10 @@ cd "$secretPath\transporter\"
 Start-Process -NoNewWindow ".\secretTransporter.exe" -ArgumentList $schemeArg,$batchingEnabledArg 
 Start-Sleep -Seconds 5
 cd "$secretPath\platform\"
-Start-Process -NoNewWindow ".\secretPlatform.exe" -ArgumentList $schemeArg,$batchingEnabledArg 
-cd $root
+Start-Process -NoNewWindow ".\secretPlatform.exe" -ArgumentList $schemeArg,$batchingEnabledArg
 Start-Sleep -Seconds 5
 cd "$secretPath\client\"
-Start-Process -NoNewWindow ".\secretClient.exe" -ArgumentList $schemeArg,$batchingEnabledArg 
+#Start-Process -NoNewWindow ".\secretClient.exe" -ArgumentList $schemeArg,$batchingEnabledArg
 
 cd $root
 }
