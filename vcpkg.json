@@ -1,0 +1,31 @@
+{
+    "name": "he-feasibility-seal",
+    "version-string": "1.0.0",
+    "dependencies": [
+        {
+            "name": "seal",
+            "version>=": "4.1.1"
+        },
+        {
+            "name": "boost-program-options",
+            "version>=": "1.82.0"
+        },
+        {
+            "name": "doctest",
+            "version>=": "2.4.9"
+        },
+        {
+            "name": "grpc",
+            "version>=": "1.51.1"
+        },
+        {
+            "name": "benchmark",
+            "version>=": "1.8.0"
+        },
+        {
+            "name": "log4cplus",
+            "version>=": "2.0.7"
+        }
+    ],
+    "builtin-baseline": "8f3e8d6e95c7f91edea60c47a7d1414ab5ca9492"
+}
